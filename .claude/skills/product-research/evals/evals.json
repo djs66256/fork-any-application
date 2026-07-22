@@ -1,0 +1,23 @@
+{
+  "skill_name": "product-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "爬一下红果的首页推荐流，从冷启动到浏览 Feed 再到点击视频的完整交互流程，包括 UI 布局和加载策略，整理成完整的业务功能文档",
+      "expected_output": "按 5 阶段流程：规划 → ADB 采集截图/录屏到 assets/ → 撰写采集文档到 captures/ → 多模态 subagent 分析 → 增量更新功能文档 homepage-feed.md → 创建 revisions/ → 更新 index.md",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "帮我看下红果的搜索是怎么做的，从搜索入口、输入联想、结果展示到搜索历史，写一份竞品分析文档，和我们的 ShortVideo 搜索做对比",
+      "expected_output": "产出采集文档 captures/<日期>-search/capture.md + 功能文档 search.md，功能文档含对比表格，截图引用标注采集源",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "调研红果播放器的所有交互细节——进入退出动画、控制栏布局、横竖屏切换、进度拖拽、倍速、清晰度切换，录屏分析，产出完整的播放器业务功能文档",
+      "expected_output": "采集录屏 + 逐帧截图到 assets/ → 采集文档到 captures/ → 多模态 subagent 分析各交互维度 → 功能文档 video-player.md 含 UI 数值化描述和 mermaid 流程图 → revisions/ + index 全部更新",
+      "files": []
+    }
+  ]
+}

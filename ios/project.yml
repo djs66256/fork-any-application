@@ -1,0 +1,69 @@
+name: ShortDrama
+
+options:
+  bundleIdPrefix: com.djs66256
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "27.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    INFOPLIST_FILE: ShortDrama/Resources/Info.plist
+
+targets:
+  ShortDrama:
+    type: application
+    platform: iOS
+    sources:
+      - path: ShortDrama/Sources
+    resources:
+      - path: ShortDrama/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.djs66256.short_drama
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: ShortDrama/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    preBuildScripts:
+      - name: SwiftLint
+        script: |
+          if which swiftlint > /dev/null; then
+            swiftlint
+          fi
+        basedOnDependencyAnalysis: false
+    configs:
+      Debug:
+        type: debug
+        xcconfig: Configs/Debug.xcconfig
+      Release:
+        type: release
+        xcconfig: Configs/Release.xcconfig
+
+  ShortDramaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ShortDrama/Tests
+    dependencies:
+      - target: ShortDrama
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+
+schemes:
+  ShortDrama:
+    build:
+      targets:
+        ShortDrama: all
+        ShortDramaTests: [test]
+    test:
+      targets:
+        - name: ShortDramaTests
+    run:
+      config: Debug
+    archive:
+      config: Release

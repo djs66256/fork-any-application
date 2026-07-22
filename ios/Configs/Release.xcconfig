@@ -1,0 +1,19 @@
+// ⚠️ 本地开发存档使用 CODE_SIGNING_ALLOWED=NO 跳过签名
+//
+// 上线 App Store 前，请完成以下步骤：
+// 1. 在下方填入你的 DEVELOPMENT_TEAM（Apple Developer 账号 Team ID）
+// 2. 取消注释 DEVELOPMENT_TEAM 和 CODE_SIGN_STYLE 行
+// 3. 从 Apple Developer 下载 Distribution Provisioning Profile 并安装
+// 4. 将 PROVISIONING_PROFILE_SPECIFIER 替换为 Profile 名称
+// 5. 构建命令：
+//    xcodebuild -project ShortDrama.xcodeproj -scheme ShortDrama \
+//      -configuration Release -sdk iphoneos \
+//      -destination 'generic/platform=iOS' \
+//      archive -archivePath build/ShortDrama.xcarchive
+
+CODE_SIGN_STYLE = Automatic
+// 上线时替换为下面三行（并删除上面的 Automatic 行）：
+// CODE_SIGN_STYLE = Manual
+// DEVELOPMENT_TEAM =
+// PROVISIONING_PROFILE_SPECIFIER =
+// CODE_SIGN_IDENTITY = Apple Distribution

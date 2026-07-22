@@ -1,0 +1,420 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6959F86B3A8B25963F419907 /* ShortDramaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC214168E75DE73D546721BA /* ShortDramaTests.swift */; };
+		99434CD4B9A85DB73B73CF16 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51E0D16DFE468742F68CDB45 /* ContentView.swift */; };
+		D3552A5314E4B4175FBA3D8D /* ShortDramaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDE3879FB7FCB14B5CC5E75F /* ShortDramaApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		16E4B141BFB612C60B3758D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8763F18CA00138849DFFDB70 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DBB0BAE3E16A070F2C875D05;
+			remoteInfo = ShortDrama;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		51E0D16DFE468742F68CDB45 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		69E919CA09B73F78C8960EE8 /* ShortDrama.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ShortDrama.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C6E88F39AD1FFDEE65B0EBC /* ShortDramaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ShortDramaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC214168E75DE73D546721BA /* ShortDramaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortDramaTests.swift; sourceTree = "<group>"; };
+		FDE3879FB7FCB14B5CC5E75F /* ShortDramaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortDramaApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		39CF7E67EDF64CC7743714DD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				69E919CA09B73F78C8960EE8 /* ShortDrama.app */,
+				6C6E88F39AD1FFDEE65B0EBC /* ShortDramaTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4C15D1B5DD1502F7446C0CBA = {
+			isa = PBXGroup;
+			children = (
+				E9EE32F36F88EA9C97F30ABE /* Sources */,
+				B7A0DEFF7C42E4B2D7264996 /* Tests */,
+				39CF7E67EDF64CC7743714DD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B7A0DEFF7C42E4B2D7264996 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				BC214168E75DE73D546721BA /* ShortDramaTests.swift */,
+			);
+			name = Tests;
+			path = ShortDrama/Tests;
+			sourceTree = "<group>";
+		};
+		E9EE32F36F88EA9C97F30ABE /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				51E0D16DFE468742F68CDB45 /* ContentView.swift */,
+				FDE3879FB7FCB14B5CC5E75F /* ShortDramaApp.swift */,
+			);
+			name = Sources;
+			path = ShortDrama/Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		588403632B4B6C3926E8F71B /* ShortDramaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4C24FF246FEE09D449188A8C /* Build configuration list for PBXNativeTarget "ShortDramaTests" */;
+			buildPhases = (
+				EB87EE7D6FF06E0ACFF2E578 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2694727F840E31ECD7A6A7B9 /* PBXTargetDependency */,
+			);
+			name = ShortDramaTests;
+			packageProductDependencies = (
+			);
+			productName = ShortDramaTests;
+			productReference = 6C6E88F39AD1FFDEE65B0EBC /* ShortDramaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DBB0BAE3E16A070F2C875D05 /* ShortDrama */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 06170503FD85624D24B0EB24 /* Build configuration list for PBXNativeTarget "ShortDrama" */;
+			buildPhases = (
+				F97AA9B5018A007F85BF35BC /* SwiftLint */,
+				CE62C9AE155F3F92450F2DA4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShortDrama;
+			packageProductDependencies = (
+			);
+			productName = ShortDrama;
+			productReference = 69E919CA09B73F78C8960EE8 /* ShortDrama.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8763F18CA00138849DFFDB70 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = DBA0ABD903D52BE34D28E3BA /* Build configuration list for PBXProject "ShortDrama" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4C15D1B5DD1502F7446C0CBA;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 39CF7E67EDF64CC7743714DD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DBB0BAE3E16A070F2C875D05 /* ShortDrama */,
+				588403632B4B6C3926E8F71B /* ShortDramaTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		F97AA9B5018A007F85BF35BC /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint > /dev/null; then\n  swiftlint\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CE62C9AE155F3F92450F2DA4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99434CD4B9A85DB73B73CF16 /* ContentView.swift in Sources */,
+				D3552A5314E4B4175FBA3D8D /* ShortDramaApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EB87EE7D6FF06E0ACFF2E578 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6959F86B3A8B25963F419907 /* ShortDramaTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2694727F840E31ECD7A6A7B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DBB0BAE3E16A070F2C875D05 /* ShortDrama */;
+			targetProxy = 16E4B141BFB612C60B3758D4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		00597A13D21E08B94F2F1FE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.djs66256.ShortDramaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ShortDrama.app/ShortDrama";
+			};
+			name = Debug;
+		};
+		0CE1A6C5EE90653D70A27DF4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.djs66256.ShortDramaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ShortDrama.app/ShortDrama";
+			};
+			name = Release;
+		};
+		7A51A585311861F15462C2C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.djs66256.short_drama;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ABEFA0B5C97821DAB09FEE8B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		D60F9C609AA67CD93E2B1F57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		E6BA80CA3558FAE06FFF9188 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.djs66256.short_drama;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		06170503FD85624D24B0EB24 /* Build configuration list for PBXNativeTarget "ShortDrama" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A51A585311861F15462C2C5 /* Debug */,
+				E6BA80CA3558FAE06FFF9188 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4C24FF246FEE09D449188A8C /* Build configuration list for PBXNativeTarget "ShortDramaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00597A13D21E08B94F2F1FE0 /* Debug */,
+				0CE1A6C5EE90653D70A27DF4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DBA0ABD903D52BE34D28E3BA /* Build configuration list for PBXProject "ShortDrama" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ABEFA0B5C97821DAB09FEE8B /* Debug */,
+				D60F9C609AA67CD93E2B1F57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8763F18CA00138849DFFDB70 /* Project object */;
+}

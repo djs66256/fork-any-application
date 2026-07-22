@@ -1,0 +1,94 @@
+{
+  "skill_name": "llm-wiki",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想了解一下当前项目有哪些功能模块，各端的实现状态是什么样的？帮我整理一下。",
+      "expected_output": "Agent 应首先查阅 wiki/index.md，根据索引中的功能域列表和各端状态标识，向用户汇报当前项目功能模块的覆盖情况。如果 wiki 为空或未初始化，应按 llm-wiki 规范创建初始索引和结构。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "checks_wiki_index",
+          "description": "Agent 首先查阅 wiki/index.md 作为功能模块入口",
+          "type": "behavioral"
+        },
+        {
+          "name": "reports_feature_domains",
+          "description": "Agent 汇报了项目中的功能域列表（至少包含播放器、首页Feed等）",
+          "type": "behavioral"
+        },
+        {
+          "name": "reports_end_status",
+          "description": "Agent 明确标注了各端（Web/Android/iOS/Backend）的实现状态",
+          "type": "behavioral"
+        },
+        {
+          "name": "creates_initial_wiki",
+          "description": "如果 wiki 为空或未初始化，Agent 应按规范创建初始目录结构和索引",
+          "type": "behavioral"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我要开始做播放器功能了，帮我看看当前项目里播放器相关的逻辑是怎么实现的，包括前端和后端。",
+      "expected_output": "Agent 应先查阅 wiki/features/video-player.md 是否存在。如存在则读取并汇报；如不存在则告知用户该功能尚未录入 wiki，然后扫描各端代码目录查找播放器相关实现，按功能文档模板生成首版 wiki/features/video-player.md，并更新 wiki/index.md。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "checks_wiki_first",
+          "description": "Agent 先查阅 wiki/features/video-player.md 是否存在",
+          "type": "behavioral"
+        },
+        {
+          "name": "scans_code_on_missing_wiki",
+          "description": "如果 wiki 中没有视频播放器文档，Agent 扫描各端代码目录查找播放器相关实现",
+          "type": "behavioral"
+        },
+        {
+          "name": "covers_frontend_backend",
+          "description": "Agent 的响应覆盖了前端和后端的实现（不限于单一端）",
+          "type": "behavioral"
+        },
+        {
+          "name": "structured_response",
+          "description": "Agent 提供结构化响应，包括组件/文件路径、核心逻辑、API 接口等",
+          "type": "behavioral"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我刚把后端播放器相关的 API 接口改完了，接口路径从 /api/video/play 改成了 /api/player/start，也新增了一个 /api/player/stop 接口。代码在 backend/ 里改好了，帮我更新一下项目文档。",
+      "expected_output": "Agent 应自动识别这是开发完成后的更新场景：识别变更涉及播放器功能域和 Backend 端，找到 wiki/features/video-player.md，在 API 接口章节增量更新路径变更信息，更新文档时间戳，刷新 wiki/index.md 中的最近更新时间。如果 video-player.md 不存在，应先从代码生成再更新。",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies_target_doc",
+          "description": "Agent 识别出变更影响 wiki/features/video-player.md",
+          "type": "behavioral"
+        },
+        {
+          "name": "updates_api_chapter",
+          "description": "Agent 在 API 接口章节记录了 /api/video/play → /api/player/start 的路径变更",
+          "type": "behavioral"
+        },
+        {
+          "name": "adds_new_endpoint",
+          "description": "Agent 在文档中新增了 /api/player/stop 接口",
+          "type": "behavioral"
+        },
+        {
+          "name": "updates_timestamp",
+          "description": "Agent 更新了文档时间戳，反映最近更新时间",
+          "type": "behavioral"
+        },
+        {
+          "name": "updates_index",
+          "description": "Agent 刷新了 wiki/index.md 中的最近更新时间",
+          "type": "behavioral"
+        }
+      ]
+    }
+  ]
+}
