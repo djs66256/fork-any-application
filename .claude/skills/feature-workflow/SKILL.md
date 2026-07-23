@@ -315,7 +315,10 @@ python3 scripts/workflow.py init add-playback-speed
 | `assets/spec-template.md` | 需求文档模板 |
 | `assets/spec-review-template.md` | 需求 review 报告模板 |
 | `assets/design-template.md` | 共享技术方案模板 |
-| `assets/design-platform-template.md` | 各端技术方案模板 |
+| `assets/design-backend-template.md` | Backend 端技术方案模板 |
+| `assets/design-ios-template.md` | iOS 端技术方案模板 |
+| `assets/design-android-template.md` | Android 端技术方案模板 |
+| `assets/design-web-template.md` | Web 端技术方案模板 |
 | `assets/design-review-template.md` | 技术方案 review 报告模板 |
 | `assets/plan-template.md` | 实现计划模板（TDD：测试→实现→验证→补充测试） |
 | `assets/code-review-template.md` | 代码 review 报告模板 |

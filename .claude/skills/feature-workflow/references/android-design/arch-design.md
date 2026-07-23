@@ -46,7 +46,7 @@ Subagent：
 
     ## 任务
 
-    按 `assets/design-platform-template.md` 模板，撰写 Android 端技术方案，
+    按 `assets/design-android-template.md` 模板，撰写 Android 端技术方案，
     输出到 `docs/specs/<YYYY-MM-dd>-<name>/design-android.md`。
 
     方案必须与 `design.md` 中的 API 设计、数据模型和跨端共享逻辑保持一致。

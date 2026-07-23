@@ -46,7 +46,7 @@ Subagent：
 
     ## 任务
 
-    按 `assets/design-platform-template.md` 模板，撰写 Backend 端技术方案，
+    按 `assets/design-backend-template.md` 模板，撰写 Backend 端技术方案，
     输出到 `docs/specs/<YYYY-MM-dd>-<name>/design-backend.md`。
 
     方案必须与 `design.md` 中的 API 定义和数据模型保持严格一致。
