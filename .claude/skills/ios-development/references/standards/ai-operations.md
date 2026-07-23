@@ -1,11 +1,88 @@
 # AI 操作与自动化 — iOS
 
 > 本文档定义 iOS 端 AI agent 可执行的设备操作与自动化能力。
-> 所有命令假设已安装 Xcode 和 Simulator，无需额外 iOS 开发环境外的依赖。
+> 所有命令假设已安装 Xcode 27+ 和 Simulator。
 
 ---
 
-## 1. 模拟器控制 (simctl)
+## 0. Xcode MCP（推荐方式）
+
+Xcode 27+ 内置了 MCP（Model Context Protocol）Server，AI agent 通过 MCP 协议直接与 Xcode 交互，无需手动执行 CLI 命令。
+这是 **最推荐** 的操作方式——语义化调用、自动获取结果、支持丰富的 Xcode 原生能力。
+
+### 0.1 启用 Xcode MCP
+
+在 Xcode 27 中，MCP Server 默认开启。AI agent 通过 MCP 工具调用即可操作 Xcode。
+
+Xcode MCP 提供的核心能力（摘要，以实际 tool list 为准）：
+
+| 能力域 | 说明 | 替代的传统方式 |
+|--------|------|---------------|
+| **项目管理** | 打开/关闭 project、列出 targets、获取 scheme 列表 | 手动 Xcode 操作 |
+| **构建** | 触发 build、clean、test、archive，获取构建结果与错误 | `xcodebuild` CLI |
+| **运行** | 启动/停止模拟器、选择设备、安装 app、启动 app | `simctl` + `xcodebuild` |
+| **调试** | 设置断点、单步执行、读取变量值、查看调用栈 | LLDB CLI / Xcode GUI |
+| **UI 检查** | 获取 UI 层级树、查询元素属性（frame、label、identifier）、查找匹配元素 | Accessibility Inspector / `po` |
+| **UI 交互** | 模拟点击、滑动、文本输入、手势操作 | XCUITest / `simctl` 有限命令 |
+| **截图** | 截取模拟器/设备屏幕（完整截图或指定元素截图） | `simctl io screenshot` |
+| **代码编辑** | 打开文件、定位到行、获取代码补全建议 | Xcode Source Editor |
+| **日志** | 获取运行时日志、过滤 subsystem/category/级别 | `log stream` |
+| **模拟器管理** | 创建/删除/启动/关闭模拟器、管理运行时、擦除数据 | `simctl` CLI |
+| **设备管理** | 列出真机、安装应用到真机、获取设备信息 | `xctrace` / `cfgutil` |
+
+### 0.2 MCP 操作示例
+
+以下为通过 MCP 执行典型任务的示意流程：
+
+**构建并运行 App：**
+
+```
+1. mcp: build_project(scheme: "ShortDrama", destination: "iPhone 15 Pro")
+   → 返回构建日志、错误（如有）
+2. mcp: boot_simulator(device: "iPhone 15 Pro")  → 启动模拟器
+3. mcp: install_app(bundleId: "com.djs66256.short_drama")  → 安装 app
+4. mcp: launch_app(bundleId: "com.djs66256.short_drama")  → 启动 app
+```
+
+**UI 交互式截图：**
+
+```
+1. mcp: launch_app(bundleId: "com.djs66256.short_drama")  → 启动 app
+2. mcp: screenshot()  → 截取首页
+3. mcp: tap(x: 160, y: 300)  → 点击短剧卡片
+4. mcp: wait_for_element(identifier: "player_view", timeout: 5)  → 等待播放器
+5. mcp: screenshot()  → 截取播放页
+```
+
+**UI 树检查：**
+
+```
+1. mcp: get_ui_tree()  → 获取完整 UI 层级 JSON
+2. mcp: find_element(identifier: "drama_card_0")  → 定位特定元素
+3. mcp: get_element_attributes(identifier: "drama_card_0")
+   → 返回 frame、label、isEnabled 等属性
+```
+
+**调试与日志：**
+
+```
+1. mcp: set_breakpoint(file: "HomeViewModel.swift", line: 42)  → 设断点
+2. mcp: launch_app(bundleId: "...")  → 启动触发断点
+3. mcp: get_variable("viewModel.dramas")  → 读取变量
+4. mcp: stream_logs(subsystem: "com.djs66256.short_drama", level: "debug")  → 实时日志
+```
+
+### 0.3 MCP 优先原则
+
+- **能用 MCP 就不用 CLI**。MCP 操作语义化、结果结构化、错误处理完善。
+- 当 MCP 不支持某个操作时（如复杂的 simctl 隐私权限重置），再回退到 CLI。
+- MCP 不可用时（Xcode 版本 < 27、MCP Server 未启动），使用下方 CLI 替代方案。
+
+---
+
+## 1. 模拟器控制 (simctl) —— CLI 备用方案
+
+以下 CLI 命令作为 MCP 不可用时的备用方案。
 
 `xcrun simctl` 是 Xcode 自带的模拟器控制工具，所有操作通过它完成。
 
@@ -198,7 +275,9 @@ echo "test content" | xcrun simctl pbpaste booted  # Mac 剪贴板内容不直�
 
 ## 2. UI 自动化
 
-### 2.1 XCUITest
+> **优先使用 MCP 的 `tap`、`swipe`、`type_text`、`get_ui_tree` 等工具进行交互式 UI 操作。**XCUITest 适用于需要断言和自动化的回归测试场景。
+
+### 2.1 XCUITest（自动化回归测试）
 
 - 使用 Xcode 内置的 XCUITest 框架编写 UI 自动化测试。
 - 测试文件放在 `ios/ShortDrama/Tests/UITests/`。
@@ -264,7 +343,9 @@ func printUITree(_ element: XCUIElement, indent: Int = 0) {
 
 ## 3. 截图与视觉比对
 
-### 3.1 截图采集
+> **优先使用 MCP 的 `screenshot` 工具**——支持全屏截图和指定元素截图，结果直接返回。
+
+### 3.1 截图采集（CLI 备用方案）
 
 - 自动化截图采集的完整流程：
 
