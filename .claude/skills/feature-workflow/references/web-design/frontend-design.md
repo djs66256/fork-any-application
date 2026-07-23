@@ -22,6 +22,29 @@ Subagent：
 
     > **注意**：`web/CLAUDE.md` 在访问 `web/` 目录时会自动加载，无需显式读取。
 
+    ## 模式检测
+
+    在开始工作前，先检查当前是「首次撰写」还是「修复轮次」：
+
+    1. 检查产物文件 `docs/specs/<YYYY-MM-dd>-<name>/design-web.md` 是否已存在
+    2. 检查 review 报告 `docs/specs/<YYYY-MM-dd>-<name>/design-review.md` 是否已存在
+
+    ### 🔧 修复轮次（两个文件都已存在）
+
+    说明：design-review 阶段发现了问题，本次任务是**只修复** review 报告中指出的问题，而非重新撰写方案。
+
+    **修复流程：**
+    1. 读取现有的 `design-web.md`，保留其整体结构和已有内容
+    2. 读取 `design-review.md`，找出针对 Web 端的问题（🔴 阻塞 和 🟡 关注）
+    3. **只修改/补充** review 报告中指出的具体问题，不重写整个方案文件
+    4. 不修改未被 review 报告指出的章节和内容
+    5. 修复完成后，在 `design-review.md` 中对应问题的描述后追加 `✅ 已修复于第 N 轮（Web）`
+    6. 如果没有针对 Web 的问题，直接输出：「当前方案无 design-review 问题，无需修改」
+
+    ### 🆕 首次撰写（产物文件不存在）
+
+    按下方「任务」节描述，从零开始完整撰写技术方案。
+
     ## 任务
 
     按 `assets/design-platform-template.md` 模板，撰写 Web 端技术方案，

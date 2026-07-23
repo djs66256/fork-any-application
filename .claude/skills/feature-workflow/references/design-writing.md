@@ -13,6 +13,26 @@
 
 ## design-shared（共享部分）
 
+### 模式检测
+
+在开始工作前，先判断当前是「首次撰写」还是「修复轮次」：
+
+1. 检查产物文件 `docs/specs/<YYYY-MM-dd>-<name>/design.md` 是否已存在
+2. 检查 review 报告 `docs/specs/<YYYY-MM-dd>-<name>/design-review.md` 是否已存在
+
+**🔧 修复轮次（两个文件都已存在）**：
+
+design-review 发现了问题，本次任务是**只修复** review 报告中指出的 shared 层面的问题，而非重新撰写。
+
+修复流程：
+1. 读取现有的 `design.md`，保留其整体结构和已有内容
+2. 读取 `design-review.md`，找出针对 Shared 设计（design.md）的问题（🔴 阻塞 和 🟡 关注）
+3. **只修改/补充** review 报告中指出的具体问题，不重写整个方案文件
+4. 不修改未被 review 报告指出的章节和内容
+5. 修复完成后，在 `design-review.md` 中对应问题的描述后追加 `✅ 已修复于第 N 轮（Shared）`
+
+**🆕 首次撰写（产物文件不存在）**：按下方「主 agent 执行」节描述，从零开始完整撰写。
+
 ### 主 agent 执行
 
 1. **了解现状**：调用 `Skill("llm-wiki")` 查阅相关 wiki 文档，理解现有架构和 API 设计
@@ -54,6 +74,16 @@ references/
 ```
 
 ### 执行流程
+
+#### 修复轮次判断
+
+在派发 design-platforms subagent 前，主 agent 先判断各平台是否处于修复轮次：
+
+- 如果 `design-{platform}.md` 和 `design-review.md` 都已存在 → 该平台处于修复轮次
+- Subagent 的 prompt 中已内置「模式检测」逻辑（见各 `references/<platform>-design/*.md`），会自动识别修复轮次并执行靶向修复
+- 主 agent 无需额外传递参数或修改 prompt
+
+**注意**：design-review 可能针对 shared（design.md）而非某具体平台。如果 review 中只涉及 shared 层问题而无某平台的问题，该平台的 subagent 会在模式检测中识别到「无本端问题」并直接跳过，不会重写方案文件。
 
 #### 第一步：加载 agent 定义
 

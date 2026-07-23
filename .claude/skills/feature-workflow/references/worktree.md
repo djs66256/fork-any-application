@@ -1,30 +1,25 @@
 # Worktree 操作规范
 
-feature-workflow 使用 git worktree 进行功能开发隔离。本规范定义 worktree 的创建、使用和合并流程。
+feature-workflow 使用 Claude 内置的 `EnterWorktree` / `ExitWorktree` 工具进行功能开发隔离。本规范定义 worktree 的创建、使用和合并流程。
 
 ## 约束
 
-- **所有 worktree 放在 `.worktree/` 目录下**，`.gitignore` 已忽略此路径
+- **全部使用 `EnterWorktree` / `ExitWorktree` 内置工具**，不直接使用原生 `git worktree` 命令
+- worktree 由 `EnterWorktree` 工具自动在 `.claude/worktrees/` 下创建和管理
 - **分支命名**：`feature/<YYYY-MM-dd>-<name>`（与 spec 目录名一致）
-- **worktree 路径命名**：`.worktree/<YYYY-MM-dd>-<name>`
-- 使用原生 `git worktree` 命令，不使用 `EnterWorktree` / `ExitWorktree` 工具
+- 创建 worktree 时，`EnterWorktree` 的 `name` 参数传入 `YYYY-MM-dd-<name>` 即可
 
 ## 创建 worktree
 
-在 `worktree-setup` 阶段创建 worktree：
+在 `worktree-setup` 阶段使用 `EnterWorktree` 工具创建 worktree：
+
+1. 调用 `EnterWorktree` 工具，`name` 参数为 `YYYY-MM-dd-<name>`
+2. 工具自动创建 worktree 并将会话切换到 worktree 目录
+3. 进入后执行 `python3 scripts/workflow.py init <name>`
 
 ```bash
-# 从 main 分支创建新分支和 worktree
-git worktree add .worktree/<YYYY-MM-dd>-<name> -b feature/<YYYY-MM-dd>-<name>
-
-# 验证创建成功
-git worktree list
-```
-
-创建后进入 worktree 目录进行后续开发：
-
-```bash
-cd .worktree/<YYYY-MM-dd>-<name>
+# 在 worktree 中执行 init
+python3 scripts/workflow.py init <name>
 ```
 
 ## 日常开发约束
@@ -35,18 +30,30 @@ cd .worktree/<YYYY-MM-dd>-<name>
   - type: feat / fix / refactor / test / docs / chore
   - scope: 平台名（backend/ios/android/web）或 cross
 
+## 退出 worktree（阶段结束时）
+
+在 `worktree-merge` 阶段，代码合并完成后使用 `ExitWorktree` 工具退出并清理 worktree：
+
+1. 先推送分支并合并到 main（通过 Bash 执行 git 命令）
+2. 调用 `ExitWorktree` 工具，参数：
+   - `action`: `"remove"`
+   - `discard_changes`: `false`
+3. 工具会自动清理 worktree 目录和关联分支
+
+注意：在调用 `ExitWorktree` 之前，务必确认代码已合并到 main 并推送成功。
+
 ## 合回主干
 
 在 `worktree-merge` 阶段执行：
 
 ```bash
 # 1. 确认当前在 worktree 目录中
-pwd  # 应显示 .worktree/<YYYY-MM-dd>-<name>
+pwd
 
 # 2. 推送分支到远程
 git push origin feature/<YYYY-MM-dd>-<name>
 
-# 3. 切回主仓库的 main 分支
+# 3. 切回主仓库的 main 分支（需要先退出 worktree，或通过 cd <project-root> 切换）
 cd <project-root>
 git checkout main
 git pull origin main
@@ -56,13 +63,9 @@ git merge --no-ff feature/<YYYY-MM-dd>-<name>
 
 # 5. 推送到远程
 git push origin main
-
-# 6. 清理 worktree
-git worktree remove .worktree/<YYYY-MM-dd>-<name>
-
-# 7. 删除本地分支（可选）
-git branch -d feature/<YYYY-MM-dd>-<name>
 ```
+
+然后使用 `ExitWorktree` 工具退出并清理 worktree。
 
 ## 异常处理
 
@@ -70,7 +73,7 @@ git branch -d feature/<YYYY-MM-dd>-<name>
 |------|---------|
 | worktree 创建失败（分支已存在） | 检查是否已有同名分支，如属于本项目则复用，否则换名 |
 | 合并冲突 | 手动解决冲突后 `git add . && git commit` |
-| worktree remove 失败（有未提交变更） | 先 `git add . && git commit` 或 `git stash`，然后重试 remove |
+| ExitWorktree 失败（有未提交变更） | 先 `git add . && git commit` 或 `git stash`，然后重试 |
 | main 有新的远程更新 | `git pull --rebase origin main` 后再 merge |
 
 ## 相关命令参考

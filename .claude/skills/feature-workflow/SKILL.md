@@ -76,22 +76,23 @@ flowchart TD
 
 ### 阶段 1：worktree-setup
 
-**执行者**：主 agent + Bash
+**执行者**：主 agent + EnterWorktree 工具
 
 **前置条件**：无
 
 1. 确认需求名称（kebab-case），如 `add-player-speed-control`
-2. **先创建 worktree**，再在 worktree 中执行 init（确保 workflow.json 在 worktree 中可用）：
+2. **使用内置 `EnterWorktree` 工具创建 worktree**（name 格式：`YYYY-MM-dd-<name>`）：
+   - 调用 `EnterWorktree` 工具，`name` 参数传入 `YYYY-MM-dd-<name>`
+   - 工具会自动在 `.claude/worktrees/` 下创建 worktree 并切换会话到该 worktree 中
+3. 进入 worktree 后执行 init：
    ```bash
-   git worktree add .worktree/<YYYY-MM-dd>-<name> -b feature/<YYYY-MM-dd>-<name>
-   cd .worktree/<YYYY-MM-dd>-<name>
    python3 scripts/workflow.py init <name>
    ```
-3. 验证：`git worktree list` 确认 worktree 正确创建
+4. 验证：worktree 目录已切换成功
 
 **产物**：worktree 就绪，`docs/specs/<YYYY-MM-dd>-<name>/workflow.json`
 
-**完成标志**：worktree 创建成功，已进入 worktree 目录，workflow.json 已就位
+**完成标志**：EnterWorktree 成功，已进入 worktree 目录，workflow.json 已就位
 
 **下一阶段提示**：「worktree 已就绪。是否开始需求撰写？」
 
@@ -129,7 +130,9 @@ flowchart TD
 1. 派发 spec-review subagent（prompt 见 reference 文件）
 2. Subagent 审查完整性/一致性/可行性，包括解决 spec 中的 `[待确认]` 标记
 3. Subagent 发现问题直接修复，输出 `spec-review.md`
-4. 主 agent 检查遗留问题：无遗留 → 推进；有遗留 → 询问用户 → 重新派发
+4. 主 agent 检查遗留问题：无遗留 → 推进；有遗留 → 询问用户 → 修复后重新派发
+   - **注意**：主 agent 修复 spec.md 时是靶向修复（只修改 review 报告中指出的问题），不是重写整个文档
+   - spec-review subagent 重新派发时，会看到已有 spec-review.md（记录历史问题），应按 review 模板重新审查更新后的 spec.md
 
 **产物**：`docs/specs/<YYYY-MM-dd>-<name>/spec-review.md`
 
@@ -196,8 +199,11 @@ flowchart TD
 2. Subagent **只输出问题报告**，不修改方案文件
 3. 主 agent 检查 review 结果：
    - **无问题** → `workflow.py advance` 推进到 design-human-review
-   - **有问题** → 调用 `workflow.py review-loop design-review --increment`，**回到 design-shared 或 design-platforms** 修改方案，修改后重新派发 subagent
+   - **有问题（🔴 阻塞 / 🟡 关注）** → 调用 `workflow.py review-loop design-review --increment`，按以下策略修复：
+     - **design.md 问题（Shared 层）** → 主 agent 直接修改 design.md（有完整上下文，靶向修复）
+     - **design-{platform}.md 问题（各端）** → 重新派发对应平台的 subagent。Subagent 会通过内置的「模式检测」（见各 `references/<platform>-design/*.md`）识别修复轮次，只修改 review 报告指出的问题，不重写整个方案
    - **仅 🟢 建议** → 不阻塞，直接推进
+   - **有遗留问题（需人决策）** → 向用户展示，用户回复后按修复模式修复
 4. 达到 3 轮上限 → 脚本输出 warning，强制停止循环
 
 **产物**：`docs/specs/<YYYY-MM-dd>-<name>/design-review.md`
@@ -214,6 +220,9 @@ flowchart TD
 
 - 通过：`python3 scripts/workflow.py human-review design-human-review --approve`
 - 驳回：`python3 scripts/workflow.py human-review design-human-review --reject`，回到 **阶段 5 (design-shared)**
+  - design.md 修改 → 主 agent 直接靶向修复
+  - design-{platform}.md 修改 → 重新派发对应平台 subagent（subagent 通过模式检测识别修复轮次）
+  - 修改完毕后重新走 design-review 流程
 
 **下一阶段提示**：「技术方案已确认。是否开始编写各端实现计划？」
 
@@ -273,18 +282,25 @@ flowchart TD
 
 ### 阶段 12：worktree-merge
 
-**执行者**：主 agent + Bash
+**执行者**：主 agent + Bash + ExitWorktree 工具
 
 **前置条件**：code-human-review 通过
 
 **执行规范**：详见 [references/worktree.md](references/worktree.md)
 
 1. 推送分支：`git push origin feature/<YYYY-MM-dd>-<name>`
-2. 切回主仓库：`cd <project-root> && git checkout main && git pull origin main`
-3. 合并：`git merge --no-ff feature/<YYYY-MM-dd>-<name>`
-4. 推送主干：`git push origin main`
-5. 清理：`git worktree remove .worktree/<YYYY-MM-dd>-<name>`
-6. 完成后运行 `python3 scripts/workflow.py advance`
+2. 切回主仓库并合并：
+   ```bash
+   cd <project-root>
+   git checkout main
+   git pull origin main
+   git merge --no-ff feature/<YYYY-MM-dd>-<name>
+   git push origin main
+   ```
+3. **使用内置 `ExitWorktree` 工具退出并清理 worktree**：
+   - 调用 `ExitWorktree`，`action` 设为 `"remove"`，`discard_changes` 设为 `false`
+   - 工具会自动清理 worktree 目录和分支
+4. 完成后运行 `python3 scripts/workflow.py advance`
 
 **下一阶段提示**：「主干已合并。是否进行 wiki 收录？」
 
@@ -431,10 +447,10 @@ python3 scripts/workflow.py mark-platform coding-platforms web --status skipped
 
 执行流程：
 
-**阶段 1 — worktree-setup**（先 worktree，再 init）
-```bash
-git worktree add .worktree/$(date +%Y-%m-%d)-add-playback-speed -b feature/$(date +%Y-%m-%d)-add-playback-speed
-cd .worktree/$(date +%Y-%m-%d)-add-playback-speed
+**阶段 1 — worktree-setup**（先 EnterWorktree，再 init）
+```
+调用 EnterWorktree 工具，name: "YYYY-MM-dd-add-playback-speed"
+进入 worktree 后：
 python3 scripts/workflow.py init add-playback-speed
 ```
 
