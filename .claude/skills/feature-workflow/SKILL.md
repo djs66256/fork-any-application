@@ -18,7 +18,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 
 ## 推进路径
 
-两种推进方式，适用于不同阶段类型：
+三种推进方式，适用于不同阶段类型：
 
 | 阶段类型 | 推进方式 | 说明 |
 |---------|---------|------|
@@ -45,13 +45,13 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 ```mermaid
 flowchart TD
     A["1. worktree-setup<br/>创建分支和工作区"] --> B["2. spec-writing<br/>需求撰写"]
-    B --> C["3. spec-review 🔄<br/>需求审查(自动循环)"]
+    B --> C["3. spec-review 🔄<br/>需求审查(只审查不修改)"]
+    C -. "发现问题→回到2修复→重新审查" .-> B
     C --> D["4. spec-human-review 👤<br/>人确认需求"]
     D --> E["5. design-shared<br/>共享技术方案"]
     E --> F["6. design-platforms ⚡<br/>各端方案(并行)"]
-    F --> G["7. design-review 🔄<br/>方案审查(自动循环)"]
-    G --> G1["7a. 发现问题→回到 writing 修复"]
-    G1 -. "修复后重新 review" .-> G
+    F --> G["7. design-review 🔄<br/>方案审查(只审查不修改)"]
+    G -. "发现问题→回到5/6修复→重新审查" .-> E
     G --> H["8. design-human-review 👤<br/>人确认方案"]
     H --> I["9. plan-platforms ⚡<br/>各端实现计划(并行)"]
     I --> J["10. coding-platforms ⚡🔄<br/>各端编码+审查(并行)"]
@@ -60,9 +60,9 @@ flowchart TD
     L --> M["13. wiki-inclusion<br/>wiki 收录"]
     M --> N["14. completed<br/>完成"]
 
-    D -. "驳回→阶段2" .-> B
-    H -. "驳回→阶段5" .-> E
-    K -. "驳回→阶段10" .-> J
+    D -. "驳回→重新撰写" .-> B
+    H -. "驳回→重新设计" .-> E
+    K -. "驳回(平台级或全部)" .-> J
 ```
 
 | 图例 | 含义 |
@@ -73,256 +73,123 @@ flowchart TD
 
 ## 阶段说明
 
+以下每个阶段只列出编排层关键信息（执行者、前置条件、产物、推进命令）。详细的执行步骤、subagent prompt、修复策略等见各阶段对应的 reference 文件。
+
 ### 阶段 1：worktree-setup
 
-**执行者**：主 agent + EnterWorktree 工具
-
-**前置条件**：无
-
-1. 确认需求名称（kebab-case），如 `add-player-speed-control`
-2. **使用内置 `EnterWorktree` 工具创建 worktree**（name 格式：`YYYY-MM-dd-<name>`）：
-   - 调用 `EnterWorktree` 工具，`name` 参数传入 `YYYY-MM-dd-<name>`
-   - 工具会自动在 `.claude/worktrees/` 下创建 worktree 并切换会话到该 worktree 中
-3. 进入 worktree 后执行 init：
-   ```bash
-   python3 scripts/workflow.py init <name>
-   ```
-4. 验证：worktree 目录已切换成功
-
-**产物**：worktree 就绪，`docs/specs/<YYYY-MM-dd>-<name>/workflow.json`
-
-**完成标志**：EnterWorktree 成功，已进入 worktree 目录，workflow.json 已就位
-
-**下一阶段提示**：「worktree 已就绪。是否开始需求撰写？」
+- **执行者**：主 agent + EnterWorktree 工具
+- **前置条件**：无
+- **执行规范**：详见 [references/worktree.md](references/worktree.md)「创建 worktree」节
+- **产物**：worktree 就绪，`docs/specs/<YYYY-MM-dd>-<name>/workflow.json`
+- **推进命令**：`python3 scripts/workflow.py init <name>`（在 worktree 中执行，init 后阶段 1 自动完成）
+- **下一阶段提示**：「worktree 已就绪。是否开始需求撰写？」
 
 ### 阶段 2：spec-writing
 
-**执行者**：主 agent
-
-**前置条件**：worktree-setup 完成
-
-**执行规范**：详见 [references/spec-writing.md](references/spec-writing.md)
-
-核心流程：
-1. 调用 `Skill("llm-wiki")` 查阅现有功能文档
-2. 读取各端代码了解当前实现
-3. 按 `assets/spec-template.md` 撰写 `spec.md`
-4. 不确定的信息标注 `[待确认]`，由 review 阶段系统化解决
-
-**产物**：`docs/specs/<YYYY-MM-dd>-<name>/spec.md`
-
-**完成标志**：spec.md 已写入，所有章节已填充
-
-完成后：`python3 scripts/workflow.py advance`
-
-**下一阶段提示**：「需求文档已完成。是否开始需求审查？」
+- **执行者**：主 agent
+- **前置条件**：worktree-setup 完成
+- **执行规范**：详见 [references/spec-writing.md](references/spec-writing.md)
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/spec.md`
+- **推进命令**：`python3 scripts/workflow.py advance`
+- **下一阶段提示**：「需求文档已完成。是否开始需求审查？」
 
 ### 阶段 3：spec-review 🔄
 
-**执行者**：subagent（自动循环修复，上限 3 轮）
-
-**前置条件**：spec-writing 完成
-
-**执行规范**：详见 [references/spec-review.md](references/spec-review.md)
-
-核心流程：
-1. 派发 spec-review subagent（prompt 见 reference 文件）
-2. Subagent 审查完整性/一致性/可行性，包括解决 spec 中的 `[待确认]` 标记
-3. Subagent 发现问题直接修复，输出 `spec-review.md`
-4. 主 agent 检查遗留问题：无遗留 → 推进；有遗留 → 询问用户 → 修复后重新派发
-   - **注意**：主 agent 修复 spec.md 时是靶向修复（只修改 review 报告中指出的问题），不是重写整个文档
-   - spec-review subagent 重新派发时，会看到已有 spec-review.md（记录历史问题），应按 review 模板重新审查更新后的 spec.md
-
-**产物**：`docs/specs/<YYYY-MM-dd>-<name>/spec-review.md`
-
-**review 循环**：每次循环调用 `python3 scripts/workflow.py review-loop spec-review --increment`。脚本会在达到 3 轮上限时输出 warning。
-
-**下一阶段提示**：「需求审查完成。请确认需求文档，确认后进入技术方案设计。」
+- **执行者**：subagent（只审查不修改，主 agent 执行修复，上限 3 轮）
+- **前置条件**：spec-writing 完成
+- **执行规范**：详见 [references/spec-review.md](references/spec-review.md)
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/spec-review.md`
+- **review 循环**：`python3 scripts/workflow.py review-loop spec-review --increment`
+- **下一阶段提示**：「需求审查完成。请确认需求文档，确认后进入技术方案设计。」
 
 ### 阶段 4：spec-human-review 👤
 
-**执行者**：人 + 主 agent
-
-**前置条件**：spec-review 完成，无遗留问题
-
-1. 向用户展示需求文档关键内容摘要
-2. 用户确认：`python3 scripts/workflow.py human-review spec-human-review --approve`
-3. 用户驳回：`python3 scripts/workflow.py human-review spec-human-review --reject`，回到 **阶段 2 (spec-writing)**
-
-**下一阶段提示**：「需求已确认。是否开始技术方案设计？」
+- **执行者**：人 + 主 agent
+- **前置条件**：spec-review 完成，无遗留问题
+- **通过**：`python3 scripts/workflow.py human-review spec-human-review --approve`
+- **驳回**：`python3 scripts/workflow.py human-review spec-human-review --reject`，回到阶段 2
+- **下一阶段提示**：「需求已确认。是否开始技术方案设计？」
 
 ### 阶段 5：design-shared
 
-**执行者**：主 agent
-
-**前置条件**：spec-human-review 通过
-
-**执行规范**：详见 [references/design-writing.md](references/design-writing.md)
-
-1. 调用 `Skill("llm-wiki")` 查阅现有架构和 API
-2. 读取 backend 代码了解现有 API 设计
-3. 按 `assets/design-template.md` 撰写 `design.md`（API 设计、数据模型、跨端共享逻辑）
-
-**产物**：`docs/specs/<YYYY-MM-dd>-<name>/design.md`
-
-**下一阶段提示**：「共享技术方案已完成。是否开始各端方案设计？」
+- **执行者**：主 agent
+- **前置条件**：spec-human-review 通过
+- **执行规范**：详见 [references/design-writing.md](references/design-writing.md)「design-shared」节
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/design.md`
+- **推进命令**：`python3 scripts/workflow.py advance`
+- **下一阶段提示**：「共享技术方案已完成。是否开始各端方案设计？」
 
 ### 阶段 6：design-platforms ⚡
 
-**执行者**：subagent（各端并行）
-
-**前置条件**：design-shared 完成
-
-**执行规范**：详见 [references/design-writing.md](references/design-writing.md)
-
-1. 判断涉及哪些平台
-2. 为每个涉及平台并行派发 design subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
-3. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform design-platforms <platform> --status skipped`
-4. Subagent 按 `assets/design-platform-template.md` 输出 `design-{platform}.md`
-5. 每个平台完成后调用 `python3 scripts/workflow.py mark-platform design-platforms <platform> --status completed`
-6. 全部完成后 `python3 scripts/workflow.py advance`
-
-**产物**：`design-backend.md`, `design-ios.md`, `design-android.md`, `design-web.md`（按需）
-
-**下一阶段提示**：「各端方案已完成。是否开始方案审查？」
+- **执行者**：subagent（各端并行）
+- **前置条件**：design-shared 完成
+- **执行规范**：详见 [references/design-writing.md](references/design-writing.md)「design-platforms」节
+- **产物**：`design-backend.md`, `design-ios.md`, `design-android.md`, `design-web.md`（按需）
+- **推进命令**：各平台完成后 `mark-platform design-platforms <platform> --status completed`，全部完成后 `workflow.py advance`
+- **下一阶段提示**：「各端方案已完成。是否开始方案审查？」
 
 ### 阶段 7：design-review 🔄
 
-**执行者**：subagent（单 subagent 一次性审查全部方案，只审查不修改，上限 3 轮）
-
-**前置条件**：design-platforms 完成
-
-**执行规范**：详见 [references/design-review.md](references/design-review.md)
-
-1. 派发单个 design-review subagent，一次性审查 `design.md` + 所有 `design-{platform}.md`
-2. Subagent **只输出问题报告**，不修改方案文件
-3. 主 agent 检查 review 结果：
-   - **无问题** → `workflow.py advance` 推进到 design-human-review
-   - **有问题（🔴 阻塞 / 🟡 关注）** → 调用 `workflow.py review-loop design-review --increment`，按以下策略修复：
-     - **design.md 问题（Shared 层）** → 主 agent 直接修改 design.md（有完整上下文，靶向修复）
-     - **design-{platform}.md 问题（各端）** → 重新派发对应平台的 subagent。Subagent 会通过内置的「模式检测」（见各 `references/<platform>-design/*.md`）识别修复轮次，只修改 review 报告指出的问题，不重写整个方案
-   - **仅 🟢 建议** → 不阻塞，直接推进
-   - **有遗留问题（需人决策）** → 向用户展示，用户回复后按修复模式修复
-4. 达到 3 轮上限 → 脚本输出 warning，强制停止循环
-
-**产物**：`docs/specs/<YYYY-MM-dd>-<name>/design-review.md`
-
-**review 循环**：`python3 scripts/workflow.py review-loop design-review --increment`
-
-**下一阶段提示**：「方案审查完成。请确认技术方案，确认后进入实现计划。」
+- **执行者**：subagent（单 subagent 审查全部方案，只审查不修改，上限 3 轮）
+- **前置条件**：design-platforms 完成
+- **执行规范**：详见 [references/design-review.md](references/design-review.md)。修复策略（问题归类 → 按需派发 → 靶向修复）见其中「主 agent 后续操作」节
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/design-review.md`
+- **review 循环**：`python3 scripts/workflow.py review-loop design-review --increment`
+- **下一阶段提示**：「方案审查完成。请确认技术方案，确认后进入实现计划。」
 
 ### 阶段 8：design-human-review 👤
 
-**执行者**：人 + 主 agent
-
-**前置条件**：design-review 完成，无遗留问题
-
-- 通过：`python3 scripts/workflow.py human-review design-human-review --approve`
-- 驳回：`python3 scripts/workflow.py human-review design-human-review --reject`，回到 **阶段 5 (design-shared)**
-  - design.md 修改 → 主 agent 直接靶向修复
-  - design-{platform}.md 修改 → 重新派发对应平台 subagent（subagent 通过模式检测识别修复轮次）
-  - 修改完毕后重新走 design-review 流程
-
-**下一阶段提示**：「技术方案已确认。是否开始编写各端实现计划？」
+- **执行者**：人 + 主 agent
+- **前置条件**：design-review 完成，无遗留问题
+- **通过**：`python3 scripts/workflow.py human-review design-human-review --approve`
+- **驳回**：`python3 scripts/workflow.py human-review design-human-review --reject`，回到阶段 5
+- **下一阶段提示**：「技术方案已确认。是否开始编写各端实现计划？」
 
 ### 阶段 9：plan-platforms ⚡
 
-**执行者**：subagent（各端并行）
-
-**前置条件**：design-human-review 通过
-
-**执行规范**：详见 [references/plan-writing.md](references/plan-writing.md)
-
-1. 为各涉及平台并行派发 plan subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
-2. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform plan-platforms <platform> --status skipped`
-3. Subagent 按 `assets/plan-template.md` 输出 `plan-{platform}.md`
-4. 每个平台完成后 `python3 scripts/workflow.py mark-platform plan-platforms <platform> --status completed`
-5. 全部完成后 `python3 scripts/workflow.py advance`
-
-**plan 模板特点**：每个步骤遵循 "测试场景 → 实现 → 验证 → 补充测试" 的轻量 TDD 循环
-
-**产物**：`plan-backend.md`, `plan-ios.md`, `plan-android.md`, `plan-web.md`（按需）
-
-**下一阶段提示**：「实现计划已完成。是否开始编码？」
+- **执行者**：subagent（各端并行）
+- **前置条件**：design-human-review 通过
+- **执行规范**：详见 [references/plan-writing.md](references/plan-writing.md)
+- **产物**：`plan-backend.md`, `plan-ios.md`, `plan-android.md`, `plan-web.md`（按需）
+- **推进命令**：各平台完成后 `mark-platform plan-platforms <platform> --status completed`，全部完成后 `workflow.py advance`
+- **下一阶段提示**：「实现计划已完成。是否开始编码？」
 
 ### 阶段 10：coding-platforms ⚡🔄
 
-**执行者**：subagent（各端并行，每个内部含 build & lint → tests → review 渐进验证循环，上限 3 轮）
-
-**前置条件**：plan-platforms 完成
-
-**执行规范**：详见 [references/coding.md](references/coding.md)
-
-1. 为各涉及平台派发 coding subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
-2. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform coding-platforms <platform> --status skipped`
-3. 每个 subagent 按 plan 步骤执行，遵循**渐进成本验证循环**：build & lint → tests → review
-4. Coding subagent 自行逐项验收（Build、Lint、Tests、Review、修改范围、无硬编码），全部通过后才可报告完成
-5. 每个平台完成后 `python3 scripts/workflow.py mark-platform coding-platforms <platform> --status completed`
-6. 全部完成后 `python3 scripts/workflow.py advance`
-
-**产物**：各端代码变更 + `code-{platform}-review.md`（按需）
-
-**review 循环**：`python3 scripts/workflow.py review-loop coding-platforms --platform <platform> --increment`
-
-**下一阶段提示**：「编码完成。请审查代码变更，确认后合回主干。」
+- **执行者**：subagent（各端并行，内部含 build & lint → tests → review 渐进验证循环，上限 3 轮）
+- **前置条件**：plan-platforms 完成
+- **执行规范**：详见 [references/coding.md](references/coding.md)
+- **产物**：各端代码变更 + `code-{platform}-review.md`（按需）
+- **推进命令**：各平台完成后 `mark-platform coding-platforms <platform> --status completed`，全部完成后 `workflow.py advance`
+- **review 循环**：`python3 scripts/workflow.py review-loop coding-platforms --platform <platform> --increment`
+- **下一阶段提示**：「编码完成。请审查代码变更，确认后合回主干。」
 
 ### 阶段 11：code-human-review 👤
 
-**执行者**：人 + 主 agent
-
-**前置条件**：coding-platforms 完成
-
-1. 向用户展示代码变更摘要和 review 结论
-2. 确认全部通过：`python3 scripts/workflow.py human-review code-human-review --approve`
-3. 仅驳回某平台：`python3 scripts/workflow.py human-review code-human-review --platform <platform> --reject`（只回退该平台的 coding，其他平台不动）
-   → 重新派发该平台的 coding subagent，subagent 通过模式检测（见 [coding.md](references/coding.md)）识别修复轮次，只修复 review 和用户反馈指出的问题
-4. 全部驳回：`python3 scripts/workflow.py human-review code-human-review --reject`（回到阶段 10）
-   → 重新派发所有涉及的 coding subagent，使用修复模式
-
-**下一阶段提示**：「代码已确认。是否合回主干？」
+- **执行者**：人 + 主 agent
+- **前置条件**：coding-platforms 完成
+- **通过**：`python3 scripts/workflow.py human-review code-human-review --approve`
+- **仅驳回某平台**：`python3 scripts/workflow.py human-review code-human-review --platform <platform> --reject`（回到阶段 10，仅该平台重新编码）
+- **全部驳回**：`python3 scripts/workflow.py human-review code-human-review --reject`（回到阶段 10）
+- **下一阶段提示**：「代码已确认。是否合回主干？」
 
 ### 阶段 12：worktree-merge
 
-**执行者**：主 agent + Bash + ExitWorktree 工具
-
-**前置条件**：code-human-review 通过
-
-**执行规范**：详见 [references/worktree.md](references/worktree.md)
-
-1. 推送分支：`git push origin feature/<YYYY-MM-dd>-<name>`
-2. 切回主仓库并合并：
-   ```bash
-   cd <project-root>
-   git checkout main
-   git pull origin main
-   git merge --no-ff feature/<YYYY-MM-dd>-<name>
-   git push origin main
-   ```
-3. **使用内置 `ExitWorktree` 工具退出并清理 worktree**：
-   - 调用 `ExitWorktree`，`action` 设为 `"remove"`，`discard_changes` 设为 `false`
-   - 工具会自动清理 worktree 目录和分支
-4. 完成后运行 `python3 scripts/workflow.py advance`
-
-**下一阶段提示**：「主干已合并。是否进行 wiki 收录？」
+- **执行者**：主 agent + Bash + ExitWorktree 工具
+- **前置条件**：code-human-review 通过
+- **执行规范**：详见 [references/worktree.md](references/worktree.md)「合回主干」和「退出 worktree」节
+- **产物**：代码已合并到 main 并推送
+- **推进命令**：合并完成后 `python3 scripts/workflow.py advance`
+- **下一阶段提示**：「主干已合并。是否进行 wiki 收录？」
 
 ### 阶段 13：wiki-inclusion
 
-**执行者**：subagent
-
-**前置条件**：worktree-merge 完成
-
-**执行规范**：详见 [references/wiki-inclusion.md](references/wiki-inclusion.md)
-
-1. 派发 wiki-inclusion subagent
-2. Subagent 收集 spec 目录下所有文档 + `git diff` 变更文件列表
-3. 委托 llm-wiki skill 的子流程完成 wiki 文档维护
-4. 输出 `wiki.md` 收录报告
-
-**产物**：`docs/specs/<YYYY-MM-dd>-<name>/wiki.md`，wiki 各文档已更新
-
-**跳过**：纯技术改动（如升级依赖、重构）可跳过：`python3 scripts/workflow.py advance --skip wiki-inclusion`
-
-**下一阶段提示**：「wiki 收录完成。需求全流程结束！」
+- **执行者**：subagent
+- **前置条件**：worktree-merge 完成
+- **执行规范**：详见 [references/wiki-inclusion.md](references/wiki-inclusion.md)
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/wiki.md`，wiki 各文档已更新
+- **推进命令**：`python3 scripts/workflow.py advance`（纯技术改动可 `--skip wiki-inclusion`）
+- **下一阶段提示**：「wiki 收录完成。需求全流程结束！」
 
 ### 阶段 14：completed
 

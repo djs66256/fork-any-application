@@ -77,13 +77,15 @@ references/
 
 #### 修复轮次判断
 
-在派发 design-platforms subagent 前，主 agent 先判断各平台是否处于修复轮次：
+在派发 design-platforms subagent 前，主 agent 必须根据 `design-review.md` 中的问题归属来决定是否派发：
 
-- 如果 `design-{platform}.md` 和 `design-review.md` 都已存在 → 该平台处于修复轮次
-- Subagent 的 prompt 中已内置「模式检测」逻辑（见各 `references/<platform>-design/*.md`），会自动识别修复轮次并执行靶向修复
-- 主 agent 无需额外传递参数或修改 prompt
+1. 读取 `design-review.md`，找出各 🔴 阻塞 / 🟡 关注 问题的归属平台
+2. **只对有问题的平台派发 subagent**，无问题的平台不派发（其方案文件保持不变）
+3. 如果有跨端一致性问题，派发所有涉及的平台 subagent
 
-**注意**：design-review 可能针对 shared（design.md）而非某具体平台。如果 review 中只涉及 shared 层问题而无某平台的问题，该平台的 subagent 会在模式检测中识别到「无本端问题」并直接跳过，不会重写方案文件。
+例如：review 只指出 `design-ios.md` 和 `design-backend.md` 有缺陷，则只派发 iOS 和 Backend 两个 subagent，Android 和 Web 不派发。
+
+Subagent 的 prompt 中已内置「模式检测」逻辑（见各 `references/<platform>-design/*.md`），会自动识别修复轮次并执行靶向修复。主 agent 无需额外传递参数或修改 prompt。
 
 #### 第一步：加载 agent 定义
 
