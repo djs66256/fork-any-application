@@ -58,6 +58,10 @@ Subagent：
 - 使用绝对路径
 - skill 定义文件使用项目的相对路径
 
+## Git
+
+git commit 只提交当前会话改动的文件。
+
 ## 产品信息
 
 产品信息统一维护在 `PRODUCT.md` 中。
