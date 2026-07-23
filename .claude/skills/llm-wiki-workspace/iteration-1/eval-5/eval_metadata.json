@@ -1,0 +1,6 @@
+{
+  "eval_id": 5,
+  "eval_name": "generate-full-wiki",
+  "prompt": "现在项目代码都写好了，帮我从各端代码里提取信息，生成一份完整的项目 wiki 文档，包括所有功能模块、API 接口和架构信息。",
+  "assertions": []
+}

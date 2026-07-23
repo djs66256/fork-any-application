@@ -1,0 +1,23 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 wiki/api/ 目录的 list 操作或对 wiki/api/index.md 的 Read 操作",
+      "passed": true,
+      "evidence": "metrics.json 中 files_read 明确列出 'wiki/api/index.md'，response.md 中提及 'wiki/api/index.md 不存在'，确认了 Read 操作被执行。skill 触发了 llm-wiki 的查询流程，遍历了 wiki/api/ 下的文档。"
+    },
+    {
+      "text": "响应中提到了至少一个具体的 API 接口路径或明确指出 API 文档尚未建立",
+      "passed": true,
+      "evidence": "response.md 中明确列出了三个具体 API 接口路径：GET /api/health、POST /api/player/start、POST /api/player/stop，并附有方法、说明、源文件等完整信息。"
+    },
+    {
+      "text": "响应中没有凭空编造不存在的 API 接口路径，所有提到的接口都能在 wiki 文档或项目代码中找到来源",
+      "passed": true,
+      "evidence": "三个接口路径均可验证：GET /api/health 在 wiki/api/health.md 中有完整文档，且 backend/src/app/api/health/route.ts 存在实际代码实现；POST /api/player/start 和 POST /api/player/stop 在 wiki/api/player.md 和 docs/api/player.md 中均有文档定义。旧路径 /api/video/play 在 wiki 变更记录中有记载。"
+    }
+  ],
+  "summary": {"passed": 3, "failed": 0, "total": 3, "pass_rate": 1.0},
+  "claims": [],
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": [], "overall": "No suggestions"}
+}

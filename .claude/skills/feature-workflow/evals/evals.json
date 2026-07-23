@@ -1,0 +1,23 @@
+{
+  "skill_name": "feature-workflow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我想做一个视频倍速播放功能，支持 0.5x、1.0x、1.5x、2.0x 四个速度档位，需要在 iOS 和 Android 端都支持。帮我开始这个需求。",
+      "expected_output": "Agent 应执行 workflow.py init、创建 worktree、读取 wiki 了解播放器现有架构、撰写 spec.md。不需要实际执行 coding，但需要输出完整的需求文档。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我们的后端 API 需要加一个用户收藏功能的接口，包括添加收藏、取消收藏、查看收藏列表。帮我写个技术方案。",
+      "expected_output": "Agent 应先通过 workflow.py init 初始化需求，再撰写 spec.md 和 design.md（包含完整的 REST API 设计和 Zod schema）。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "帮我看下当前项目的所有功能，我想了解一下整体架构再决定下一个需求做什么。",
+      "expected_output": "Agent 不应触发 feature-workflow skill。这是一个查阅类请求，应使用 llm-wiki skill。",
+      "files": []
+    }
+  ]
+}

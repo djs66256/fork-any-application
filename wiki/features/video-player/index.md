@@ -17,7 +17,7 @@
 | Web | 首页推荐流 / 剧集详情页 | `/play/:videoId` | `web/` [待确认] |
 | Android | 首页推荐流 / 剧集详情页 | `PlayerActivity` | `android/` [待确认] |
 | iOS | 首页推荐流 / 剧集详情页 | `PlayerViewController` | `ios/` [待确认] |
-| Backend | N/A | API endpoint | `backend/src/app/api/player/` [待确认] |
+| Backend | N/A | API endpoint | `backend/src/app/api/player/` |
 
 ## 核心逻辑
 
@@ -26,13 +26,13 @@
 1. 用户点击视频卡片，跳转播放器页面
    - 源文件：[待确认]
 2. 前端向 Backend 发起播放请求 `POST /api/player/start`
-   - 源文件：[待确认]
+   - 源文件：`backend/src/app/api/player/` (路由目录，具体 handler 文件待补充)
 3. Backend 校验请求参数，返回视频流信息
-   - 源文件：[待确认]
+   - 源文件：`backend/src/app/api/player/` (路由目录，具体 handler 文件待补充)
 4. 前端根据返回的视频地址初始化播放器并开始播放
    - 源文件：[待确认]
 5. 用户退出播放或切换视频时，前端发送 `POST /api/player/stop` 上报播放结束
-   - 源文件：[待确认]
+   - 源文件：`backend/src/app/api/player/` (路由目录，具体 handler 文件待补充)
 
 ### 边界与异常处理
 
@@ -69,14 +69,12 @@
 - 数据模型：[待确认]
 - 外部依赖：[待确认]
 
-## API 接口
+## API 引用
 
-该功能依赖以下后端接口：
-
-| 方法 | 路径 | 说明 | 请求体关键字段 | 响应体关键字段 | 源文件 |
-|------|------|------|-------------|-------------|--------|
-| POST | `/api/player/start` | 开始播放视频（旧路径 `/api/video/play`） | `{ videoId }` | `{ streamUrl, duration }` | `backend/src/app/api/player/` [待确认] |
-| POST | `/api/player/stop` | 停止播放并上报播放进度 | `{ videoId, progress, duration }` | `{ success }` | `backend/src/app/api/player/` [待确认] |
+| 接口 | API 文档 | 说明 |
+|------|---------|------|
+| `POST /api/player/start` | [api/player.md](../../api/player.md) | 开始播放视频（替代旧路径 `/api/video/play`） |
+| `POST /api/player/stop` | [api/player.md](../../api/player.md) | 停止播放并上报播放进度（新增） |
 
 ### 路径变更记录
 
@@ -112,6 +110,12 @@
 | 问题 | 影响 | 记录时间 | 备注 |
 |------|------|---------|------|
 | 播放器各端代码尚未初始化 | 当前仅完成 API 接口设计 | 2026-07-22 | 各端播放器组件待后续开发 |
+
+## 修订历史
+
+| 日期 | 变更摘要 |
+|------|---------|
+| 2026-07-22 | API 路径重命名：`/api/video/play` → `/api/player/start`，新增 `/api/player/stop`，API 定义移至 `wiki/api/player.md` |
 
 ---
 

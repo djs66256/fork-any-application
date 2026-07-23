@@ -1,0 +1,23 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 wiki/api/ 目录的 list 操作或对 wiki/api/index.md 的 Read 操作",
+      "passed": false,
+      "evidence": "metrics.json 仅包含工具调用类型计数（Bash: 5, Read: 6, Write: 1），未提供 files_read 列表。response.md 全文未提及 wiki/api/ 目录或 wiki/api/index.md，所有 API 文档引用指向 docs/api/player.md 和 wiki/features/video-player。无任何证据表明 agent 对 wiki/api/ 进行了 list 或 read 操作。"
+    },
+    {
+      "text": "响应中提到了至少一个具体的 API 接口路径或明确指出 API 文档尚未建立",
+      "passed": true,
+      "evidence": "response.md 中明确列出了 GET /api/health、POST /api/player/start、POST /api/player/stop 三个 API 接口路径，每个接口都有方法、路径、说明、源文件、请求/响应字段等完整信息。"
+    },
+    {
+      "text": "响应中没有凭空编造不存在的 API 接口路径，所有提到的接口都能在 wiki 文档或项目代码中找到来源",
+      "passed": true,
+      "evidence": "三个接口路径均可验证：GET /api/health 在 backend/src/app/api/health/route.ts 有代码实现，在 wiki/api/health.md 有文档；POST /api/player/start 和 POST /api/player/stop 在 wiki/api/player.md 和 docs/api/player.md 中均有完整文档定义。旧路径 /api/video/play 在变更记录中有记载。"
+    }
+  ],
+  "summary": {"passed": 2, "failed": 1, "total": 3, "pass_rate": 0.667},
+  "claims": [],
+  "user_notes_summary": {"uncertainties": [], "needs_review": [], "workarounds": []},
+  "eval_feedback": {"suggestions": ["without_skill 的 metrics.json 应包含 files_read 字段以便准确审计工具调用行为。"], "overall": "Only Expectation 1 failed because the agent without skill never consulted wiki/api/ — it relied on docs/api/ and wiki/features/ instead."}
+}

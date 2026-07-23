@@ -41,11 +41,11 @@ GET /api/health → 构造 data 对象 → HealthResponseSchema.parse(data) → 
   }
   ```
 
-## API 接口
+## API 引用
 
-| 方法 | 路径 | 说明 | 响应 |
-|------|------|------|------|
-| GET | `/api/health` | 健康检查 | `{ status: "ok", timestamp: string, version: string }` |
+| 接口 | API 文档 | 说明 |
+|------|---------|------|
+| `GET /api/health` | [api/health.md](../../api/health.md) | 健康检查，返回服务状态、时间戳、版本号 |
 
 ## 依赖关系
 

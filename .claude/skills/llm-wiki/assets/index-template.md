@@ -1,29 +1,9 @@
 # 项目功能索引
 
-> 最后更新：YYYY-MM-DD
-
-<!-- 以下为功能域列表，每个功能域一行。agent 在生成/更新 wiki 后同步维护此列表 -->
-
-- [<feature-name>](./features/<feature-name>/index.md) — 简短说明
-- ...
-
-## 架构专题
-
-- [architecture/](./architecture/index.md)
-
-## API 文档
-
-- [api/](./api/index.md)
-
-## 技术决策
-
-- [decisions/](./decisions/index.md)
-
-## 最近更新
-
-| 时间 | 功能域 | 变更摘要 |
-|------|--------|---------|
-| YYYY-MM-DD | 功能域 | 变更描述 |
+- [功能文档](./features/index.md) — 各功能域的业务逻辑、入口路由、多端实现与各端状态
+- [API 文档](./api/index.md) — 按业务域组织的 RESTful API 定义
+- [架构专题](./architecture/index.md) — 跨端架构设计、技术栈选型与系统总览
+- [技术决策](./decisions/index.md) — 项目关键架构选型与技术决策记录
 
 ---
 

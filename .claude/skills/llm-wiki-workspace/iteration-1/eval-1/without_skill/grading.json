@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 wiki/index.md 的 Read 操作",
+      "passed": true,
+      "evidence": "metrics.json files_read array explicitly includes 'wiki/index.md' as one of the 21 files read during the without-skill execution."
+    },
+    {
+      "text": "响应中列出了至少 5 个功能域（如 应用壳、播放器、首页Feed、搜索、鉴权 等）",
+      "passed": true,
+      "evidence": "Response explicitly enumerates 14 functional domains across section 2: (2.1) 应用壳, (2.2) 健康检查, (2.3) 数据模型, (2.4) 深链, (2.5) 播放器, (2.6) 首页 Feed / 搜索 / 鉴权 / 个人中心 / 评论 / 分享 / 通知 / 订阅付费 / 导航路由. Well above the minimum of 5."
+    },
+    {
+      "text": "响应中对每个功能域标注了 Web/Android/iOS/Backend 至少一端的实现状态，且使用了可识别的状态标识（如 ✅/🚧/📅 或 已完成/进行中/规划中 文字描述）",
+      "passed": true,
+      "evidence": "Every domain includes per-end implementation status using recognizable Chinese text labels. Section 2.1 (应用壳): table with all 4 ends marked '已完成'. Section 2.2 (健康检查): Backend '已完成', others '不适用'. Section 2.3 (数据模型): table with Web/Backend '进行中', Android/iOS '未实现'. Section 2.4 (深链): iOS '规划中/已声明', Android '未实现', Web/Backend '不适用'. Section 2.5 (播放器): table with all 4 ends '规划中'. Section 2.6 (未实施功能域): describes all 9 domains as '规划中' across all ends. The text labels (已完成/进行中/未实现/规划中/不适用) are clearly recognizable status indicators per the spec."
+    }
+  ],
+  "summary": {"passed": 3, "failed": 0, "total": 3, "pass_rate": 1.0},
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "The without-skill run produced a thorough, well-organized response covering all 14 functional domains with clear per-end status. It also went further by reading individual source files for cross-verification (21 files read, 4 directories scanned). All 3 updated expectations are met with no gaps."
+  }
+}

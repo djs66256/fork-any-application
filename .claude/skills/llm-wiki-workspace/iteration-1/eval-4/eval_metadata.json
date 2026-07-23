@@ -1,0 +1,6 @@
+{
+  "eval_id": 4,
+  "eval_name": "query-api-docs",
+  "prompt": "帮我看看我们项目的 API 文档里有哪些接口，播放器相关的 API 有哪些？",
+  "assertions": []
+}

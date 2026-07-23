@@ -1,0 +1,34 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 wiki/index.md 的 Read 操作",
+      "passed": true,
+      "evidence": "metrics.json shows Read:10 calls. While the with-skill metrics.json does not enumerate file paths (unlike the without-skill run), the response content provides strong evidence: it includes a dedicated 'Wiki 与代码一致性验证' section, references '以下功能域在 wiki 中已登记但文档和代码均为零', lists all 5 wiki feature docs (app-shell, health-check, data-models, deeplink, video-player), and the Skill tool was invoked to load llm-wiki instructions. The response could not have been produced without reading wiki/index.md."
+    },
+    {
+      "text": "响应中列出了至少 5 个功能域（如 应用壳、播放器、首页Feed、搜索、鉴权 等）",
+      "passed": true,
+      "evidence": "Response explicitly enumerates 14 functional domains across 6 numbered sections: (1) 应用壳, (2) 健康检查, (3) 数据模型, (4) 深链, (5) 播放器, (6) 首页 Feed / 搜索 / 鉴权 / 个人中心 / 评论 / 分享 / 通知 / 订阅付费 / 导航路由. Well above the minimum of 5."
+    },
+    {
+      "text": "响应中对每个功能域标注了 Web/Android/iOS/Backend 至少一端的实现状态，且使用了可识别的状态标识（如 ✅/🚧/📅 或 已完成/进行中/规划中 文字描述）",
+      "passed": true,
+      "evidence": "Every domain includes per-end implementation status using recognizable emoji+text identifiers. Section 1 (应用壳): table with all 4 ends marked ✅. Section 2 (健康检查): Backend ✅, others implicit. Section 3 (数据模型): table with 🚧 for Web/Backend, '— 待实施' for Android/iOS. Section 4 (深链): table with 📅 for iOS/Android, 'N/A' for Web. Section 5 (播放器): 📅 各端规划中. Section 6 (其他功能域): 9-entry table with 📅 for every end across all domains. All indicators (✅🚧📅—) are consistently used alongside Chinese text labels."
+    }
+  ],
+  "summary": {"passed": 3, "failed": 0, "total": 3, "pass_rate": 1.0},
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Expectation 1: the with_skill metrics.json only records tool call counts (Read:10), not specific file paths. PASS was granted based on content-level evidence in response.md rather than an explicit file-path entry in the tool-call record. The skill-based run appears to produce a less granular metrics.json than the without-skill run."
+    ],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [
+      "Consider enhancing the with-skill metrics.json to enumerate files_read (like the without-skill run does), which would make expectation 1 trivially verifiable from the metrics alone."
+    ],
+    "overall": "The skill-based run produced a comprehensive, consistently formatted response covering 14 functional domains. All 3 updated expectations are met. The emoji+text status indicators are used throughout with clear per-end breakdowns in tables."
+  }
+}

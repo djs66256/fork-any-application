@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 llm-wiki skill 的 Skill 调用",
+      "passed": false,
+      "evidence": "metrics.json 中 tool_call_counts.by_type 仅包含 Bash、Read、Write、Edit、WebSearch、WebFetch，不包含 Skill 类型的调用，说明 agent 未加载 llm-wiki skill"
+    },
+    {
+      "text": "响应中描述了从各端代码扫描生成 wiki 的过程（如 扫描了 Web/Android/iOS/Backend 目录、读取了源文件、按功能域分组），而非直接编造内容",
+      "passed": true,
+      "evidence": "response.md 开篇标注\"基于各端源代码提取生成\"，结尾声明\"本文档基于项目各端源代码（backend/、web/、android/、ios/）及已有 wiki/、docs/ 目录内容综合提取生成\"；metrics.json 记录读取了 backend:13、web:11、android:13、ios:10 个文件，全文按功能域分组，内容明确源自实际代码"
+    },
+    {
+      "text": "响应中的 wiki 内容标注了源文件路径（如 web/src/xxx.ts 或 backend/src/xxx.ts 格式），体现了从代码提取信息的流程",
+      "passed": true,
+      "evidence": "response.md 中大量标注了源文件路径，例如：web/src/app/layout.tsx、web/src/lib/config.ts、backend/src/app/api/health/route.ts、backend/src/lib/schemas.ts、android/app/src/main/java/com/djs66256/short_drama/MainActivity.kt、ios/ShortDrama/Sources/ShortDramaApp.swift、ios/ShortDrama/Resources/Info.plist 等，覆盖全部四端"
+    },
+    {
+      "text": "响应中提到了至少 2 个不同的功能域（如 播放器、首页Feed、搜索 等），而非仅列出目录结构",
+      "passed": true,
+      "evidence": "response.md 第四章功能模块总览列出 14 个功能域的功能矩阵表格：应用壳、健康检查、数据模型、深链、播放器、首页 Feed、搜索、鉴权、个人中心、评论、分享、通知、订阅/付费、导航/路由，每个域标注了各端实现状态"
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 1,
+    "total": 4,
+    "pass_rate": 0.75
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "Without skill 运行中 agent 未加载 llm-wiki skill，自然无 Skill 调用（FAIL E1，符合预期）。但 agent 通过直接读取各端源文件完成了高质量 wiki 生成：明确声明从代码提取（PASS E2）、大量标注源文件路径覆盖全部四端（PASS E3）、覆盖 14 个功能域（PASS E4）。整体得分 3/4。"
+  }
+}

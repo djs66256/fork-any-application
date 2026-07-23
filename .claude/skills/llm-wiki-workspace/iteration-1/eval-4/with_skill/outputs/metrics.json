@@ -1,0 +1,28 @@
+{
+  "tool_calls_total": 18,
+  "tool_calls_by_type": {
+    "Skill": 1,
+    "Read": 10,
+    "Bash": 6,
+    "Write": 1
+  },
+  "files_read": [
+    ".claude/skills/llm-wiki/references/query-flow.md",
+    ".claude/skills/llm-wiki/references/wiki-standards.md",
+    "wiki/index.md",
+    "wiki/api/index.md",
+    "wiki/features/video-player.md",
+    "wiki/features/health-check.md",
+    "wiki/features/app-shell.md",
+    "wiki/features/data-models.md",
+    "wiki/features/deeplink.md",
+    "backend/src/app/api/health/route.ts",
+    "backend/src/lib/schemas.ts"
+  ],
+  "wiki_files_checked": 6,
+  "api_interfaces_found": 3,
+  "player_api_interfaces": 2,
+  "player_api_implemented": 0,
+  "note": "Tool call count includes failed calls (Glob tool not available, wiki/api/index.md not found). Glob call was retried with Bash find. Total unique successful tool calls: 17.",
+  "skill_used": "llm-wiki"
+}

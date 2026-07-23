@@ -1,0 +1,11 @@
+{
+  "tool_calls": {
+    "Skill": 1,
+    "Read": 11,
+    "Bash": 8,
+    "Write": 4,
+    "Edit": 4,
+    "SendMessage": 1
+  },
+  "total": 29
+}

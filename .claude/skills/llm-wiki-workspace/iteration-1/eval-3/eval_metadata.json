@@ -1,0 +1,6 @@
+{
+  "eval_id": 3,
+  "eval_name": "update-api-changes",
+  "prompt": "我刚把后端播放器相关的 API 接口改完了，接口路径从 /api/video/play 改成了 /api/player/start，也新增了一个 /api/player/stop 接口。代码在 backend/ 里已经改好了，帮我更新一下项目文档。",
+  "assertions": []
+}

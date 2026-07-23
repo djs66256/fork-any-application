@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "query-video-player-detail",
+  "prompt": "我要开始做播放器的倍速功能了，帮我看看当前项目里播放器相关的逻辑是怎么实现的，包括前端和后端。",
+  "assertions": []
+}

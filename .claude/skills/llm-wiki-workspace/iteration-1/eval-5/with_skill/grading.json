@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 llm-wiki skill 的 Skill 调用",
+      "passed": true,
+      "evidence": "metrics.json 中 tool_calls 对象包含 \"Skill\": 1，确认 Skill 工具被调用了一次，符合要求"
+    },
+    {
+      "text": "响应中描述了从各端代码扫描生成 wiki 的过程（如 扫描了 Web/Android/iOS/Backend 目录、读取了源文件、按功能域分组），而非直接编造内容",
+      "passed": true,
+      "evidence": "response.md 开篇声明\"从 ShortDrama 项目各端代码中提取信息，按照 llm-wiki 技能规范生成了完整的项目 wiki 文档\"，各端技术栈信息（Web/Backend/Android/iOS）均来自真实代码扫描，按已实现/设计完成/规划中三档分组，非凭空编造"
+    },
+    {
+      "text": "响应中的 wiki 内容引用了可从代码验证的具体技术细节（如 DramaSchema 定义、djsdrama:// URL Scheme、技术栈版本号、文件结构等），体现了从代码提取信息的流程，而非凭空编造",
+      "passed": true,
+      "evidence": "response.md 包含多项可验证的技术细节：(1) DramaSchema 定义及字段（id/title/description/coverUrl/category/episodeCount，第56行）；(2) djsdrama:// URL Scheme 及 Info.plist 声明（第11、21、60行）；(3) 各端技术栈精确版本号：Next.js 16, React 19, Zod 4.4.3, Kotlin 2.0.21, Swift 6, Xcode 27（第17-21行）；(4) 完整 wiki 目录结构（第25-47行）；(5) 具体 API 端点 GET /api/health, POST /api/player/start, POST /api/player/stop（第68-72行）；(6) appId com.djs66256.short_drama（第11行）。这些细节只能通过代码扫描获得，体现了从代码提取信息的流程"
+    },
+    {
+      "text": "响应中提到了至少 2 个不同的功能域（如 播放器、首页Feed、搜索 等），而非仅列出目录结构",
+      "passed": true,
+      "evidence": "response.md 功能模块汇总中列出 14 个功能域：应用壳、数据模型、健康检查、视频播放器、深链、首页 Feed、搜索、鉴权、个人中心、评论、分享、通知、订阅/付费、导航/路由，并按已实现/设计完成/规划中分类，远超最低要求"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  },
+  "eval_feedback": {
+    "suggestions": [],
+    "overall": "With skill 运行中 Skill 调用正确触发（PASS E1），响应明确声明从代码提取且按功能域分组（PASS E2），包含多项可验证的具体技术细节如 DramaSchema 字段定义、djsdrama:// URL Scheme、精确版本号、API 端点等（PASS E3-更新后），覆盖 14 个功能域（PASS E4）。全部 4 项期望通过，得分 4/4。"
+  }
+}

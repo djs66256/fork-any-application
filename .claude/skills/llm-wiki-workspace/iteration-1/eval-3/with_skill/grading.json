@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "在工具调用记录中出现了对 llm-wiki skill 的 Skill 调用，或对 wiki/features/video-player 相关文档（含 index.md）的 Read 操作",
+      "passed": true,
+      "evidence": "metrics.json 中 \"Skill\": 1，确认 llm-wiki skill 被调用一次"
+    },
+    {
+      "text": "如果 wiki 中已有播放器 API 文档或功能文档，响应中提到了 /api/player/start 或 /api/video/play 的路径变更",
+      "passed": true,
+      "evidence": "响应第5行明确记录：'后端播放器 API 接口路径从 /api/video/play 改为 /api/player/start'"
+    },
+    {
+      "text": "响应中提到了新增的 /api/player/stop 接口",
+      "passed": true,
+      "evidence": "响应第5行和第11行：'同时新增 /api/player/stop 接口'；新建文件中包含 'POST /api/player/stop（新增）两个接口的完整定义'"
+    },
+    {
+      "text": "响应中明确指出了受影响的功能域（播放器/video-player）和受影响的端（Backend）",
+      "passed": true,
+      "evidence": "响应明确标识：标题提及'播放器'，第16-17行列出的修改文件包含 wiki/features/video-player/index.md，第27行指出'播放器的 Backend 端状态已在索引中从「📅 规划中」更新为「🚧 进行中」'"
+    },
+    {
+      "text": "如果 wiki 文件被修改，响应末尾包含修订记录或变更摘要",
+      "passed": true,
+      "evidence": "响应包含 '## 更新的文件' 变更摘要章节，列出了新建文件（含 wiki/revision/2026-07-22-player-api-rename.md 修订记录）和修改文件"
+    }
+  ],
+  "summary": { "passed": 5, "failed": 0, "total": 5, "pass_rate": 1.0 },
+  "claims": [],
+  "user_notes_summary": { "uncertainties": [], "needs_review": [], "workarounds": [] },
+  "eval_feedback": { "suggestions": [], "overall": "No suggestions" }
+}

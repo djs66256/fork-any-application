@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "query-feature-overview",
+  "prompt": "我想了解一下当前项目有哪些功能模块，各端的实现状态是什么样的？帮我整理一下。",
+  "assertions": []
+}

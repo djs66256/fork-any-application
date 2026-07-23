@@ -32,6 +32,6 @@ Agent 执行：
 1. 读 wiki/index.md → 定位到 features/video-player/
 2. 读 wiki/features/video-player/index.md → 理解播放器现有架构
 3. 读文档中标注的源文件路径 → 验证实现与文档一致
-4. 读 wiki/api/video-player.md → 了解现有 API 接口
+4. 读 wiki/api/player.md → 了解现有 API 接口
 5. 向用户汇报现有播放器的实现方式，作为新功能的设计基础
 ```
