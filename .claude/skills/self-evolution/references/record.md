@@ -29,6 +29,7 @@
 |------|------|
 | **类型** | 见下方「记录类型」 |
 | **严重程度** | blocker / repetitive / friction / observation |
+| **改进目标** | 应该改的具体文件路径（项目相对路径），用于后续按目标分组触发进化。`skill-missing` 类型写「待新建」，`other` 类型写「待分析」 |
 | **上下文** | 当时在执行什么任务、哪个 skill 的哪个阶段 |
 | **问题描述** | 具体发生了什么、为什么这是个问题 |
 | **期望行为** | 理想情况下应该怎么运作 |
@@ -50,9 +51,21 @@
 
 ### 类型分类决策
 
-优先选择**最具体的类别**：
+优先选择**最具体的类别**。以下映射表辅助归类：
 
-1. 先看是不是 `skill-design`、`skill-missing`（改 skill 文件）
+| 回顾维度 | 最可能对应的记录类型 |
+|---------|-------------------|
+| 纠正类（用户纠正 agent 行为） | `skill-design`、`claude-md`、`memory-gap` |
+| 卡顿类（步骤花费异常多时间） | `process-bottleneck` |
+| 重复类（上下文每次重新说明） | `memory-gap` |
+| 缺失类（缺少 skill/subagent） | `skill-missing` |
+| 矛盾类（规则冲突） | `claude-md` |
+| 返工类（产出反复修改） | `rework` |
+| 记忆查找类（查找信息耗时） | `memory-lookup` |
+
+决策顺序：
+
+1. 先看是不是 `skill-design`、`skill-missing`（改或新建 skill）
 2. 再看是不是 `claude-md`（改 CLAUDE.md 系列）
 3. 再看是不是 `rework`、`memory-lookup`（改流程/信息组织）
 4. 再看是不是 `coordination`（跨 skill 协作）
@@ -68,9 +81,11 @@
 ├─ 是 → blocker（如：workflow 脚本报错无法继续）
 └─ 否 → 问：这个问题是否在本次会话中出现了 ≥2 次？
          ├─ 是 → repetitive（如：每次 build 都失败需要手动改配置）
-         └─ 否 → 问：这个问题是否影响了产出质量或额外浪费了 token/时间？
-                  ├─ 是 → friction（如：subagent 产出格式对但字段命名不一致）
-                  └─ 否 → observation（如：注意到某 reference 文档可以补充内容）
+         └─ 否 → 问：是否可预判会在后续会话中反复出现？
+                  ├─ 是 → repetitive（如：某模块的关键约定没写入文档，每次新会话都会踩坑）
+                  └─ 否 → 问：这个问题是否影响了产出质量或额外浪费了 token/时间？
+                           ├─ 是 → friction（如：subagent 产出格式对但字段命名不一致）
+                           └─ 否 → observation（如：注意到某 reference 文档可以补充内容）
 ```
 
 | 级别 | 含义 | 进化优先度 |
@@ -92,27 +107,30 @@
 ### 容易忽视但应该记录
 
 - **静默成功**（看起来没问题但实际有隐患）：subagent 自己修正了错误但花了大量时间
-- **用户放弃了某项功能**：用户说"算了不用 XX 了"——说明 XX 的触发或行为有问题
+- **用户放弃了某项功能**：用户说"算了不用 XX 了"——说明 XX 的触发条件或行为有问题（归类为 `skill-design`）
 - **跨 session 模式**：用户连续多个会话都提到同一个问题——单次看可能不明显
 - **文档与实际不一致**：CLAUDE.md 说某个目录有文件，但实际不存在
 
 ## 写入流程
 
 1. 主 agent 回顾会话（不用 subagent）
-2. **评估短期记忆利用情况**：
+2. **首次初始化**：
+   - 如果 `docs/evolution/` 目录不存在，创建之
+   - 如果 `docs/evolution/index.md` 不存在，按 [assets/index-template.md](../assets/index-template.md) 创建，填入表头即可（无数据行）
+3. **评估短期记忆利用情况**：
    - 检查 `docs/short_memory.md` 是否存在且有内容
    - 如果存在：回顾本次会话中是否读取了 short_memory.md？哪几条记忆被用上了？哪几条虽然记录了但没被读取（漏用）？哪几条读了但信息已过时或不准确？
    - 在 record.md 中写入「短期记忆利用评估」章节
    - 如果 short_memory.md 不存在或为空，跳过此步
-3. 如果**没有发现任何值得记录的问题，且短期记忆评估也无异常**，不创建文件，直接告知用户「本次会话未发现需要记录的问题」
-4. 如果有问题或短期记忆评估有发现：
+4. 如果**没有发现任何值得记录的问题，且短期记忆评估也无异常**，不创建文件，直接告知用户「本次会话未发现需要记录的问题」
+5. 如果有问题或短期记忆评估有发现：
    - 确定会话名称：用当前核心任务命名（如 `fix-auth-bug`、`design-player-speed`）
    - 创建目录 `docs/evolution/<YYYY-MM-dd>-<session-name>/`
    - 按 [assets/record-template.md](../assets/record-template.md) 创建 `record.md`
-   - 更新 `docs/evolution/index.md`，为每条记录新增索引行
+   - 更新 `docs/evolution/index.md`，为每条记录新增索引行（按 [assets/index-template.md](../assets/index-template.md) 的格式）
    - 同步更新 `docs/short_memory.md` 中对应条目的利用情况
    - 统计各严重程度数量，向用户报告
-5. 检查同改进目标下「待进化」记录是否 ≥ 3 条，如果是则提示用户可开启进化
+6. 检查同一改进目标下「待进化」记录是否 ≥ 3 条，如果是则提示用户可开启进化
 
 ## 产物目录结构
 

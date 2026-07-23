@@ -2,7 +2,7 @@
 
 ## 触发标准
 
-满足以下**任一条件**时启动：
+满足以下**任一条件**时启动（多次触发合并为一次提示，提示中说明所有触发的条件）：
 
 1. **用户主动**：用户说"进化"、"优化 harness"、"改进一下 skill"、"开始进化"
 2. **数量阈值**：同一改进目标下「待进化」记录 ≥ 3 条（主 agent 在记录完成后提示用户）
@@ -14,9 +14,10 @@
 
 | 改进目标 | 进化方式 | 理由 |
 |---------|---------|------|
-| `.claude/skills/` 下的 skill | **走 skill-creator evals 流程**：设计测试用例 → 基线对比 → 评估效果 → 迭代优化 | Skill 的触发和输出质量需要客观衡量，不能仅凭感觉改 |
-| `CLAUDE.md`、`PRODUCT.md`、`docs/` 等文档 | **走直接修改流程**：分析 → 方案 → 用户审核 → 执行 | 文档规则的正确性由人判断，不需要 evals |
-| `docs/short_memory.md` | 在 skill/文档进化时间步处理：提升为长期规则后清理 | 记忆是过渡态，不单独进化 |
+| `.claude/skills/` 下的已有 skill | **走 skill-creator evals 流程**：设计测试用例 → 基线对比 → 评估效果 → 迭代优化 | Skill 的触发和输出质量需要客观衡量 |
+| 记录类型为 `skill-missing` | **先询问用户**：是否需要新增一个 skill？→ 需要则走 skill-creator 的 create 流程新建 → 不需要则标记为「已驳回」 | 新增 skill 是产品决策，不应由 agent 自行决定 |
+| `CLAUDE.md`、`PRODUCT.md`、`docs/` 等文档 | **走直接修改流程**：分析 → 方案 → 用户审核 → 执行 | 文档规则的正确性由人判断 |
+| `docs/short_memory.md` | 在 skill/文档进化时同步处理：提升为长期规则后清理 | 记忆是过渡态，不单独进化 |
 
 ## Skill 进化流程（走 skill-creator）
 
@@ -59,9 +60,9 @@
 
 ### 步骤 3：运行 evals
 
-调用 `Skill("skill-creator")` 加载 skill-creator，然后按 skill-creator 的流程执行：
+调用 `Skill("skill-creator")` 加载 skill-creator（三方外部 skill，由 skill-creator 插件提供），然后按 skill-creator 的流程执行：
 
-1. 在 `<skill-name>-workspace/` 下创建迭代目录
+1. 在 `<skill-name>-workspace/` 下创建迭代目录（workspace 与 skill 目录平级）
 2. 运行 with-skill 和 baseline（旧版 skill 快照）对比
 3. 收集 timing 和 token 数据
 4. 运行 grader 评估每个 assertion
@@ -82,8 +83,9 @@
 - 在进化目录下创建 `evolution.md`（用 [assets/evolution-template.md](../assets/evolution-template.md)），记录：
   - 进化方案摘要
   - 关联记录
-  - evals 结果摘要
+  - evals 结果摘要（如 evals 产物的 benchmark.json 等，将关键数据摘录到 evolution.md 中，原始文件保留在 workspace 目录）
   - 最终改动的 diff
+- evals 的原始产物（benchmark.json、grading.json 等）保留在 `<skill-name>-workspace/` 中，evolution.md 中引用其路径
 
 ## 文档进化流程（直接修改）
 
@@ -130,6 +132,8 @@
 3. 再改 SKILL.md
 4. 再改 CLAUDE.md
 5. 最后处理 short_memory.md（提升后清理）
+
+如变更涉及文件数较多（>5 个），征求用户确认是否拆分或一次全改。
 
 ### 步骤 5：归档
 
