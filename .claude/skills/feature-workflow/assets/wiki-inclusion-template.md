@@ -12,14 +12,6 @@
 | wiki/architecture/xxx.md | 新建 / 更新 | | |
 | wiki/decisions/YYYY-MM-DD-xxx.md | 新建 | | |
 
-## 变更文件列表
-
-<!-- 来自 git diff feature/... main --name-only -->
-
-```
-{{git diff 输出}}
-```
-
 ## 修订记录
 
 - wiki/revision/{{YYYY-MM-DD}}-{{feature-name}}.md 已创建

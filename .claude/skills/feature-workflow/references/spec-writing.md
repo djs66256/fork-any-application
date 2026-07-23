@@ -10,7 +10,7 @@
 
 - `worktree-setup` 阶段已完成
 - worktree 已创建，当前在 worktree 目录中
-- `docs/specs/<YYYY-MM-dd>-<name>/` 目录已存在（由 `workflow.py init` 创建）
+- `docs/specs/<YYYY-MM-dd>-<name>/` 目录已存在（由 `workflow.py init` 在 worktree 中创建）
 
 ## 执行流程
 

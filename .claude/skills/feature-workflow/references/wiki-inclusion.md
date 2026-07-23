@@ -43,14 +43,14 @@ Subagent：
 
     1. **判断影响范围**：根据变更文件列表和 spec/design 文档，确定哪些 wiki 文档需要新建或更新
     2. **更新功能文档**：
-       - 如为全新功能 → 按 `assets/feature-template.md` 模板创建 `wiki/features/<name>/index.md`
+       - 如为全新功能 → 按 llm-wiki skill 的 `assets/feature-template.md` 模板创建 `wiki/features/<name>/index.md`
        - 如为已有功能变更 → 增量更新对应章节
-    3. **更新 API 文档**：如涉及 API 变更 → 按 `assets/api-template.md` 更新 `wiki/api/<domain>.md`
-    4. **更新架构文档**：如涉及架构调整 → 创建或更新 `wiki/architecture/<topic>.md`
-    5. **追加技术决策**：如涉及重要技术选型 → 创建 `wiki/decisions/<YYYY-MM-DD>-<title>.md`
-    6. **更新索引**：更新 `wiki/index.md`、`wiki/features/index.md`、`wiki/api/index.md` 等
+    3. **更新 API 文档**：如涉及 API 变更 → 按 llm-wiki skill 的 `assets/api-template.md` 更新 `wiki/api/<domain>.md`
+    4. **更新架构文档**：如涉及架构调整 → 按 llm-wiki skill 的 `assets/architecture-template.md` 创建或更新 `wiki/architecture/<topic>.md`
+    5. **追加技术决策**：如涉及重要技术选型 → 按 llm-wiki skill 的 `assets/decisions-template.md` 创建 `wiki/decisions/<YYYY-MM-DD>-<title>.md`
+    6. **更新索引**：按 llm-wiki skill 的 `assets/index-template.md` 更新 `wiki/index.md`、`wiki/features/index.md`、`wiki/api/index.md` 等
     7. **创建修订记录**：创建 `wiki/revision/<YYYY-MM-DD>-<feature-name>.md`
-    8. **验证**：按 llm-wiki 的 validation 规范验证 Mermaid 语法和交叉引用
+    8. **验证**：按 llm-wiki skill 的 `references/validation.md` 规范验证 Mermaid 语法和交叉引用
 
     ## 收录原则
 

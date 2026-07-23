@@ -2,10 +2,22 @@
 
 coding-platforms 阶段是核心实现阶段。每端派发一个 coding subagent，subagent 内部再派发 code-review subagent 进行审查。
 
+## 上下文管理（File Handoff 模式）
+
+借鉴 Superpowers 的文件交接模式，coding subagent 通过**文件路径**传递上下文，而非将大段内容粘贴到 prompt 中。这样可以避免上下文污染和 token 浪费：
+
+- **Spec/Design/Plan 文档**：传入文件路径，由 subagent 自行读取
+- **变更文件列表**：通过 `git diff main --name-only` 在 subagent 内部获取
+- **实现报告**：subagent 完成后将结果写入 plan 文档的回写区域，而非返回到对话中
+
 ## 前置条件
 
 - `plan-platforms` 阶段已完成
 - 各端 plan-{platform}.md 已就绪
+
+## 进度持久化
+
+Coding subagent 应在 plan-{platform}.md 中维护进度。每个步骤完成后在对应步骤的「验证方式」旁标注 `✅ 已完成`。这样即使上下文压缩，主 agent 也能从 plan 文件中恢复进度。
 
 ## 派发方式
 
@@ -47,56 +59,9 @@ Subagent：
 
     ## Code Review
 
-    所有步骤完成后，在 subagent 内部派发 code-review subagent 进行内审：
-
-    ```
-    Subagent：
-      description: "Code Review：<platform>-<feature-name>"
-      prompt: |
-        你对 <platform> 端代码进行质量审查。
-
-        ## 准备
-
-        1. 通过 Skill 工具加载 `feature-workflow` skill
-        2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
-        3. 读取 <platform> 端方案 `docs/specs/<YYYY-MM-dd>-<name>/design-<platform>.md`
-        4. 读取实现计划 `docs/specs/<YYYY-MM-dd>-<name>/plan-<platform>.md`
-        5. 读取 `<platform>/CLAUDE.md`
-        6. 使用 `git diff main --name-only` 获取变更文件列表
-
-        ## 审查维度
-
-        ### 通用维度
-        - [ ] 实现是否与 plan 一致
-        - [ ] 实现是否与 design 一致
-        - [ ] 所有测试是否通过
-        - [ ] 是否有硬编码常量
-        - [ ] 代码风格是否符合平台规范
-        - [ ] 是否有明显的性能问题
-        - [ ] 错误处理是否完备
-
-        ### <platform> 专属维度
-        - Backend：API 响应格式是否统一、参数校验是否完备、是否有 SQL 注入风险
-        - iOS：内存管理、线程安全、View 层级
-        - Android：内存泄漏、线程安全、Lifecycle 感知
-        - Web：响应式设计、可访问性、bundle size
-
-        ## 修复
-
-        发现问题后：
-        - 可自行修复的：直接修改代码，然后重新运行测试验证
-        - 无法自行修复的：记录到 review 文档
-
-        ## 输出
-
-        按 `assets/code-review-template.md` 模板，将 review 结果输出到
-        `docs/specs/<YYYY-MM-dd>-<name>/code-<platform>-review.md`。
-
-        ## Review 循环
-
-        修复完成后重新自检，直到所有可修复问题都已处理。
-        如果 3 轮循环后仍有问题，上报给主 agent。
-    ```
+    所有步骤完成后，在 subagent 内部派发 code-review subagent 进行内审。
+    使用 [references/code-review.md](code-review.md) 中定义的 Subagent prompt，
+    将 `<platform>` 和 `<feature-name>` 替换为实际值。
 
     ## Code Review 循环
 
