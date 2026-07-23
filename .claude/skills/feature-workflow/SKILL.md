@@ -38,7 +38,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 | **技术方案 Review** | 审查设计完整性/一致性/跨端对齐 | subagent（循环修复） | [references/design-review.md](references/design-review.md) |
 | **Plan 撰写** | 轻量 TDD 实现计划 | subagent（并行） | [references/plan-writing.md](references/plan-writing.md) |
 | **Coding** | 按 plan 逐步骤实现 | subagent（并行，内部含 code review） | [references/coding.md](references/coding.md) |
-| **Code Review** | 审查代码质量、规范、一致性 | subagent（在 coding 内部创建） | [references/code-review.md](references/code-review.md) |
+| **Code Review** | 审查代码质量、规范、一致性（coding agent 直接并行派发专项 subagent） | coding agent 内联执行 | [references/code-review.md](references/code-review.md) |
 | **Wiki 收录** | 汇总全流程产物 + git diff，委托 llm-wiki 更新 wiki | subagent | [references/wiki-inclusion.md](references/wiki-inclusion.md) |
 
 ## 工作流总览
@@ -172,7 +172,7 @@ flowchart TD
 **执行规范**：详见 [references/design-writing.md](references/design-writing.md)
 
 1. 判断涉及哪些平台
-2. 为每个涉及平台并行派发 design subagent
+2. 为每个涉及平台并行派发 design subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
 3. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform design-platforms <platform> --status skipped`
 4. Subagent 按 `assets/design-platform-template.md` 输出 `design-{platform}.md`
 5. 每个平台完成后调用 `python3 scripts/workflow.py mark-platform design-platforms <platform> --status completed`
@@ -220,7 +220,7 @@ flowchart TD
 
 **执行规范**：详见 [references/plan-writing.md](references/plan-writing.md)
 
-1. 为各涉及平台并行派发 plan subagent
+1. 为各涉及平台并行派发 plan subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
 2. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform plan-platforms <platform> --status skipped`
 3. Subagent 按 `assets/plan-template.md` 输出 `plan-{platform}.md`
 4. 每个平台完成后 `python3 scripts/workflow.py mark-platform plan-platforms <platform> --status completed`
@@ -234,19 +234,18 @@ flowchart TD
 
 ### 阶段 10：coding-platforms ⚡🔄
 
-**执行者**：subagent（各端并行，每个内部含 code review 循环，上限 3 轮）
+**执行者**：subagent（各端并行，每个内部含 build & lint → tests → review 渐进验证循环，上限 3 轮）
 
 **前置条件**：plan-platforms 完成
 
 **执行规范**：详见 [references/coding.md](references/coding.md)
 
-1. 为各涉及平台并行派发 coding subagent
+1. 为各涉及平台派发 coding subagent（**优先使用 agent team，详见 [references/agent-team.md](references/agent-team.md)**）
 2. 不涉及的平台标记为 skipped：`python3 scripts/workflow.py mark-platform coding-platforms <platform> --status skipped`
-3. 每个 subagent 按 plan 步骤执行：写测试 → 写代码 → 验证 → 补充测试
-4. 完成后在内部创建 code-review subagent 进行审查（prompt 见 [references/code-review.md](references/code-review.md)）
-5. 审查发现问题 → 修复 → 重新审查（最多 3 轮）
-6. 每个平台完成后 `python3 scripts/workflow.py mark-platform coding-platforms <platform> --status completed`
-7. 全部完成后 `python3 scripts/workflow.py advance`
+3. 每个 subagent 按 plan 步骤执行，遵循**渐进成本验证循环**：build & lint → tests → review
+4. Coding subagent 自行逐项验收（Build、Lint、Tests、Review、修改范围、无硬编码），全部通过后才可报告完成
+5. 每个平台完成后 `python3 scripts/workflow.py mark-platform coding-platforms <platform> --status completed`
+6. 全部完成后 `python3 scripts/workflow.py advance`
 
 **产物**：各端代码变更 + `code-{platform}-review.md`（按需）
 
@@ -377,7 +376,7 @@ python3 scripts/workflow.py init <name> --lightweight
 
 ## 完成前验证（Verification Gate）
 
-借鉴 Superpowers 的 `verification-before-completion` 模式，每个阶段完成前，agent 必须提供**新鲜证据**（而非口头声明）证明完成：
+每个阶段完成前，agent 必须提供**新鲜证据**（而非口头声明）证明完成：
 
 | 声明 | 需要的证据 |
 |------|-----------|
@@ -475,6 +474,7 @@ python3 scripts/workflow.py init add-playback-speed
 | [references/coding.md](references/coding.md) | coding subagent 派发规范（code review 在内部创建，prompt 见 code-review.md） | ✅ |
 | [references/code-review.md](references/code-review.md) | code review subagent 规范（被 coding.md 引用） | ✅ |
 | [references/wiki-inclusion.md](references/wiki-inclusion.md) | wiki 收录流程 | ✅ |
+| [references/agent-team.md](references/agent-team.md) | agent team 派发规范（platform subagent 派发优先使用 agent team） | — |
 
 ### Assets（模板）
 

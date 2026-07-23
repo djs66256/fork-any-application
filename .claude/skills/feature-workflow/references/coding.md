@@ -1,27 +1,17 @@
 # Coding Subagent 派发规范
 
-coding-platforms 阶段是核心实现阶段。每端派发一个 coding subagent，subagent 内部再派发 code-review subagent 进行审查。
-
-## 上下文管理（File Handoff 模式）
-
-借鉴 Superpowers 的文件交接模式，coding subagent 通过**文件路径**传递上下文，而非将大段内容粘贴到 prompt 中。这样可以避免上下文污染和 token 浪费：
-
-- **Spec/Design/Plan 文档**：传入文件路径，由 subagent 自行读取
-- **变更文件列表**：通过 `git diff main --name-only` 在 subagent 内部获取
-- **实现报告**：subagent 完成后将结果写入 plan 文档的回写区域，而非返回到对话中
+coding-platforms 阶段是核心实现阶段。每端派发一个 coding subagent，subagent 内部进行 **build & lint → tests → review** 的渐进式验证循环。
 
 ## 前置条件
 
 - `plan-platforms` 阶段已完成
 - 各端 plan-{platform}.md 已就绪
 
-## 进度持久化
-
-Coding subagent 应在 plan-{platform}.md 中维护进度。每个步骤完成后在对应步骤的「验证方式」旁标注 `✅ 已完成`。这样即使上下文压缩，主 agent 也能从 plan 文件中恢复进度。
-
 ## 派发方式
 
-主 agent 为各涉及平台并行派发 coding subagent：
+主 agent 为各涉及平台派发 coding subagent。
+
+**派发优先级**：优先使用 agent team 模式，agent team 不可用时使用独立 subagent。详见 [references/agent-team.md](agent-team.md)。
 
 ```
 Subagent：
@@ -31,23 +21,70 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill，获取完整规范上下文
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`coding-platforms`
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
     3. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
     4. 读取 <platform> 端方案 `docs/specs/<YYYY-MM-dd>-<name>/design-<platform>.md`
     5. 读取实现计划 `docs/specs/<YYYY-MM-dd>-<name>/plan-<platform>.md`
-    6. 读取 `<platform>/CLAUDE.md` 了解开发规范和测试要求
+
+    > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
+
+    ## 代码修改范围
+
+    你**只能修改 `<platform>/` 目录下的文件**。
+
+    禁止修改：
+    - 其他平台的代码目录
+    - `docs/`、`wiki/` 目录下的文档
+    - 根目录配置文件（除非 plan 中明确要求）
+    - `.claude/`、`scripts/` 等基础设施文件
+
+    ## 进度持久化
+
+    在 plan-<platform>.md 中维护进度。每个步骤完成后在对应步骤的「验证方式」旁标注 `✅ 已完成`。
 
     ## 执行流程
 
-    按 plan-<platform>.md 中的步骤顺序执行，每个步骤：
+    按 plan-<platform>.md 中的步骤顺序执行。每个步骤遵循以下验证循环（按成本从低到高）：
 
-    1. **定义测试**：按 plan 中定义的测试场景编写测试用例
-    2. **实现代码**：编写满足测试的代码
-    3. **运行验证**：执行测试命令，确认新增测试通过
-    4. **补充测试**：针对边界场景补充额外测试
-    5. **运行全量验证**：确认不引入 regression
-    6. **回写变更**：将变更文件及其内容简介回写到 plan 中
+    ```
+    编写代码
+      ↓
+    Build & Lint（成本最低）  ←──────────┐
+      ↓ 不通过则修复                      │
+    Tests（成本中等）          ←──────────┤
+      ↓ 不通过则修复                      │
+    Review（成本最高）         ←──────────┘
+      ↓ 不通过则修复后重走全流程
+    通过 ✅
+    ```
+
+    ### 第 1 层：Build & Lint（成本最低）
+
+    编写代码后首先执行 build 和 lint 检查：
+
+    1. 运行 build 命令，确认编译通过
+    2. 运行 lint 命令，确认无新增警告/错误
+    3. 不通过 → 修复代码 → 重新第 1 层
+
+    ### 第 2 层：Tests（成本中等）
+
+    Build & Lint 通过后，执行测试验证：
+
+    1. 按 plan 中定义的测试场景编写测试用例
+    2. 运行新增测试，确认全部通过
+    3. 运行全量测试，确认不引入 regression
+    4. 针对边界场景补充额外测试
+    5. 不通过 → 修复代码或测试 → 回到第 1 层
+
+    ### 第 3 层：Review（成本最高）
+
+    所有步骤的 Build & Tests 通过后，按照 [references/code-review.md](code-review.md) 执行 code review。
+
+    Review 修复循环：
+    1. Review 发现问题 → 按 code-review.md 中的修复策略处理
+    2. 修复代码 → 回到第 1 层（Build & Lint）重走验证流程 → 重新 review
+    3. 循环直到无新增问题或达到 3 轮上限
 
     ## 约束
 
@@ -55,54 +92,37 @@ Subagent：
     - 禁止硬编码常量（localhost、固定 token、固定环境地址等）
     - API 调用遵循 RESTful 设计
     - 新增开源依赖需确认（如 plan 中未列出，暂停并询问）
-    - 代码风格遵守 `<platform>/CLAUDE.md` 中的规范
 
-    ## Code Review
+    ## 验收标准（逐项自检）
 
-    所有步骤完成后，在 subagent 内部派发 code-review subagent 进行内审。
-    使用 [references/code-review.md](code-review.md) 中定义的 Subagent prompt，
-    将 `<platform>` 和 `<feature-name>` 替换为实际值。
+    **所有以下条件必须满足才可向主 agent 报告完成。** 每项需提供新鲜证据（命令输出、文件内容），不得口头声明：
 
-    ## Code Review 循环
+    | 验收项 | 验证方式 | 证据 |
+    |--------|---------|------|
+    | Build 通过 | 运行 build 命令 | 退出码为 0，无编译错误 |
+    | Lint 通过 | 运行 lint 命令 | 退出码为 0，无新增警告/错误 |
+    | 新增测试通过 | 运行新增测试 | 退出码为 0，所有新增用例通过 |
+    | 全量测试通过 | 运行全量测试 | 退出码为 0，无 regression |
+    | Review 通过 | 检查 code-review.md | 结论为「所有问题已修复」或仅有低严重度遗留项 |
+    | 修改范围合规 | `git diff main --name-only` | 变更仅包含 `<platform>/` 目录下的文件 |
+    | 无硬编码 | 检查变更内容 | 无硬编码 URL、token、环境变量 |
 
-    code-review subagent 完成后：
-
-    1. 读取 `code-<platform>-review.md`，检查是否有遗留问题
-    2. 如有可自行修复的问题：修复代码 → 重新运行测试 → 重新派发 code-review subagent
-    3. 如有需要人工判断的问题：记录并继续
-    4. 循环直到无新增问题或达到 3 轮上限
+    验收不通过的项目 → 修复后重新从第 1 层（Build & Lint）开始验证，直到全部通过。
 
     ## 完成后
 
-    Code review 循环完成后，向主 agent 报告编码和 review 结果摘要。
+    验收全部通过后，将变更文件及其内容简介回写到 plan 中，然后向主 agent 报告编码和 review 结果摘要。
 ```
-
-## 主 agent 后续操作
-
-1. Coding subagent 返回后，检查 review 文档
-2. 调用 `workflow.py mark-platform coding-platforms <platform> --status completed`
-3. 如有遗留问题需要人工介入，向用户展示并等待回复
-4. 全部平台完成后，调用 `workflow.py advance` 推进到 code-human-review
 
 ## 并行性
 
 - 各平台 coding subagent **可并行派发**
-- 每个 coding subagent 内部的 code-review subagent **串行执行**（在同一 coding subagent 内）
+- 每个 coding subagent 内部的 code review 专项 subagent **并行派发**，review 修复循环 **串行执行**
 
-## 各端约束参考
+## 主 agent 后续操作
 
-各端 CLAUDE.md 中的测试和规范要求 summary：
-
-| 端 | 测试要求 | 特殊约束 |
-|----|---------|---------|
-| Backend | 单元测试；业务逻辑、参数校验、数据转换的改动同步补齐 | API RESTful，统一响应格式 |
-| Web | 业务逻辑、状态转换、数据校验的改动需补充测试 | React/Vue 规范 |
-| iOS | 每个场景都需要有单元测试 | SwiftUI/UIKit，内存管理 |
-| Android | 每个场景都需要有单元测试 | Compose/View，Lifecycle |
-
-## 完成标志（单平台）
-
-- 所有 plan 步骤已完成
-- 所有测试通过
-- code-{platform}-review.md 已输出
-- 所有可修复的 review 问题已解决
+1. Coding subagent 返回后，确认 subagent 自行验收已通过
+2. 检查 review 文档是否已输出
+3. 调用 `workflow.py mark-platform coding-platforms <platform> --status completed`
+4. 如有遗留问题需要人工介入，向用户展示并等待回复
+5. 全部平台完成后，调用 `workflow.py advance` 推进到 code-human-review
