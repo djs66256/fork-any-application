@@ -3,7 +3,6 @@ name: feature-workflow
 description: >
   需求到落地的全流程管理 skill。覆盖从 worktree 创建、需求撰写与 review（含自动修复循环）、
   技术方案设计与 review、各端 plan 与 coding（含 code review），到 worktree 合并与 wiki 收录的 14 个阶段。
-  支持轻量模式用于小改动（跳过 review 环节）。
   触发场景：用户提出新功能开发需求、说"开始一个新需求"、"创建一个功能分支"、"推进 XX 需求"、
   "做 XX 功能"、"实现 XX"、"开发 XX"、"加一个 XX 功能"。只要涉及从需求到代码落地的完整开发流程，
   都应使用本 skill。当用户表达了开发意图但未明确说明流程时，也应主动使用本 skill 引导。
@@ -276,7 +275,9 @@ flowchart TD
 1. 向用户展示代码变更摘要和 review 结论
 2. 确认全部通过：`python3 scripts/workflow.py human-review code-human-review --approve`
 3. 仅驳回某平台：`python3 scripts/workflow.py human-review code-human-review --platform <platform> --reject`（只回退该平台的 coding，其他平台不动）
+   → 重新派发该平台的 coding subagent，subagent 通过模式检测（见 [coding.md](references/coding.md)）识别修复轮次，只修复 review 和用户反馈指出的问题
 4. 全部驳回：`python3 scripts/workflow.py human-review code-human-review --reject`（回到阶段 10）
+   → 重新派发所有涉及的 coding subagent，使用修复模式
 
 **下一阶段提示**：「代码已确认。是否合回主干？」
 
@@ -331,25 +332,6 @@ flowchart TD
 - Wiki 收录结果
 - 流程耗时统计
 
-## 轻量模式
-
-对于小改动（仅 1 个平台、改动 < 5 个文件），可使用轻量模式跳过 review 和人工确认阶段：
-
-```bash
-python3 scripts/workflow.py init <name> --lightweight
-```
-
-轻量模式下：
-- spec-review、design-review 自动标记为 skipped
-- spec-human-review、design-human-review、code-human-review 自动标记为 skipped
-- 仅保留：worktree-setup → spec-writing → design-shared → design-platforms → plan-platforms → coding-platforms → worktree-merge → wiki-inclusion → completed
-
-适用场景：
-- 修一个 UI bug
-- 加一个简单配置项
-- 升级依赖版本
-- 调整构建配置
-
 ## 人机协作边界
 
 | 阶段 | 自动化程度 | 人介入条件 |
@@ -373,50 +355,6 @@ python3 scripts/workflow.py init <name> --lightweight
 - 用户主动中断流程提出修改
 - 代码合并冲突需要手动解决
 - 3 轮 review 仍未收敛时，脚本输出 warning，强制上报人工
-
-## Review 循环机制
-
-所有 review 阶段（spec-review、design-review、coding-platforms）遵循相同的循环模式，借鉴 Speckit 的 Clarify 理念——在每个 review 阶段中，subagent 首先系统化解决文档中的所有 `[待确认]` 标记，再进行审查：
-
-```
-执行 → 派发 review subagent → [Clarify: 解决 [待确认] 标记] → [审查并修复] → 输出 review 报告
-                                                                              ↓
-                                                      无遗留 ← 主 agent 检查 ←
-                                                        ↓                      ↓
-                                                   推进到下一阶段            有遗留
-                                                                                ↓
-                                                      需人决策 → 询问用户 → 用户回复后
-                                                        ↓                      ↓
-                                                   回到 writing 修复     agent 可修复 → 回到 writing 修复
-                                                        ↓                      ↓
-                                                   重新派发 subagent      重新派发 subagent
-```
-
-关键规则：
-- Subagent 自行修复能修复的问题，不等待主 agent 确认
-- **agent 可修复的问题不进入 human 环节**，直接回到 writing 修复后重新 review
-- 只有必须由人决策的问题才展示给用户
-- 每轮 review 后调用 `workflow.py review-loop` 递增计数
-- **脚本强制上限**：`workflow.py review-loop --increment` 在达到 3 轮时输出 warning，提醒 agent 停止自动循环
-- 遗留问题记录到 review 文档的「遗留问题」章节
-- 用户回复遗留问题后，回到 writing 阶段修复，修复后重新派发 review subagent
-
-## 完成前验证（Verification Gate）
-
-每个阶段完成前，agent 必须提供**新鲜证据**（而非口头声明）证明完成：
-
-| 声明 | 需要的证据 |
-|------|-----------|
-| 阶段 N 完成 | 产物文件存在且非空（`cat` 文件首行确认） |
-| 测试通过 | 测试命令的实际输出，含 "0 failures" 或退出码 0 |
-| Review 通过 | review 文档中结论为"所有问题已修复" |
-| 合并成功 | `git log -1 --oneline` 显示 merge commit |
-| Wiki 更新完成 | wiki 修订记录文件存在 |
-
-禁止以下空洞声明：
-- "should work"、"probably fine"、"seems correct"
-- 没有命令输出的"Done!"、"Great!"
-- 没有文件内容确认的"已写入"
 
 ## 不适用平台的处理
 

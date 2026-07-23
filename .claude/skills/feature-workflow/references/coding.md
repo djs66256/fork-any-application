@@ -29,6 +29,30 @@ Subagent：
 
     > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
 
+    ## 模式检测
+
+    开始工作前，先判断当前是「首次编码」还是「修复轮次」：
+
+    1. 检查 `docs/specs/<YYYY-MM-dd>-<name>/code-<platform>-review.md` 是否已存在（有 review 报告说明之前已编码过）
+    2. 检查 plan-<platform>.md 中的步骤进度标记
+
+    ### 🔧 修复轮次（review 报告或进度标记已存在）
+
+    说明：之前已完成编码并通过了部分验证，本次任务是**只修复** review 或人反馈中指出的问题。
+
+    **修复流程：**
+    1. 读取 `code-<platform>-review.md`，了解 review 发现的问题（🔴 阻塞 和 🟡 关注）
+    2. 读取 `plan-<platform>.md`，查看当前进度（已完成步骤的 ✅ 标记）
+    3. 使用 `git diff main --name-only` 了解当前变更范围
+    4. **只修改/补充** review 报告中指出的具体问题，不重写整个实现
+    5. 保留 plan 中的进度标记（已完成步骤的 ✅ 不要重置）
+    6. 修复后仍需通过 Build & Lint → Tests → Review 的渐进验证循环
+    7. 修复完成后更新 `code-<platform>-review.md` 中的问题状态
+
+    ### 🆕 首次编码（review 报告不存在）
+
+    按 plan-<platform>.md 中的步骤顺序，从第一步开始完整实现。
+
     ## 代码修改范围
 
     你**只能修改 `<platform>/` 目录下的文件**。

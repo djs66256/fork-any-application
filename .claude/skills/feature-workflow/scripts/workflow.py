@@ -6,7 +6,7 @@ Agent 不应直接读写 workflow.json，所有状态变更通过此脚本完成
 脚本是幂等的（读操作）并对写操作进行状态转移校验。
 
 用法:
-    python3 scripts/workflow.py init <name> [--branch <branch>] [--worktree-path <path>] [--lightweight]
+    python3 scripts/workflow.py init <name> [--branch <branch>] [--worktree-path <path>]
     python3 scripts/workflow.py status [--json]
     python3 scripts/workflow.py advance [--stage <name>] [--skip <stage>]
     python3 scripts/workflow.py review-loop <stage> [--platform <name>] [--increment]
@@ -57,14 +57,6 @@ STAGES_WITH_REVIEW_LOOP = {"spec-review", "design-review", "coding-platforms"}
 STAGES_WITH_HUMAN_REVIEW = {"spec-human-review", "design-human-review", "code-human-review"}
 STAGES_WITH_PLATFORMS = {"design-platforms", "plan-platforms", "coding-platforms"}
 
-# 轻量模式下跳过的阶段（仅纯 review 和人工确认阶段，不跳过 coding）
-LIGHTWEIGHT_SKIP_STAGES = {
-    "spec-review",
-    "spec-human-review",
-    "design-review",
-    "design-human-review",
-    "code-human-review",
-}
 PLATFORM_NAMES = {"backend", "ios", "android", "web"}
 
 MAX_REVIEW_LOOPS = 3
@@ -140,18 +132,13 @@ def stamp_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def init_stage_entry(stage: str, lightweight: bool = False) -> dict:
-    """创建阶段初始 entry。
-
-    轻量模式下，review 和 human-review 阶段标记为 skipped（coding-platforms 除外）。
-    """
+def init_stage_entry(stage: str) -> dict:
+    """创建阶段初始 entry。"""
     entry = {
         "status": "pending",
         "started_at": None,
         "completed_at": None,
     }
-    if stage in LIGHTWEIGHT_SKIP_STAGES and lightweight:
-        entry["status"] = "skipped"
     if stage in STAGES_WITH_REVIEW_LOOP:
         entry["review_loops"] = 0
     if stage in STAGES_WITH_PLATFORMS:
@@ -180,7 +167,6 @@ def cmd_init(args):
     spec_dir = f"docs/specs/{today}-{name}"
     branch = args.branch or f"feature/{today}-{name}"
     worktree_path = args.worktree_path or f".worktree/{today}-{name}"
-    lightweight = args.lightweight
 
     # 创建目录（在 worktree 中）
     target_dir = Path.cwd() / spec_dir
@@ -194,7 +180,7 @@ def cmd_init(args):
     stages = {}
     first = True
     for stage in STAGE_ORDER:
-        entry = init_stage_entry(stage, lightweight=lightweight)
+        entry = init_stage_entry(stage)
         if first:
             entry["status"] = "in_progress"
             entry["started_at"] = stamp_now()
@@ -208,7 +194,6 @@ def cmd_init(args):
             "date": today,
             "branch": branch,
             "worktree_path": worktree_path,
-            "lightweight": lightweight,
         },
         "stages": stages,
         "metadata": {
@@ -228,7 +213,6 @@ def cmd_init(args):
         "feature": workflow["feature"],
         "workflow_json": str(wf_path),
         "current_stage": "worktree-setup",
-        "lightweight": lightweight,
     }, ensure_ascii=False))
 
 
@@ -286,8 +270,6 @@ def cmd_status(args):
         print(f"需求: {data['feature']['name']}")
         print(f"分支: {data['feature']['branch']}")
         print(f"产物目录: {data['feature']['dir']}")
-        if data["feature"].get("lightweight"):
-            print(f"模式: 轻量（跳过了 review 和 human-review 阶段）")
         print(f"当前阶段: {current} ({current_idx + 1}/{len(STAGE_ORDER)})")
         print(f"已完成: {', '.join(completed) if completed else '无'}")
         if skipped:
@@ -626,7 +608,6 @@ def main():
     p_init.add_argument("name", help="需求名称（kebab-case）")
     p_init.add_argument("--branch", help="分支名（默认 feature/<YYYY-MM-dd>-<name>）")
     p_init.add_argument("--worktree-path", help="worktree 路径（默认 .worktree/<YYYY-MM-dd>-<name>）")
-    p_init.add_argument("--lightweight", action="store_true", help="轻量模式（跳过 review 和 human-review 阶段）")
 
     # status
     p_status = subparsers.add_parser("status", help="显示当前状态")

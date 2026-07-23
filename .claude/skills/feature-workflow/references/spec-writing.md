@@ -69,3 +69,22 @@
 - 参考资料列表完整
 
 完成后，调用 `python3 scripts/workflow.py advance` 推进到 spec-review 阶段。
+
+## 修复模式
+
+当 spec-review 发现问题或 spec-human-review 驳回后回到 spec-writing 时，使用修复模式。
+
+### 触发时机
+
+- spec-review 发现 spec.md 中有问题需要修改
+- spec-human-review 用户驳回
+
+### 修复行为
+
+与首次撰写不同，修复模式下：
+1. 读取 `spec-review.md`（如存在），了解具体的问题列表和修复建议
+2. 读取现有的 `spec.md`，保留其整体结构和内容
+3. **只修改/补充** review 报告或用户反馈中明确指出的问题
+4. 不修改未被指出的章节和内容
+5. 修复完成后，在 `spec-review.md` 中对应问题的描述后追加 `✅ 已修复`
+6. 如没有具体问题（如用户笼统驳回），询问用户具体需要修改什么
