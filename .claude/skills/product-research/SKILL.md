@@ -15,7 +15,7 @@ description: >
 
 ## 能力线
 
-本 skill 整合四类能力，各司其职：
+本 skill 整合以下能力线，各司其职：
 
 | 能力线 | 职责 | 落地方式 |
 |--------|------|---------|
@@ -30,20 +30,22 @@ description: >
 
 ```
   [1. 规划]          [2. 采集]           [3. 分析]            [4. 成文]          [5. Review]
-  明确分析范围    操控竞品应用       派发单个 subagent    派发 subagent      对照标准检查
-  划分子任务      截图 + 录屏       读取产物多维度分析   合并分析到功能文档   补充遗漏维度
-  制定采集方案    每步标注上下文    输出 analysis.md      更新索引/修订历史   输出最终文档
+  检查已有进度    操控竞品应用       派发分析 subagent    派发 subagent      对照标准检查
+  明确分析范围    截图 + 录屏       读取产物多维度分析   合并分析到功能文档   补充遗漏维度
+  划分子任务      每步标注上下文    输出 analysis.md      更新索引/修订历史   输出最终文档
+  制定采集方案    回填 + 更新进度    更新进度              更新进度            更新进度
 ```
 
-## 阶段 1：规划 —— 预制采集文档，等待审批
+## 阶段 1：规划 —— 检查进度、预制采集文档，等待审批
 
 确认分析范围、拆分子任务、制定采集方案。详细指南见 `references/planning.md`。
 
 核心步骤：
-1. 从用户描述中提取目标竞品、功能模块、分析深度、目标平台
-2. 按交互链路将大范围分析拆分为独立可执行的子任务
-3. 对每个子任务，按 `assets/capture-template.md` 预制采集文档，填入采集信息和操作序列，保存到 `captures/<日期>-<描述>/capture.md`
-4. 向用户呈现分析计划和采集文档，确认后进入采集
+1. 读取 `docs/product_research/PROGRESS.md`，检查目标模块的已有采集和进度（首次使用时自动初始化）
+2. 从用户描述中提取目标竞品、功能模块、分析深度、目标平台
+3. 按交互链路将大范围分析拆分为独立可执行的子任务
+4. 对每个子任务，按 `assets/capture-template.md` 预制采集文档，填入采集信息和操作序列，保存到 `captures/<日期>-<描述>/capture.md`
+5. 向用户呈现分析计划和已有进度概览，确认后在 `PROGRESS.md` 中追加新行（采集=`doing`）
 
 ## 阶段 2：采集 —— 派发 subagent，传文档路径即可
 
@@ -51,9 +53,13 @@ description: >
 
 **采集不可并发**：所有采集共享同一设备/模拟器，必须逐个串行。
 
+采集 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「采集」列更新为 `done`。
+
 ## 阶段 3：分析 —— 派发 subagent，传文档路径即可
 
 采集完成后，对每个采集文档，按 `references/analysis.md` 中的 subagent 定义各派发一个分析 subagent，传入采集文档路径。subagent 会加载 `product-research` skill，自行读取采集文档和同目录 `assets/` 下的产物，产出分析文档。
+
+分析 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「分析」列更新为 `done`。
 
 ## 阶段 4：成文 —— 派发 subagent，传文档路径即可
 
@@ -67,19 +73,24 @@ description: >
 - 更新模块和频道索引
 - 创建修订历史
 
+成文 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「成文」列更新为 `done`。
+
 ## 阶段 5：Review —— 派发 subagent，传文档路径即可
 
 成文完成后，按 `references/review.md` 中的 subagent 定义派发 Review subagent，传入采集文档路径。subagent 会加载 `product-research` skill，自行读取采集文档、分析文档、功能文档、索引和修订历史，逐项检查并输出审查报告。
 
 发现问题后 subagent 直接修正，修正后自检，直到全部通过。
 
+Review subagent 完成后会自动将 `PROGRESS.md` 中对应行的「Review」列更新为 `done`。
+
 ## 完整示例
 
-用户：「爬一下红果的播放器，从点击视频卡片到退出播放器的完整流程，包括所有的交互细节和 UI 样式」
+用户：「爬一下《竞品》的播放器，从点击视频卡片到退出播放器的完整流程，包括所有的交互细节和 UI 样式」（产品信息见 PRODUCT.md）
 
 执行流程：
 
 **阶段 1 — 规划**
+- 读取 `PROGRESS.md`，检查 `video-player` 模块已有进度（首次可能为空或需初始化）
 - 范围：播放器完整交互流程 + UI 样式
 - 按路径拆分为 5 个子任务，每个独立预制采集文档：
   1. 点击视频卡片 → 进入播放器 `captures/2026-07-22-player-enter/capture.md`
@@ -88,16 +99,18 @@ description: >
   4. 横竖屏切换 `captures/2026-07-22-player-orientation/capture.md`
   5. 播放器 → 退出回到首页 `captures/2026-07-22-player-exit/capture.md`
 - 平台：mobile
-- 向用户呈现分析计划和各采集文档，确认后逐条执行
+- 向用户呈现分析计划和已有进度概览，确认后在 `PROGRESS.md` 追加 5 行（采集=`doing`）
 
 **阶段 2 — 采集**
 - 按 `references/capture-subagent.md` 逐个派发采集 subagent，只传采集文档路径
 - 以子任务 1 为例：subagent 读取 `captures/2026-07-22-player-enter/capture.md`，按操作序列执行并回填
 - 全部 subagent 返回后确认：各采集文档已回填观察/日志/产物清单，截图录屏在各自 `assets/` 中
+- 每个采集 subagent 完成后自动更新 `PROGRESS.md`（采集=`done`）
 
 **阶段 3 — 分析**
 - 按 `references/analysis.md` 逐个派发分析 subagent，只传采集文档路径
 - subagent 加载 product-research skill，读取采集文档和同目录产物，按模板产出 `analysis.md`
+- 每个分析 subagent 完成后自动更新 `PROGRESS.md`（分析=`done`）
 
 **阶段 4 — 成文**
 - 所有采集均为同一功能模块 `video-player`，成文 subagent 必须串行
@@ -106,9 +119,11 @@ description: >
 - 首次成文：创建 `mobile/video-player/video-player.md`（功能文档）
 - 后续成文：增量更新同一功能文档，追加截图、合并发现、更新附录
 - 每次成文后更新模块 `index.md` 并创建修订历史
+- 每个成文 subagent 完成后自动更新 `PROGRESS.md`（成文=`done`）
 
 **阶段 5 — Review**
 - 按 `references/review.md` 逐个派发 Review subagent，只传采集文档路径
 - subagent 加载 product-research skill，自行读取所有相关文档
 - 逐项检查采集文档、分析文档、功能文档、修订历史、索引
 - 输出审查报告，发现问题直接修正并自检
+- 每个 Review subagent 完成后自动更新 `PROGRESS.md`（Review=`done`）

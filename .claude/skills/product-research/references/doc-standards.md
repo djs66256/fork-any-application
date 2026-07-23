@@ -16,6 +16,7 @@
 
 ```
 docs/product_research/
+├── PROGRESS.md                            # 调研进度追踪（各阶段 subagent 自动维护）
 ├── index.md                              # 总索引（频道列表 + captures + revisions）
 ├── captures/                             # 采集文档目录（计划 + 实录）
 │   └── <YYYY-MM-DD>-<描述>/
@@ -128,6 +129,7 @@ kebab-case：
 - 分析 subagent 模板：`references/analysis.md`
 - 成文 subagent 模板：`references/compilation-subagent.md`
 - Review subagent 模板：`references/review.md`
+- Meta-Review subagent 模板：`references/meta-review.md`（skill 自身一致性审查）
 
 ## 7. 修订历史内容规范
 

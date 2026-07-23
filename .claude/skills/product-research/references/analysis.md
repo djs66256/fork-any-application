@@ -51,6 +51,13 @@ Subagent：
 
     发现问题直接修正，不要等主 agent 指出。
 
+    ## 进度更新
+
+    分析文档写入并通过自检后，更新 `docs/product_research/PROGRESS.md`：
+    - 找到本采集对应的行（按采集文档路径匹配）
+    - 将「分析」列改为 `done`
+    - 更新「最后更新」时间戳为当前时间
+
     ## 写作规范
 
     遵循 `references/doc-standards.md` 中的写作规范，此外：

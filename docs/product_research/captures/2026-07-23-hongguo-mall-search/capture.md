@@ -27,8 +27,8 @@
 - **观察要点**：确认搜索框和搜索按钮可见
 
 *执行后由 subagent 填写：*
-- **观察**：
-- **截图文件**：
+- **观察**：商城页匿名可达，顶部为搜索框、“搜索”按钮与购物车入口；搜索框内显示动态推荐词，本次采集中先后出现“水果篮水果店专用”“车香补充液新款淡香”“直充电动工具全套装组合”等样本。搜索框下方有“我的订单 / 卡券红包 / 我的钱包 / 短剧同款 / 国家补贴”快捷入口，中部为直播与商品混合的双列瀑布流，底部固定浮层提示“登录可查看商品价格”，右侧提供“立即登录”按钮，说明首页浏览匿名开放，但价格展示受登录限制。
+- **截图文件**：`assets/2026-07-23-step-01-mall-ready.png`
 
 ### 步骤 2：点击搜索框进入搜索页
 
@@ -38,30 +38,30 @@
 - **观察要点**：搜索页结构、搜索历史、推荐词或热搜可见性
 
 *执行后由 subagent 填写：*
-- **观察**：
-- **截图文件**：
+- **观察**：点击搜索框后，没有进入可匿名浏览的商城搜索页，而是直接从底部上拉出登录底板。登录底板标题为“完成抖音登录抢购超值好物”，包含手机号输入框、“获取验证码”按钮、协议勾选区与底部抖音快捷登录按钮，属于半屏登录拦截而非全屏页面；同时商城首屏内容仍可在背景层看到，说明搜索能力在匿名态下被前置登录门槛拦截。
+- **截图文件**：`assets/2026-07-23-step-02-search-page.png`
 
 ### 步骤 3：执行关键词搜索
 
-- **操作**：输入“鞋”并提交搜索
-- **命令**：`adb shell input tap 260 120 && sleep 1 && adb shell input text xie && adb shell input keyevent KEYCODE_ENTER && sleep 3`
+- **操作**：在登录拦截关闭后重试搜索框，验证是否允许继续进入搜索结果
+- **命令**：`adb shell input keyevent KEYCODE_BACK && sleep 1 && adb shell input tap 260 120 && sleep 2`
 - **截图**：保存为 `assets/2026-07-23-step-03-search-result.png`
 - **观察要点**：结果页类型、商品卡样式、筛选/排序结构、是否登录门槛
 
 *执行后由 subagent 填写：*
-- **观察**：
-- **截图文件**：
+- **观察**：关闭登录底板后再次点击搜索框，仍然立即弹出同一套手机号验证码登录底板，没有出现搜索输入页、历史词、热搜或结果列表。因此商城搜索并不存在匿名搜索结果页，搜索入口本身就是登录门槛；原预置“输入鞋并提交搜索”的动作无法继续执行。
+- **截图文件**：`assets/2026-07-23-step-03-search-result.png`
 
 ### 步骤 4：返回商城首屏
 
-- **操作**：连续返回至商城
-- **命令**：`adb shell input keyevent KEYCODE_BACK && sleep 1 && adb shell input keyevent KEYCODE_BACK && sleep 2`
+- **操作**：关闭登录底板并回到商城稳定态
+- **命令**：`adb shell input keyevent KEYCODE_BACK && sleep 2`
 - **截图**：保存为 `assets/2026-07-23-step-04-back-mall.png`
 - **观察要点**：返回路径、商城页面恢复状态
 
 *执行后由 subagent 填写：*
-- **观察**：
-- **截图文件**：
+- **观察**：按返回键后直接关闭底部登录拦截层，回到商城首屏稳定态。搜索框恢复为随机推荐词，商品双列流、顶部快捷入口与底部“登录可查看商品价格 / 立即登录”浮层均仍在，说明登录拦截可直接 dismiss，但关闭后页面仍保持匿名受限状态。
+- **截图文件**：`assets/2026-07-23-step-04-back-mall.png`
 
 ## 录屏
 
@@ -69,7 +69,7 @@
 - **保存为**：`assets/2026-07-23-mall-search.mp4`
 
 *执行后由 subagent 填写：*
-- **录屏文件**：
+- **录屏文件**：`assets/2026-07-23-mall-search.mp4`
 
 ## 产物清单
 
@@ -85,11 +85,13 @@
 
 | 时间 | 操作 | 命令 | 结果 |
 |------|------|------|------|
-| HH:MM:SS | 进入商城首屏 | `adb shell am force-stop com.phoenix.read && adb shell monkey -p com.phoenix.read -c android.intent.category.LAUNCHER 1 && sleep 5 && adb shell input tap 540 2240 && sleep 3` | 待执行 |
-| HH:MM:SS | 打开商城搜索页 | `adb shell input tap 260 120 && sleep 2` | 待执行 |
-| HH:MM:SS | 搜索关键词 | `adb shell input tap 260 120 && sleep 1 && adb shell input text xie && adb shell input keyevent KEYCODE_ENTER && sleep 3` | 待执行 |
-| HH:MM:SS | 返回商城首屏 | `adb shell input keyevent KEYCODE_BACK && sleep 1 && adb shell input keyevent KEYCODE_BACK && sleep 2` | 待执行 |
+| 19:30:00 | 进入商城首屏 | `adb shell am force-stop com.phoenix.read && adb shell monkey -p com.phoenix.read -c android.intent.category.LAUNCHER 1 && sleep 5 && adb shell input tap 540 2240 && sleep 3` | 成功进入商城首页，匿名可浏览商品流，底部显示“登录可查看商品价格”浮层 |
+| 19:30:10 | 点击商城搜索框 | `adb shell input tap 260 120 && sleep 2` | 未进入搜索页，直接弹出手机号验证码登录底板 |
+| 19:30:15 | 关闭后重试搜索 | `adb shell input keyevent KEYCODE_BACK && sleep 1 && adb shell input tap 260 120 && sleep 2` | 再次触发同一登录底板，无法进入匿名搜索结果页 |
+| 19:30:20 | 返回商城首屏 | `adb shell input keyevent KEYCODE_BACK && sleep 2` | 成功关闭登录底板并回到商城首页稳定态 |
 
 ## 异常记录
 
-待执行
+- 商城搜索入口本身即登录门槛，点击搜索框不会进入匿名搜索页，而是直接弹出手机号验证码登录底板。
+- 原预制的“输入‘鞋’并提交搜索”动作无法执行，因为键盘焦点和输入页都被登录底板拦截，未出现任何匿名搜索输入或结果页。
+- 登录底板为半屏上拉样式，关闭后可直接回到商城首页，但底部“登录可查看商品价格”限制仍然存在。
