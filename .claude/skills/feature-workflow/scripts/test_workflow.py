@@ -163,7 +163,7 @@ class TestConstants(unittest.TestCase):
     """Verify that module-level constants have expected values."""
 
     def test_stage_order_length(self):
-        self.assertEqual(len(workflow.STAGE_ORDER), 14)
+        self.assertEqual(len(workflow.STAGE_ORDER), 15)
 
     def test_stage_order_first(self):
         self.assertEqual(workflow.STAGE_ORDER[0], "worktree-setup")
@@ -189,7 +189,7 @@ class TestConstants(unittest.TestCase):
         )
 
     def test_skippable_stages(self):
-        self.assertEqual(workflow.SKIPPABLE_STAGES, {"wiki-inclusion"})
+        self.assertEqual(workflow.SKIPPABLE_STAGES, {"qa-blackbox-testing", "wiki-inclusion"})
 
     def test_stages_with_review_loop(self):
         self.assertEqual(
@@ -215,6 +215,28 @@ class TestConstants(unittest.TestCase):
     def test_max_review_loops(self):
         self.assertEqual(workflow.MAX_REVIEW_LOOPS, 3)
 
+    def test_qa_blackbox_not_in_special_sets(self):
+        """qa-blackbox-testing should be a normal stage, not in any special sets."""
+        self.assertNotIn("qa-blackbox-testing", workflow.STAGES_WITH_REVIEW_LOOP)
+        self.assertNotIn("qa-blackbox-testing", workflow.STAGES_WITH_HUMAN_REVIEW)
+        self.assertNotIn("qa-blackbox-testing", workflow.STAGES_WITH_PLATFORMS)
+
+    def test_qa_blackbox_is_skippable(self):
+        self.assertIn("qa-blackbox-testing", workflow.SKIPPABLE_STAGES)
+
+    def test_qa_blackbox_position(self):
+        """qa-blackbox-testing should be between code-human-review and worktree-merge."""
+        qa_idx = workflow.get_stage_index("qa-blackbox-testing")
+        self.assertEqual(workflow.STAGE_ORDER[qa_idx - 1], "code-human-review")
+        self.assertEqual(workflow.STAGE_ORDER[qa_idx + 1], "worktree-merge")
+
+    def test_init_stage_entry_qa_blackbox(self):
+        """qa-blackbox-testing should be a normal stage (no review_loops, no platforms)."""
+        entry = workflow.init_stage_entry("qa-blackbox-testing")
+        self.assertEqual(entry["status"], "pending")
+        self.assertNotIn("review_loops", entry)
+        self.assertNotIn("platforms", entry)
+
 
 # ============================================================
 # TestPureHelpers
@@ -229,7 +251,7 @@ class TestPureHelpers(unittest.TestCase):
         self.assertEqual(workflow.get_stage_index("worktree-setup"), 0)
 
     def test_get_stage_index_last(self):
-        self.assertEqual(workflow.get_stage_index("completed"), 13)
+        self.assertEqual(workflow.get_stage_index("completed"), 14)
 
     def test_get_stage_index_middle(self):
         self.assertEqual(workflow.get_stage_index("coding-platforms"), 9)
@@ -488,13 +510,13 @@ class TestInit(WorkflowTestBase):
                 f"{stage_name} should be pending",
             )
 
-    def test_init_all_14_stages_present(self):
+    def test_init_all_15_stages_present(self):
         exit_code, output = self._do_init("all-stages-test")
         self.assertEqual(exit_code, 0)
         result = json.loads(output.strip())
         wf_path = Path(self.temp_dir.name) / result["feature"]["dir"] / "workflow.json"
         data = workflow.load_workflow(wf_path)
-        self.assertEqual(len(data["stages"]), 14)
+        self.assertEqual(len(data["stages"]), 15)
         for stage_name in workflow.STAGE_ORDER:
             self.assertIn(stage_name, data["stages"])
 
@@ -612,7 +634,7 @@ class TestStatus(WorkflowTestBase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["current_stage"], "worktree-setup")
         self.assertEqual(result["current_stage_index"], 1)
-        self.assertEqual(result["total_stages"], 14)
+        self.assertEqual(result["total_stages"], 15)
         self.assertIn("completed_stages", result)
         self.assertIn("skipped_stages", result)
         self.assertIn("pending_stages", result)
@@ -659,7 +681,7 @@ class TestStatus(WorkflowTestBase):
         self.assertIsNone(result["current_stage"])
 
     def test_status_shows_skipped(self):
-        data = self._make_workflow_data(current_stage_idx=12)
+        data = self._make_workflow_data(current_stage_idx=13)
         data["stages"]["wiki-inclusion"]["status"] = "skipped"
         wf_path = self._write_wf(data=data)
         with patch("workflow.find_workflow_json", return_value=wf_path):
@@ -731,8 +753,8 @@ class TestAdvance(WorkflowTestBase):
         self.assertEqual(result["advanced_to"], "design-shared")
 
     def test_advance_to_last_stage(self):
-        # wiki-inclusion (idx 12) → completed (idx 13)
-        wf_path = self._write_wf(current_stage_idx=12)
+        # wiki-inclusion (idx 13) → completed (idx 14)
+        wf_path = self._write_wf(current_stage_idx=13)
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_advance()
         self.assertEqual(exit_code, 0)
@@ -743,7 +765,7 @@ class TestAdvance(WorkflowTestBase):
 
     def test_advance_from_completed_is_final(self):
         """Advancing from the last real stage (completed) shows all-done message."""
-        wf_path = self._write_wf(current_stage_idx=13)
+        wf_path = self._write_wf(current_stage_idx=14)
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_advance()
         self.assertEqual(exit_code, 0)
@@ -755,7 +777,7 @@ class TestAdvance(WorkflowTestBase):
 
     def test_advance_skip_wiki_inclusion(self):
         # wiki-inclusion must be pending for skip to work
-        wf_path = self._write_wf(current_stage_idx=11)  # worktree-merge in_progress
+        wf_path = self._write_wf(current_stage_idx=12)  # worktree-merge in_progress
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_advance(skip="wiki-inclusion")
         self.assertEqual(exit_code, 0)
@@ -780,7 +802,7 @@ class TestAdvance(WorkflowTestBase):
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_advance(skip="wiki-inclusion")
         self.assertEqual(exit_code, 1)
-        self.assertIn("不是 pending", output)
+        self.assertIn("不可跳过", output)
 
     def test_advance_platform_stage_blocked_by_incomplete(self):
         wf_path = self._write_wf(current_stage_idx=5)
@@ -812,7 +834,7 @@ class TestAdvance(WorkflowTestBase):
 
     def test_advance_skips_already_skipped_intermediate(self):
         """Advance past a skipped stage should skip over it cleanly."""
-        data = self._make_workflow_data(current_stage_idx=11)  # worktree-merge
+        data = self._make_workflow_data(current_stage_idx=12)  # worktree-merge
         data["stages"]["wiki-inclusion"]["status"] = "skipped"
         wf_path = self._write_wf(data=data)
         with patch("workflow.find_workflow_json", return_value=wf_path):
@@ -831,10 +853,49 @@ class TestAdvance(WorkflowTestBase):
         set a stage to "skipped" in the JSON while it's also "in_progress".
         """
         # Manually force a contradictory state
-        data = self._make_workflow_data(current_stage_idx=12)
+        data = self._make_workflow_data(current_stage_idx=13)
         data["stages"]["wiki-inclusion"]["status"] = "skipped"
         # get_current_stage will not find wiki-inclusion because it's "skipped"
         self.assertIsNone(workflow.get_current_stage(data))
+
+    # -- qa-blackbox-testing specific tests --
+
+    def test_advance_skip_qa_blackbox(self):
+        """qa-blackbox-testing can be skipped with --skip."""
+        wf_path = self._write_wf(current_stage_idx=10)  # code-human-review in_progress
+        # Approve to advance to qa-blackbox-testing
+        with patch("workflow.find_workflow_json", return_value=wf_path):
+            exit_code, _ = self._run_cmd(
+                workflow.cmd_human_review,
+                self._make_args(stage="code-human-review", approve=True),
+            )
+            self.assertEqual(exit_code, 0)
+
+        # Now qa-blackbox-testing should be in_progress (idx 11)
+        data = workflow.load_workflow(wf_path)
+        self.assertEqual(data["stages"]["qa-blackbox-testing"]["status"], "in_progress")
+
+        # Skip it
+        with patch("workflow.find_workflow_json", return_value=wf_path):
+            exit_code, output = self._do_advance(skip="qa-blackbox-testing")
+        self.assertEqual(exit_code, 0)
+        result = json.loads(output.strip().split("\n")[-1])
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["action"], "skipped")
+        self.assertEqual(result["stage"], "qa-blackbox-testing")
+        data = workflow.load_workflow(wf_path)
+        self.assertEqual(data["stages"]["qa-blackbox-testing"]["status"], "skipped")
+
+    def test_advance_qa_blackbox_normal_progression(self):
+        """Advancing from qa-blackbox-testing goes to worktree-merge."""
+        wf_path = self._write_wf(current_stage_idx=11)  # qa-blackbox-testing in_progress
+        with patch("workflow.find_workflow_json", return_value=wf_path):
+            exit_code, output = self._do_advance()
+        self.assertEqual(exit_code, 0)
+        result = json.loads(output.strip().split("\n")[-1])
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["completed"], "qa-blackbox-testing")
+        self.assertEqual(result["advanced_to"], "worktree-merge")
 
 
 # ============================================================
@@ -1029,10 +1090,11 @@ class TestHumanReview(WorkflowTestBase):
             )
         self.assertEqual(exit_code, 0)
         result = json.loads(output.strip().split("\n")[-1])
-        self.assertEqual(result["advanced_to"], "worktree-merge")
+        self.assertEqual(result["advanced_to"], "qa-blackbox-testing")
 
     def test_approve_skips_intermediate_skipped(self):
         data = self._make_workflow_data(current_stage_idx=10)  # code-human-review
+        data["stages"]["qa-blackbox-testing"]["status"] = "skipped"
         data["stages"]["worktree-merge"]["status"] = "skipped"
         wf_path = self._write_wf(data=data)
         with patch("workflow.find_workflow_json", return_value=wf_path):
@@ -1376,8 +1438,8 @@ class TestMarkPlatform(WorkflowTestBase):
 class TestFullWorkflow(WorkflowTestBase):
     """End-to-end integration tests simulating real workflow progression."""
 
-    def test_full_workflow_14_stages(self):
-        """Simulate advancing through all 14 stages."""
+    def test_full_workflow_15_stages(self):
+        """Simulate advancing through all 15 stages."""
         # Phase 1: init
         exit_code, output = self._do_init("e2e-feature")
         self.assertEqual(exit_code, 0)
@@ -1491,11 +1553,15 @@ class TestFullWorkflow(WorkflowTestBase):
             exit_code, _ = self._run_cmd(workflow.cmd_advance, self._make_args())
             self.assertEqual(exit_code, 0)
 
-            # human-review approve: code-human-review -> worktree-merge
+            # human-review approve: code-human-review -> qa-blackbox-testing
             exit_code, _ = self._run_cmd(
                 workflow.cmd_human_review,
                 self._make_args(stage="code-human-review", approve=True),
             )
+            self.assertEqual(exit_code, 0)
+
+            # advance: qa-blackbox-testing -> worktree-merge
+            exit_code, _ = self._run_cmd(workflow.cmd_advance, self._make_args())
             self.assertEqual(exit_code, 0)
 
             # advance: worktree-merge -> wiki-inclusion
@@ -1695,7 +1761,7 @@ class TestKnownBugs(WorkflowTestBase):
         because the dead code doesn't cause incorrect behavior — it just
         never executes.
         """
-        data = self._make_workflow_data(current_stage_idx=12)
+        data = self._make_workflow_data(current_stage_idx=13)
         data["stages"]["wiki-inclusion"]["status"] = "skipped"
         # get_current_stage won't find this (status is "skipped", not "in_progress")
         self.assertIsNone(workflow.get_current_stage(data))

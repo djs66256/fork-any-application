@@ -2,7 +2,7 @@
 name: feature-workflow
 description: >
   需求到落地的全流程管理 skill。覆盖从 worktree 创建、需求撰写与 review（含自动修复循环）、
-  技术方案设计与 review、各端 plan 与 coding（含 code review），到 worktree 合并与 wiki 收录的 14 个阶段。
+  技术方案设计与 review、各端 plan 与 coding（含 code review）、QA 黑盒测试，到 worktree 合并与 wiki 收录的 15 个阶段。
   触发场景：用户提出新功能开发需求、说"开始一个新需求"、"创建一个功能分支"、"推进 XX 需求"、
   "做 XX 功能"、"实现 XX"、"开发 XX"、"加一个 XX 功能"。只要涉及从需求到代码落地的完整开发流程，
   都应使用本 skill。当用户表达了开发意图但未明确说明流程时，也应主动使用本 skill 引导。
@@ -24,7 +24,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 |---------|---------|------|
 | **普通阶段** | `workflow.py advance` | 标记当前阶段完成，推进到下一阶段 |
 | **人工确认阶段** | `workflow.py human-review <stage> --approve` | 自动完成本阶段并推进到下一阶段 |
-| **跳过阶段** | `workflow.py advance --skip <stage>` | 仅限 `wiki-inclusion`（纯技术改动可跳过 wiki 收录） |
+| **跳过阶段** | `workflow.py advance --skip <stage>` | 仅限 `qa-blackbox-testing`（无设备 skill 时可跳过 QA 黑盒测试）和 `wiki-inclusion`（纯技术改动可跳过 wiki 收录） |
 
 ## 能力线
 
@@ -38,6 +38,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 | **Plan 撰写** | 轻量 TDD 实现计划 | subagent（并行） | [references/plan-writing.md](references/plan-writing.md) |
 | **Coding** | 按 plan 逐步骤实现 | subagent（并行，内部含 code review） | [references/coding.md](references/coding.md) |
 | **Code Review** | 审查代码质量、规范、一致性（coding agent 直接并行派发专项 subagent） | coding agent 内联执行 | [references/code-review.md](references/code-review.md) |
+| **QA 黑盒测试** | 根据 spec 撰写测试文档，派发 subagent 执行黑盒测试（设备/模拟器方案预留） | 主 agent + subagent | [references/qa-blackbox-testing.md](references/qa-blackbox-testing.md) |
 | **Wiki 收录** | 汇总全流程产物 + git diff，委托 llm-wiki 更新 wiki | subagent | [references/wiki-inclusion.md](references/wiki-inclusion.md) |
 
 ## 工作流总览
@@ -56,9 +57,11 @@ flowchart TD
     H --> I["9. plan-platforms ⚡<br/>各端实现计划(并行)"]
     I --> J["10. coding-platforms ⚡🔄<br/>各端编码+审查(并行)"]
     J --> K["11. code-human-review 👤<br/>人确认代码"]
-    K --> L["12. worktree-merge<br/>合回主干"]
-    L --> M["13. wiki-inclusion<br/>wiki 收录"]
-    M --> N["14. completed<br/>完成"]
+    K --> L["12. qa-blackbox-testing<br/>QA 黑盒测试"]
+    L -. "用户驳回修复→回到10重编" .-> J
+    L --> M["13. worktree-merge<br/>合回主干"]
+    M --> N["14. wiki-inclusion<br/>wiki 收录"]
+    N --> O["15. completed<br/>完成"]
 
     D -. "驳回→重新撰写" .-> B
     H -. "驳回→重新设计" .-> E
@@ -171,18 +174,28 @@ flowchart TD
 - **通过**：`python3 scripts/workflow.py human-review code-human-review --approve`
 - **仅驳回某平台**：`python3 scripts/workflow.py human-review code-human-review --platform <platform> --reject`（回到阶段 10，仅该平台重新编码）
 - **全部驳回**：`python3 scripts/workflow.py human-review code-human-review --reject`（回到阶段 10）
-- **下一阶段提示**：「代码已确认。是否合回主干？」
+- **下一阶段提示**：「代码已确认。是否进行 QA 黑盒测试？」
 
-### 阶段 12：worktree-merge
+### 阶段 12：qa-blackbox-testing
+
+- **执行者**：主 agent + subagent
+- **前置条件**：code-human-review 通过
+- **执行规范**：详见 [references/qa-blackbox-testing.md](references/qa-blackbox-testing.md)
+- **产物**：`docs/specs/<YYYY-MM-dd>-<name>/qa-test.md`（测试文档，含执行结果）
+- **推进命令**：全部通过时 `python3 scripts/workflow.py advance`（无设备 skill 时可 `--skip qa-blackbox-testing`）
+- **用户决策**：测试有未通过时，等待用户决定：继续推进 / 驳回修复 / 记录并推进
+- **下一阶段提示**：「QA 测试完成。是否合回主干？」
+
+### 阶段 13：worktree-merge
 
 - **执行者**：主 agent + Bash + ExitWorktree 工具
-- **前置条件**：code-human-review 通过
+- **前置条件**：qa-blackbox-testing 完成或跳过
 - **执行规范**：详见 [references/worktree.md](references/worktree.md)「合回主干」和「退出 worktree」节
 - **产物**：代码已合并到 main 并推送
 - **推进命令**：合并完成后 `python3 scripts/workflow.py advance`
 - **下一阶段提示**：「主干已合并。是否进行 wiki 收录？」
 
-### 阶段 13：wiki-inclusion
+### 阶段 14：wiki-inclusion
 
 - **执行者**：subagent
 - **前置条件**：worktree-merge 完成
@@ -191,7 +204,7 @@ flowchart TD
 - **推进命令**：`python3 scripts/workflow.py advance`（纯技术改动可 `--skip wiki-inclusion`）
 - **下一阶段提示**：「wiki 收录完成。需求全流程结束！」
 
-### 阶段 14：completed
+### 阶段 15：completed
 
 调用 `python3 scripts/workflow.py advance` 标记完成。向用户报告全流程总结，包括：
 - 产物清单（所有 spec/design/plan 文档）
@@ -214,6 +227,7 @@ flowchart TD
 | plan-platforms ⚡ | ✅ 全自动 | — |
 | coding-platforms ⚡🔄 | 🟡 半自动 | code review 无法判断的问题 |
 | code-human-review 👤 | 🔴 必须人确认 | 每次（驳回 → coding-platforms，支持平台级） |
+| qa-blackbox-testing | 🟡 半自动 | 测试未通过时需用户决策：继续推进 / 驳回修复 / 记录并推进 |
 | worktree-merge | 🟡 半自动 | 合并冲突时 |
 | wiki-inclusion | ✅ 全自动 | — |
 
@@ -282,7 +296,12 @@ python3 scripts/workflow.py init add-playback-speed
 - Coding subagent 并行（iOS/Android/Backend）→ 内部 code review 循环
 - 用户确认代码（支持平台级确认：如仅 iOS 有问题，可只驳回 iOS）
 
-**阶段 12-14 — merge + wiki**
+**阶段 12 — QA 黑盒测试**
+- 根据 spec 撰写 QA 测试文档（`qa-test.md`）
+- 如设备/模拟器 skill 可用 → 派发 subagent 执行设备测试
+- 如设备/模拟器 skill 不可用 → 跳过设备执行，仅在报告中注明
+
+**阶段 13-15 — merge + wiki**
 - 合回主干 → wiki 收录 → 完成
 
 ## 资源索引
@@ -305,6 +324,7 @@ python3 scripts/workflow.py init add-playback-speed
 | [references/plan-writing.md](references/plan-writing.md) | 轻量 TDD plan 撰写规范 | ✅ |
 | [references/coding.md](references/coding.md) | coding subagent 派发规范（code review 在内部创建，prompt 见 code-review.md） | ✅ |
 | [references/code-review.md](references/code-review.md) | code review subagent 规范（被 coding.md 引用） | ✅ |
+| [references/qa-blackbox-testing.md](references/qa-blackbox-testing.md) | QA 黑盒测试执行规范（测试文档撰写 + 设备/模拟器测试预留） | ✅ |
 | [references/wiki-inclusion.md](references/wiki-inclusion.md) | wiki 收录流程 | ✅ |
 | [references/agent-team.md](references/agent-team.md) | agent team 派发规范（platform subagent 派发优先使用 agent team） | — |
 
@@ -322,6 +342,7 @@ python3 scripts/workflow.py init add-playback-speed
 | `assets/design-review-template.md` | 技术方案 review 报告模板 |
 | `assets/plan-template.md` | 实现计划模板（TDD：测试→实现→验证→补充测试） |
 | `assets/code-review-template.md` | 代码 review 报告模板 |
+| `assets/qa-test-template.md` | QA 黑盒测试文档模板 |
 | `assets/wiki-inclusion-template.md` | wiki 收录报告模板 |
 
 ## 关键约束
@@ -329,6 +350,7 @@ python3 scripts/workflow.py init add-playback-speed
 - **流程脚本优先**：状态变更通过 `scripts/workflow.py` 执行，不直接修改 `workflow.json`
 - **workflow.json 位置**：`init` 在 worktree 中执行，确保 workflow.json 在 worktree 中可访问
 - **wiki 操作委托**：wiki 维护通过 `llm-wiki` skill 执行，feature-workflow 不直接操作 wiki；wiki-inclusion subagent 通过 `Skill("llm-wiki")` 加载 llm-wiki 上下文后按 llm-wiki 的规范执行
+- **QA 设备/模拟器预留**：设备/模拟器操作方案由独立 skill 提供（待定义）。qa-blackbox-testing 阶段会检查该 skill 是否存在：如果存在则派发 subagent 执行设备测试；如果不存在则跳过设备测试步骤，仅产出测试文档
 - **产品信息引用**：涉及产品名、竞品名时引用 `PRODUCT.md`，不硬编码
 - **已有 skill 配合**：
   - 编写 spec/design 前必须调用 `Skill("llm-wiki")` 了解现状

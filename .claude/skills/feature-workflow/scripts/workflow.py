@@ -38,6 +38,7 @@ STAGE_ORDER = [
     "plan-platforms",
     "coding-platforms",
     "code-human-review",
+    "qa-blackbox-testing",
     "worktree-merge",
     "wiki-inclusion",
     "completed",
@@ -51,7 +52,7 @@ HUMAN_REVIEW_REJECT_BACK_TO = {
 }
 
 # 可跳过的阶段（通过 advance --skip）
-SKIPPABLE_STAGES = {"wiki-inclusion"}
+SKIPPABLE_STAGES = {"qa-blackbox-testing", "wiki-inclusion"}
 
 STAGES_WITH_REVIEW_LOOP = {"spec-review", "design-review", "coding-platforms"}
 STAGES_WITH_HUMAN_REVIEW = {"spec-human-review", "design-human-review", "code-human-review"}
@@ -303,14 +304,42 @@ def cmd_advance(args):
             print(json.dumps({"ok": False, "error": f"阶段 {args.skip} 不可跳过，可跳过的阶段: {list(SKIPPABLE_STAGES)}"}, ensure_ascii=False))
             sys.exit(1)
         skip_idx = get_stage_index(args.skip)
-        if data["stages"][args.skip]["status"] != "pending":
-            print(json.dumps({"ok": False, "error": f"阶段 {args.skip} 状态为 {data['stages'][args.skip]['status']}，不是 pending"}, ensure_ascii=False))
+        skip_status = data["stages"][args.skip]["status"]
+        if skip_status == "pending":
+            data["stages"][args.skip]["status"] = "skipped"
+            data["stages"][args.skip]["completed_at"] = stamp_now()
+            save_workflow(wf_path, data)
+            print(json.dumps({"ok": True, "action": "skipped", "stage": args.skip}, ensure_ascii=False))
+            return
+        elif skip_status == "in_progress" and args.skip == current:
+            # 允许跳过当前 in_progress 的可跳过阶段
+            data["stages"][args.skip]["status"] = "skipped"
+            data["stages"][args.skip]["completed_at"] = stamp_now()
+            # 推进到下一阶段
+            next_idx = skip_idx + 1
+            while next_idx < len(STAGE_ORDER):
+                next_stage = STAGE_ORDER[next_idx]
+                next_entry = data["stages"][next_stage]
+                if next_entry["status"] == "skipped":
+                    next_entry["completed_at"] = stamp_now()
+                    next_idx += 1
+                    continue
+                if next_entry["status"] in ("pending",):
+                    next_entry["status"] = "in_progress"
+                    next_entry["started_at"] = stamp_now()
+                    break
+                next_idx += 1
+            save_workflow(wf_path, data)
+            print(json.dumps({
+                "ok": True,
+                "action": "skipped",
+                "stage": args.skip,
+                "advanced_to": STAGE_ORDER[next_idx] if next_idx < len(STAGE_ORDER) else None,
+            }, ensure_ascii=False))
+            return
+        else:
+            print(json.dumps({"ok": False, "error": f"阶段 {args.skip} 状态为 {skip_status}，不可跳过（仅限 pending 或当前 in_progress 阶段）"}, ensure_ascii=False))
             sys.exit(1)
-        data["stages"][args.skip]["status"] = "skipped"
-        data["stages"][args.skip]["completed_at"] = stamp_now()
-        save_workflow(wf_path, data)
-        print(json.dumps({"ok": True, "action": "skipped", "stage": args.skip}, ensure_ascii=False))
-        return
 
     # 处理 skipped 阶段：如果当前 in_progress 的阶段已经是 skipped，自动推进
     if current and data["stages"][current]["status"] == "skipped":
