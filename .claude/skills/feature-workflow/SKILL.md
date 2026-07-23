@@ -201,7 +201,7 @@ flowchart TD
 - **执行规范**：详见 [references/wiki-inclusion.md](references/wiki-inclusion.md)
 - **产物**：`docs/specs/<YYYY-MM-dd>-<name>/wiki.md`，wiki 各文档已更新
 - **推进命令**：`python3 scripts/workflow.py advance`（纯技术改动可 `--skip wiki-inclusion`）
-- **下一阶段提示**：「wiki 收录完成。需求全流程结束！」
+- **下一阶段提示**：「wiki 收录完成。需求全流程结束！💡 可通过 product-manager skill 更新 progress.md 中的功能状态。」
 
 ### 阶段 15：completed
 
@@ -355,5 +355,6 @@ python3 scripts/workflow.py init add-playback-speed
   - 编写 spec/design 前必须调用 `Skill("llm-wiki")` 了解现状
   - wiki 收录通过 llm-wiki skill 的子流程执行
   - 如需竞品分析，先通过 `product-research` skill 完成后再走 feature-workflow
+  - 如功能尚未经过 `product-manager` skill 拆解（缺少 PRD + 子任务拆分），应先通过 product-manager 完成需求拆解后再走 feature-workflow。已有 PRD 时，spec-writing 阶段可直接引用 PRD 中的用户故事和核心流程
 - **平台跳过**：不涉及的平台用 `mark-platform --status skipped`，advance 会等同 completed 处理
 - **Review 循环上限**：脚本在 3 轮后输出 warning，agent 必须停止自动循环并上报人工
