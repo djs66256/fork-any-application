@@ -20,7 +20,7 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`design-review`
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
     3. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
     4. 通过 Skill 工具加载 `llm-wiki` skill，查阅相关 wiki 文档
@@ -63,7 +63,7 @@ Subagent：
 
 ## Phase 2：Platform Design Review Subagents
 
-Shared review 通过后，主 agent 为各涉及平台并行派发：
+Shared review 通过后，主 agent 为各涉及平台并行派发（**优先使用 agent team，详见 [references/agent-team.md](agent-team.md)**）：
 
 ```
 Subagent：
@@ -73,12 +73,13 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`design-review`
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
     3. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
     4. 读取 <platform> 端技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design-<platform>.md`
-    5. 读取 `<platform>/CLAUDE.md` 了解该端开发规范
-    6. 通过 Skill 工具加载 `llm-wiki` skill，查阅该端相关功能文档
+    5. 通过 Skill 工具加载 `llm-wiki` skill，查阅该端相关功能文档
+
+    > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
 
     ## 审查维度
 
@@ -96,14 +97,14 @@ Subagent：
     - [ ] 错误处理是否符合方案约定
 
     ### 测试策略覆盖
-    - [ ] 测试策略是否满足该端 CLAUDE.md 中的要求：
+    - [ ] 测试策略是否满足该端测试要求：
         - Web：业务逻辑、状态转换、数据校验的改动需补充测试
         - Backend：需要编写单元测试
         - iOS：每个场景都需要有单元测试
         - Android：每个场景都需要有单元测试
 
     ### 平台规范
-    - [ ] 是否遵守 `<platform>/CLAUDE.md` 中的约束
+    - [ ] 是否遵守该平台的开发约束
     - [ ] 是否包含硬编码常量
     - [ ] 新增依赖是否合理（如有新增开源依赖需提醒用户确认）
 

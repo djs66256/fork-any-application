@@ -20,7 +20,7 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill，获取模板和规范上下文。
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`spec-review`，获取模板和规范上下文。
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`。
     3. 通过 Skill 工具加载 `llm-wiki` skill，读取相关 wiki 文档作为参考。
 

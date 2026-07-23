@@ -38,11 +38,12 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`plan-platforms`
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
     3. 读取技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design-<platform>.md`
     4. 读取共享设计 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
-    5. 读取 `<platform>/CLAUDE.md` 了解该端开发规范和测试要求
+
+    > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
 
     ## 任务
 
@@ -51,7 +52,7 @@ Subagent：
 
     ## 测试要求
 
-    各端测试要求（来自对应 CLAUDE.md）：
+    各端测试要求：
     - Web：业务逻辑、状态转换、数据校验的改动需补充测试
     - Backend：需要编写单元测试；业务逻辑、参数校验、数据转换的改动同步补齐测试
     - iOS：每个场景都需要有单元测试；新增业务逻辑同步补齐测试
@@ -71,7 +72,7 @@ Subagent：
 
 ### 并行性
 
-各平台 plan subagent 可同时派发，互不依赖。全部完成后调用 `workflow.py mark-platform plan-platforms <platform> --status completed`，全部标记完成后调用 `workflow.py advance` 推进到 coding-platforms。
+各平台 plan subagent 可同时派发，互不依赖。**优先使用 agent team 模式派发**，详见 [references/agent-team.md](agent-team.md)。全部完成后调用 `workflow.py mark-platform plan-platforms <platform> --status completed`，全部标记完成后调用 `workflow.py advance` 推进到 coding-platforms。
 
 ## 注意事项
 

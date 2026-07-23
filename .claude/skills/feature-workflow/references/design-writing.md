@@ -49,11 +49,12 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`design-platforms`
     2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
     3. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
-    4. 读取 `<platform>/CLAUDE.md` 了解该端开发规范
-    5. 通过 Skill 工具加载 `llm-wiki` skill，查阅该端相关的功能文档
+    4. 通过 Skill 工具加载 `llm-wiki` skill，查阅该端相关的功能文档
+
+    > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
 
     ## 任务
 
@@ -92,11 +93,11 @@ Subagent：
 
 ### 并行性
 
-各平台 subagent 可同时派发，互不依赖。主 agent 在全部完成后调用 `workflow.py mark-platform design-platforms <platform> --status completed`，全部标记完成后调用 `workflow.py advance` 推进到 design-review。
+各平台 subagent 可同时派发，互不依赖。**优先使用 agent team 模式派发**，详见 [references/agent-team.md](agent-team.md)。主 agent 在全部完成后调用 `workflow.py mark-platform design-platforms <platform> --status completed`，全部标记完成后调用 `workflow.py advance` 推进到 design-review。
 
 ## 注意事项
 
 - 先查阅 wiki 和代码，不要凭空设计
 - 跨平台方案必须与 shared design.md 中的 API 设计和数据模型保持一致
-- 各端方案需遵循对应 `CLAUDE.md` 中的开发约束
+- 各端方案需遵循对应端的开发约束
 - 如某端不涉及，跳过该端的 subagent 派发

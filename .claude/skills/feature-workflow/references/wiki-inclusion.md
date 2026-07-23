@@ -19,7 +19,7 @@ Subagent：
 
     ## 准备
 
-    1. 通过 Skill 工具加载 `feature-workflow` skill，获取收录模板和规范
+    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`wiki-inclusion`，获取收录模板和规范
     2. 通过 Skill 工具加载 `llm-wiki` skill，获取 wiki 维护规范
 
     ## 收集输入材料
