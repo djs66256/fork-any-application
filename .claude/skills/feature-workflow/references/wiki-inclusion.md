@@ -39,7 +39,7 @@ Subagent：
 
     ## 执行 wiki 维护
 
-    按 llm-wiki skill 中 `references/generate-and-update.md` 的规范执行：
+    按 llm-wiki skill 中 `generate-and-update` 的规范执行：
 
     1. **判断影响范围**：根据变更文件列表和 spec/design 文档，确定哪些 wiki 文档需要新建或更新
     2. **更新功能文档**：

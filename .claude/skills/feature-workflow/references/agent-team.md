@@ -56,7 +56,6 @@ feature-workflow 中适合 agent team 的场景通常按**平台**维度拆解�
 | 阶段 | Teammate 命名示例 | 派发 prompt 来源 |
 |------|------------------|-----------------|
 | design-platforms | `design-<platform>` | [design-writing.md](design-writing.md) |
-| design-review (Phase 2) | `review-design-<platform>` | [design-review.md](design-review.md) |
 | plan-platforms | `plan-<platform>` | [plan-writing.md](plan-writing.md) |
 | coding-platforms | `coding-<platform>` | [coding.md](coding.md) |
 

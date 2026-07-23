@@ -37,67 +37,59 @@
 
 ## design-platforms（各端方案）
 
+### 目录结构
+
+各平台设计 agent 定义在 `references/<platform>-design/*.md` 中：
+
+```
+references/
+├── backend-design/            # Backend 专属
+│   └── service-design.md      # 路由、middleware、service 层、migration、后台任务
+├── ios-design/                # iOS 专属
+│   └── arch-design.md         # SwiftUI/UIKit、ViewModel、Navigation、持久化
+├── android-design/            # Android 专属
+│   └── arch-design.md         # Compose/View、ViewModel、Navigation、持久化
+├── web-design/                # Web 专属
+│   └── frontend-design.md     # React/Vue 组件、状态管理、路由、SSR/CSR
+```
+
 ### 执行流程
 
-主 agent 为每个涉及平台并行派发设计 subagent：
+#### 第一步：加载 agent 定义
+
+扫描 `references/<platform>-design/` 目录，读取所有 `*.md` 文件中的 `Subagent：` 定义块。
+将 `<YYYY-MM-dd>-<name>`、`<feature-name>` 占位符替换为实际值。
+
+仅加载涉及平台的目录，跳过不涉及的端。
+
+#### 第二步：并行派发所有 agent
+
+将加载的所有 agent **并行派发**。
+
+**优先使用 agent team 模式派发**，详见 [references/agent-team.md](agent-team.md)。
+如 agent team 不可用，回退到独立 subagent 模式，功能和行为保持一致。
+
+各平台 subagent 可同时派发，互不依赖——它们各自独立读取 `spec.md` 和 `design.md`，独立写入 `design-{platform}.md`。
+
+#### 第三步：标记完成并推进
+
+全部 agent 完成后，主 agent 为每个平台调用：
 
 ```
-Subagent：
-  description: "设计：<platform>-<feature-name>"
-  prompt: |
-    你是一个 <platform> 端的技术方案设计 agent。
-
-    ## 准备
-
-    1. 通过 Skill 工具加载 `feature-workflow` skill，指定阶段：`design-platforms`
-    2. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`
-    3. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`
-    4. 通过 Skill 工具加载 `llm-wiki` skill，查阅该端相关的功能文档
-
-    > **注意**：`<platform>/CLAUDE.md` 在访问 `<platform>/` 目录时会自动加载，无需显式读取。
-
-    ## 任务
-
-    按 `assets/design-platform-template.md` 模板，撰写 <platform> 端技术方案，
-    输出到 `docs/specs/<YYYY-MM-dd>-<name>/design-<platform>.md`。
-
-    ## 各端特殊要求
-
-    ### Backend
-    - API 实现路由、middleware、service 层设计
-    - 数据库 migration 计划
-    - 后台任务/队列设计（如适用）
-
-    ### iOS
-    - SwiftUI / UIKit 组件设计
-    - ViewModel / Presenter 设计
-    - Navigation 路由设计
-    - 数据持久化策略（CoreData / UserDefaults / Keychain）
-
-    ### Android
-    - Compose / View 组件设计
-    - ViewModel 设计
-    - Navigation 路由设计
-    - 数据持久化策略（Room / DataStore / SharedPreferences）
-
-    ### Web
-    - React / Vue 组件设计
-    - 状态管理方案（Zustand / Context / Redux）
-    - 路由设计
-    - SSR / CSR 策略
-
-    ## 完成标志
-
-    - design-<platform>.md 已写入
+workflow.py mark-platform design-platforms <platform> --status completed
 ```
 
-### 并行性
+全部标记完成后调用：
 
-各平台 subagent 可同时派发，互不依赖。**优先使用 agent team 模式派发**，详见 [references/agent-team.md](agent-team.md)。主 agent 在全部完成后调用 `workflow.py mark-platform design-platforms <platform> --status completed`，全部标记完成后调用 `workflow.py advance` 推进到 design-review。
+```
+workflow.py advance
+```
+
+推进到 design-review。
 
 ## 注意事项
 
 - 先查阅 wiki 和代码，不要凭空设计
 - 跨平台方案必须与 shared design.md 中的 API 设计和数据模型保持一致
 - 各端方案需遵循对应端的开发约束
-- 如某端不涉及，跳过该端的 subagent 派发
+- 如某端不涉及，跳过该端的 agent 加载和派发

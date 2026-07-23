@@ -35,7 +35,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 | **需求撰写** | 查阅 wiki + 代码，撰写 spec | 主 agent | [references/spec-writing.md](references/spec-writing.md) |
 | **需求 Review** | 审查需求完整性/一致性/可行性 | subagent（循环修复） | [references/spec-review.md](references/spec-review.md) |
 | **技术方案设计** | Shared 设计 + 各端方案 | 主 agent + subagent（并行） | [references/design-writing.md](references/design-writing.md) |
-| **技术方案 Review** | 审查设计完整性/一致性/跨端对齐 | subagent（循环修复） | [references/design-review.md](references/design-review.md) |
+| **技术方案 Review** | 审查设计完整性/一致性/跨端对齐（单 subagent） | subagent（循环修复，回到 writing） | [references/design-review.md](references/design-review.md) |
 | **Plan 撰写** | 轻量 TDD 实现计划 | subagent（并行） | [references/plan-writing.md](references/plan-writing.md) |
 | **Coding** | 按 plan 逐步骤实现 | subagent（并行，内部含 code review） | [references/coding.md](references/coding.md) |
 | **Code Review** | 审查代码质量、规范、一致性（coding agent 直接并行派发专项 subagent） | coding agent 内联执行 | [references/code-review.md](references/code-review.md) |
@@ -51,6 +51,8 @@ flowchart TD
     D --> E["5. design-shared<br/>共享技术方案"]
     E --> F["6. design-platforms ⚡<br/>各端方案(并行)"]
     F --> G["7. design-review 🔄<br/>方案审查(自动循环)"]
+    G --> G1["7a. 发现问题→回到 writing 修复"]
+    G1 -. "修复后重新 review" .-> G
     G --> H["8. design-human-review 👤<br/>人确认方案"]
     H --> I["9. plan-platforms ⚡<br/>各端实现计划(并行)"]
     I --> J["10. coding-platforms ⚡🔄<br/>各端编码+审查(并行)"]
@@ -184,16 +186,19 @@ flowchart TD
 
 ### 阶段 7：design-review 🔄
 
-**执行者**：subagent（两步：先 shared，再各端并行，上限 3 轮）
+**执行者**：subagent（单 subagent 一次性审查全部方案，只审查不修改，上限 3 轮）
 
 **前置条件**：design-platforms 完成
 
 **执行规范**：详见 [references/design-review.md](references/design-review.md)
 
-1. 派发 shared design review subagent → 审查 `design.md`
-2. Shared 通过后，并行派发各平台 design review subagent
-3. Subagent 发现问题直接修复，输出 `design-review.md`
-4. 主 agent 检查遗留问题，有遗留则循环
+1. 派发单个 design-review subagent，一次性审查 `design.md` + 所有 `design-{platform}.md`
+2. Subagent **只输出问题报告**，不修改方案文件
+3. 主 agent 检查 review 结果：
+   - **无问题** → `workflow.py advance` 推进到 design-human-review
+   - **有问题** → 调用 `workflow.py review-loop design-review --increment`，**回到 design-shared 或 design-platforms** 修改方案，修改后重新派发 subagent
+   - **仅 🟢 建议** → 不阻塞，直接推进
+4. 达到 3 轮上限 → 脚本输出 warning，强制停止循环
 
 **产物**：`docs/specs/<YYYY-MM-dd>-<name>/design-review.md`
 
@@ -362,17 +367,23 @@ python3 scripts/workflow.py init <name> --lightweight
                                                                               ↓
                                                       无遗留 ← 主 agent 检查 ←
                                                         ↓                      ↓
-                                                   推进到下一阶段            有遗留 → 询问用户
+                                                   推进到下一阶段            有遗留
                                                                                 ↓
-                                                                           用户回复后 → 回到执行
+                                                      需人决策 → 询问用户 → 用户回复后
+                                                        ↓                      ↓
+                                                   回到 writing 修复     agent 可修复 → 回到 writing 修复
+                                                        ↓                      ↓
+                                                   重新派发 subagent      重新派发 subagent
 ```
 
 关键规则：
 - Subagent 自行修复能修复的问题，不等待主 agent 确认
+- **agent 可修复的问题不进入 human 环节**，直接回到 writing 修复后重新 review
+- 只有必须由人决策的问题才展示给用户
 - 每轮 review 后调用 `workflow.py review-loop` 递增计数
 - **脚本强制上限**：`workflow.py review-loop --increment` 在达到 3 轮时输出 warning，提醒 agent 停止自动循环
 - 遗留问题记录到 review 文档的「遗留问题」章节
-- 用户回复遗留问题后，回到执行阶段，修复后重新派发 review subagent
+- 用户回复遗留问题后，回到 writing 阶段修复，修复后重新派发 review subagent
 
 ## 完成前验证（Verification Gate）
 
