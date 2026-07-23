@@ -104,14 +104,15 @@ def load_workflow(path: Path) -> dict:
 
 def save_workflow(path: Path, data: dict) -> None:
     """保存 workflow.json，自动更新 updated_at。"""
-    data["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
     # 如果内容未变则不写入（保持幂等）
     with open(path, "r", encoding="utf-8") as f:
         original = json.load(f)
-    if json.dumps(original, sort_keys=True) != json.dumps(data, sort_keys=True):
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
+    if json.dumps(original, sort_keys=True) == json.dumps(data, sort_keys=True):
+        return  # 内容未变，不写入
+    data["metadata"]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
 
 
 def get_current_stage(data: dict) -> Optional[str]:
@@ -341,22 +342,6 @@ def cmd_advance(args):
             print(json.dumps({"ok": False, "error": f"阶段 {args.skip} 状态为 {skip_status}，不可跳过（仅限 pending 或当前 in_progress 阶段）"}, ensure_ascii=False))
             sys.exit(1)
 
-    # 处理 skipped 阶段：如果当前 in_progress 的阶段已经是 skipped，自动推进
-    if current and data["stages"][current]["status"] == "skipped":
-        current_idx = get_stage_index(current)
-        if current_idx + 1 < len(STAGE_ORDER):
-            next_stage = STAGE_ORDER[current_idx + 1]
-            data["stages"][next_stage]["status"] = "in_progress"
-            data["stages"][next_stage]["started_at"] = stamp_now()
-            save_workflow(wf_path, data)
-            print(json.dumps({
-                "ok": True,
-                "action": "auto-skipped",
-                "skipped": current,
-                "advanced_to": next_stage,
-            }, ensure_ascii=False))
-            return
-
     if current is None:
         print(json.dumps({"ok": False, "error": "没有 in_progress 的阶段"}, ensure_ascii=False))
         sys.exit(1)
@@ -490,6 +475,13 @@ def cmd_human_review(args):
         print(json.dumps({"ok": False, "error": f"阶段 {stage} 不存在"}, ensure_ascii=False))
         sys.exit(1)
 
+    if not args.approve and not args.reject:
+        print(json.dumps({"ok": False, "error": "必须指定 --approve 或 --reject"}, ensure_ascii=False))
+        sys.exit(1)
+    if args.approve and args.reject:
+        print(json.dumps({"ok": False, "error": "--approve 和 --reject 不能同时使用"}, ensure_ascii=False))
+        sys.exit(1)
+
     if args.approve:
         data["stages"][stage]["status"] = "completed"
         data["stages"][stage]["completed_at"] = stamp_now()
@@ -536,6 +528,7 @@ def cmd_human_review(args):
             # 只回退指定平台的 coding 状态
             data["stages"]["coding-platforms"]["platforms"][args.platform]["status"] = "in_progress"
             data["stages"]["coding-platforms"]["platforms"][args.platform]["completed_at"] = None
+            data["stages"]["coding-platforms"]["platforms"][args.platform]["review_loops"] = 0
             data["stages"]["coding-platforms"]["status"] = "in_progress"
             data["stages"]["coding-platforms"]["completed_at"] = None
             platform_back = args.platform
@@ -602,6 +595,8 @@ def cmd_mark_platform(args):
     plat_data["status"] = status
     if status in ("completed", "skipped"):
         plat_data["completed_at"] = stamp_now()
+    else:
+        plat_data["completed_at"] = None
     if status == "in_progress" and not plat_data.get("started_at"):
         plat_data["started_at"] = stamp_now()
 

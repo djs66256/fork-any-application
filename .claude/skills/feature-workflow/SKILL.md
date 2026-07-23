@@ -164,7 +164,6 @@ flowchart TD
 - **执行规范**：详见 [references/coding.md](references/coding.md)
 - **产物**：各端代码变更 + `code-{platform}-review.md`（按需）
 - **推进命令**：各平台完成后 `mark-platform coding-platforms <platform> --status completed`，全部完成后 `workflow.py advance`
-- **review 循环**：`python3 scripts/workflow.py review-loop coding-platforms --platform <platform> --increment`
 - **下一阶段提示**：「编码完成。请审查代码变更，确认后合回主干。」
 
 ### 阶段 11：code-human-review 👤

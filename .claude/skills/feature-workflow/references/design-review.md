@@ -1,5 +1,11 @@
 # 技术方案 Review Subagent
 
+## 占位符替换
+
+本文件中 Subagent 定义块内的 `<YYYY-MM-dd>-<name>`、`<feature-name>` 为占位符。主 agent 派发前需替换为实际值：
+- `<YYYY-MM-dd>-<name>` → 实际日期和需求名（如 `2026-07-23-add-playback-speed`）
+- `<feature-name>` → 可读的需求标题（如 `视频倍速播放`）
+
 design-review 阶段使用**单个 subagent**，一次性审查全部方案（design.md + 各端 design-{platform}.md）。
 
 ## 使用方式

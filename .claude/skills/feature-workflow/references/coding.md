@@ -1,5 +1,14 @@
 # Coding Subagent 派发规范
 
+## 占位符替换
+
+本文件中 Subagent 定义块内的 `<YYYY-MM-dd>-<name>`、`<feature-name>`、`<platform>` 为占位符。主 agent 派发前需替换为实际值：
+- `<YYYY-MM-dd>-<name>` → 实际日期和需求名（如 `2026-07-23-add-playback-speed`）
+- `<feature-name>` → 可读的需求标题（如 `视频倍速播放`）
+- `<platform>` → 目标平台名（`backend` / `ios` / `android` / `web`）
+
+> **注意**：Coding subagent 加载 `references/<platform>-code-review/` 和 `references/common-code-review/` 中的子 subagent 定义时，同样需要将占位符替换为实际值后再派发。
+
 coding-platforms 阶段是核心实现阶段。每端派发一个 coding subagent，subagent 内部进行 **build & lint → tests → review** 的渐进式验证循环。
 
 ## 前置条件

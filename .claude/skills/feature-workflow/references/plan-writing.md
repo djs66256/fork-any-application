@@ -1,5 +1,12 @@
 # Plan 撰写规范
 
+## 占位符替换
+
+本文件中 Subagent 定义块内的 `<YYYY-MM-dd>-<name>`、`<feature-name>`、`<platform>` 为占位符。主 agent 派发前需替换为实际值：
+- `<YYYY-MM-dd>-<name>` → 实际日期和需求名（如 `2026-07-23-add-playback-speed`）
+- `<feature-name>` → 可读的需求标题（如 `视频倍速播放`）
+- `<platform>` → 目标平台名（`backend` / `ios` / `android` / `web`）
+
 Plan 是本阶段连接「技术方案」和「具体代码实现」的桥梁。采用**轻量 TDD** 方式：每个步骤先定义测试场景，再描述实现内容。
 
 ## 执行者

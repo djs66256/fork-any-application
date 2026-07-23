@@ -1,5 +1,11 @@
 # 需求 Review Subagent
 
+## 占位符替换
+
+本文件中 Subagent 定义块内的 `<YYYY-MM-dd>-<name>`、`<feature-name>` 为占位符。主 agent 派发前需替换为实际值：
+- `<YYYY-MM-dd>-<name>` → 实际日期和需求名（如 `2026-07-23-add-playback-speed`）
+- `<feature-name>` → 可读的需求标题（如 `视频倍速播放`）
+
 spec-review 阶段的执行者是一个 **单向 subagent**：它只负责审查和输出报告，不负责修复。主 agent 读取 review 结果后，自行解决所有可自动处理的问题。
 
 ## 使用方式

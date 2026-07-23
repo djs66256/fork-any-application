@@ -844,20 +844,6 @@ class TestAdvance(WorkflowTestBase):
         self.assertEqual(result["completed"], "worktree-merge")
         self.assertEqual(result["advanced_to"], "completed")
 
-    def test_advance_auto_skip_is_dead_code(self):
-        """Document that auto-skip (line 316) is unreachable in normal operation.
-
-        get_current_stage only returns stages with status == "in_progress",
-        so the check `data["stages"][current]["status"] == "skipped"` at
-        line 316 can never be True. To trigger it, one would have to manually
-        set a stage to "skipped" in the JSON while it's also "in_progress".
-        """
-        # Manually force a contradictory state
-        data = self._make_workflow_data(current_stage_idx=13)
-        data["stages"]["wiki-inclusion"]["status"] = "skipped"
-        # get_current_stage will not find wiki-inclusion because it's "skipped"
-        self.assertIsNone(workflow.get_current_stage(data))
-
     # -- qa-blackbox-testing specific tests --
 
     def test_advance_skip_qa_blackbox(self):
@@ -1207,28 +1193,23 @@ class TestHumanReview(WorkflowTestBase):
 
     # -- known bugs --
 
-    def test_bug_neither_approve_nor_reject(self):
-        """Known Bug: cmd_human_review with neither --approve nor --reject silently
-        does nothing and prints nothing."""
+    def test_neither_approve_nor_reject_errors(self):
+        """cmd_human_review with neither --approve nor --reject should error."""
         wf_path = self._write_wf(current_stage_idx=3)
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_hr(stage="spec-human-review")
-        # No SystemExit raised, no output -- this is the current (buggy) behavior
-        self.assertEqual(exit_code, 0)
-        self.assertEqual(output.strip(), "")
+        self.assertEqual(exit_code, 1)
+        self.assertIn("必须指定 --approve 或 --reject", output)
 
-    def test_bug_both_approve_and_reject(self):
-        """Known Bug: When both --approve and --reject are passed, --approve wins
-        silently because it's an if/elif chain."""
+    def test_both_approve_and_reject_errors(self):
+        """cmd_human_review with both --approve and --reject should error."""
         wf_path = self._write_wf(current_stage_idx=3)
         with patch("workflow.find_workflow_json", return_value=wf_path):
             exit_code, output = self._do_hr(
                 stage="spec-human-review", approve=True, reject=True
             )
-        self.assertEqual(exit_code, 0)
-        result = json.loads(output.strip().split("\n")[-1])
-        self.assertEqual(result["action"], "approved")
-        # reject was silently ignored
+        self.assertEqual(exit_code, 1)
+        self.assertIn("不能同时使用", output)
 
 
 # ============================================================
@@ -1392,8 +1373,8 @@ class TestMarkPlatform(WorkflowTestBase):
 
     # -- known bugs --
 
-    def test_bug_failed_does_not_clear_completed_at(self):
-        """Known Bug: Marking failed after completed keeps the stale completed_at."""
+    def test_mark_platform_failed_clears_completed_at(self):
+        """Marking failed after completed should clear the stale completed_at."""
         data = self._make_workflow_data(current_stage_idx=5)
         data["stages"]["design-platforms"]["platforms"]["ios"]["status"] = "completed"
         data["stages"]["design-platforms"]["platforms"]["ios"]["completed_at"] = (
@@ -1408,11 +1389,10 @@ class TestMarkPlatform(WorkflowTestBase):
         data = workflow.load_workflow(wf_path)
         plat = data["stages"]["design-platforms"]["platforms"]["ios"]
         self.assertEqual(plat["status"], "failed")
-        # Bug: completed_at is NOT cleared
-        self.assertIsNotNone(plat.get("completed_at"))
+        self.assertIsNone(plat.get("completed_at"))
 
-    def test_bug_pending_does_not_clear_completed_at(self):
-        """Known Bug: Marking pending after completed keeps the stale completed_at."""
+    def test_mark_platform_pending_clears_completed_at(self):
+        """Marking pending after completed should clear the stale completed_at."""
         data = self._make_workflow_data(current_stage_idx=5)
         data["stages"]["design-platforms"]["platforms"]["ios"]["status"] = "completed"
         data["stages"]["design-platforms"]["platforms"]["ios"]["completed_at"] = (
@@ -1427,8 +1407,7 @@ class TestMarkPlatform(WorkflowTestBase):
         data = workflow.load_workflow(wf_path)
         plat = data["stages"]["design-platforms"]["platforms"]["ios"]
         self.assertEqual(plat["status"], "pending")
-        # Bug: completed_at is NOT cleared
-        self.assertIsNotNone(plat.get("completed_at"))
+        self.assertIsNone(plat.get("completed_at"))
 
 
 # ============================================================
@@ -1703,7 +1682,6 @@ class TestKnownBugs(WorkflowTestBase):
     to remove the decorator.
     """
 
-    @unittest.expectedFailure
     def test_bug_1_save_workflow_idempotency(self):
         """Bug 1: save_workflow always rewrites because updated_at is set before
         the comparison, making the idempotency check always detect a change."""
@@ -1718,7 +1696,6 @@ class TestKnownBugs(WorkflowTestBase):
         self.assertEqual(original_mtime, new_mtime,
                          "File should not be rewritten when data is unchanged")
 
-    @unittest.expectedFailure
     def test_bug_2_human_review_neither_flag_should_error(self):
         """Bug 2: cmd_human_review with neither --approve nor --reject should
         error, not silently do nothing."""
@@ -1731,7 +1708,6 @@ class TestKnownBugs(WorkflowTestBase):
         self.assertEqual(exit_code, 1,
                          "Should error when neither --approve nor --reject is given")
 
-    @unittest.expectedFailure
     def test_bug_3_human_review_both_flags_should_error(self):
         """Bug 3: cmd_human_review with both --approve and --reject should error,
         not silently let --approve win."""
@@ -1747,26 +1723,6 @@ class TestKnownBugs(WorkflowTestBase):
         self.assertEqual(exit_code, 1,
                          "Should error when both --approve and --reject are given")
 
-    def test_bug_4_advance_auto_skip_dead_code(self):
-        """Bug 4: The auto-skip branch in cmd_advance (lines 316-329) is dead code.
-
-        get_current_stage only returns stages with status=="in_progress",
-        so the check `data["stages"][current]["status"] == "skipped"` at
-        line 316 can never be True under normal operation. If a stage is
-        manually marked as "skipped" while also being "in_progress",
-        get_current_stage won't find it and the code falls through to
-        "没有 in_progress 的阶段" error instead.
-
-        This is documented here as a known issue rather than an expectedFailure
-        because the dead code doesn't cause incorrect behavior — it just
-        never executes.
-        """
-        data = self._make_workflow_data(current_stage_idx=13)
-        data["stages"]["wiki-inclusion"]["status"] = "skipped"
-        # get_current_stage won't find this (status is "skipped", not "in_progress")
-        self.assertIsNone(workflow.get_current_stage(data))
-
-    @unittest.expectedFailure
     def test_bug_5_mark_platform_failed_clears_completed_at(self):
         """Bug 5: cmd_mark_platform marking failed should clear completed_at."""
         data = self._make_workflow_data(current_stage_idx=5)
@@ -1788,7 +1744,6 @@ class TestKnownBugs(WorkflowTestBase):
         self.assertIsNone(plat.get("completed_at"),
                           "completed_at should be cleared when marking failed")
 
-    @unittest.expectedFailure
     def test_bug_6_platform_reject_resets_review_loops(self):
         """Bug 6: Platform-level reject should reset review_loops on that platform,
         matching the full-reject behavior."""
