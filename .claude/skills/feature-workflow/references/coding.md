@@ -46,8 +46,9 @@ Subagent：
     3. 使用 `git diff main --name-only` 了解当前变更范围
     4. **只修改/补充** review 报告中指出的具体问题，不重写整个实现
     5. 保留 plan 中的进度标记（已完成步骤的 ✅ 不要重置）
-    6. 修复后仍需通过 Build & Lint → Tests → Review 的渐进验证循环
-    7. 修复完成后更新 `code-<platform>-review.md` 中的问题状态
+    6. **修复后逐项自检**：对照 review 报告中每个标记为需修复的问题，逐一确认已修改到位，不可仅凭"改了代码"就认为修复完成。在 review 文档的对应条目后标注修复状态和修改内容
+    7. 修复后仍需通过 Build & Lint → Tests → Review 的渐进验证循环
+    8. 修复完成后更新 `code-<platform>-review.md` 中的问题状态
 
     ### 🆕 首次编码（review 报告不存在）
 
@@ -130,6 +131,7 @@ Subagent：
     | Review 通过 | 检查 code-review.md | 结论为「所有问题已修复」或仅有低严重度遗留项 |
     | 修改范围合规 | `git diff main --name-only` | 变更仅包含 `<platform>/` 目录下的文件 |
     | 无硬编码 | 检查变更内容 | 无硬编码 URL、token、环境变量 |
+    | 修复逐项验证（修复轮次） | 对照上轮 code-review.md 逐项检查 | 每个标记「✅ 已修复」的问题确实已被修改到位，无假修复 |
 
     验收不通过的项目 → 修复后重新从第 1 层（Build & Lint）开始验证，直到全部通过。
 

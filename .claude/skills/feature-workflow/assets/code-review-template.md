@@ -1,8 +1,6 @@
 # 代码 Review：{{平台}} — {{功能名称}}
 
 > Review 日期：{{YYYY-MM-DD}}
-> Review 循环：第 N 轮
-> 审查者：AI Agent (Dispatcher + 专项 Subagents)
 
 ## 审查结果
 
