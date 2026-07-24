@@ -1,1 +1,6 @@
 - [homepage-feed](homepage-feed.md)
+- [signin-popup](signin-popup/index.md)
+- [comments](comments/index.md)
+- [search](search/index.md)
+- [menu-panel](menu-panel/index.md)
+- [full-watch](full-watch/index.md)

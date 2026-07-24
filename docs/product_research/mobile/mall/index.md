@@ -1,1 +1,0 @@
-- [mall](mall.md)

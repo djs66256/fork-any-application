@@ -86,9 +86,25 @@ graph TD
 
 1. 自检 plan.md、analysis.md、功能文档的一致性
 2. 更新 PROGRESS.md：该路径 → `✅`，填写业务介绍和文档链接
-3. 发现新路径：采集中观测到的新页面/新交互入口 → 追加到 PROGRESS.md 末尾
+3. 发现新路径：采集中观测到的新页面/新交互入口 → 按去重规则过滤后追加到 PROGRESS.md 末尾
 4. TaskUpdate：验收 → completed，下一轮规划 → completed
 5. 检查 PROGRESS.md：有 `⬜` → 回阶段 1；全部 `✅` → 提示用户
+
+### 3.1 路径去重规则
+
+同类型业务场景只保留一个代表路径，不枚举所有变体：
+
+| 场景类型 | 示例（保留一个） | 反例（不应逐条追加） |
+|---------|-----------------|---------------------|
+| 同一 Tab 组的多个 Tab | `classification/boy-tab/`（采集 boy-tab 即可） | 再加 `classification/girl-tab/` |
+| 同一子榜单类型的多组 Tab | `recommend-list/all-tab/`（采集推荐榜的 all-tab 即可） | 再加 `recommend-list/live-action-tab/`、`recommend-list/ai-tab/`，再加 `booking-list/all-tab/`（预约榜的 Tab 与推荐榜同构） |
+| 同一标签组的多个标签 | `era-background/rural-life-tag/`（采集一个标签即可） | 再加 `era-background/workplace-tag/`、`era-background/ancient-tag/` |
+
+去重判断标准：
+- 如果新发现的路径与已有路径（含已采集的）在 **UI 结构、交互模式** 上完全一致，仅 **标签名/筛选值/内容数据** 不同 → 不追加
+- 如果新路径引入了新的交互模式（如弹窗、跳转、手势）或新的 UI 组件 → 追加
+
+验收时在分析文档中记录去重决策：哪些路径因同构被跳过，以哪个已采集路径为代表。
 
 ## 完整示例
 
