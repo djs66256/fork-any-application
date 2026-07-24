@@ -1,0 +1,35 @@
+# Build output
+build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Gradle
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Signing
+*.jks
+*.keystore
+*.p12
+release-keystore.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Captures
+captures/
+
+# Generated
+app/src/main/generated/
+
+# Testing
+app/src/androidTest/

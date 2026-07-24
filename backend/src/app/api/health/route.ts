@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server';
-import { HealthResponseSchema } from '@/lib/schemas';
-import { config } from '@/lib/config';
+import { HealthService } from '@/services/health/health.service';
+import { withErrorHandler } from '@/middleware/error-handler';
 
-export async function GET() {
-  const data = {
-    status: 'ok' as const,
-    timestamp: new Date().toISOString(),
-    version: config.app.version,
-  };
-
-  const parsed = HealthResponseSchema.parse(data);
-  return NextResponse.json(parsed);
-}
+export const GET = withErrorHandler(async () => {
+  const service = new HealthService();
+  const data = await service.check();
+  return NextResponse.json(data);
+});

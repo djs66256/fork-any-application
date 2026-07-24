@@ -1,0 +1,32 @@
+import Foundation
+
+/// HTTP methods supported by the API.
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+}
+
+/// Protocol for defining type-safe API endpoints.
+protocol APIEndpoint {
+
+    /// The expected response type that this endpoint returns.
+    associatedtype Response: Decodable
+
+    /// The path component (appended to base URL).
+    var path: String { get }
+
+    /// HTTP method for the request.
+    var method: HTTPMethod { get }
+
+    /// Optional query parameters.
+    var queryItems: [URLQueryItem]? { get }
+
+    /// Optional request body.
+    var body: Encodable? { get }
+}
+
+// Default implementations for optional properties.
+extension APIEndpoint {
+    var queryItems: [URLQueryItem]? { nil }
+    var body: Encodable? { nil }
+}
