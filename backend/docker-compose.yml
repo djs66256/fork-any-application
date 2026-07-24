@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: app-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Supabase is managed via supabase CLI:
+  #   npx supabase start
+  # This starts PostgreSQL, Kong, GoTrue, etc. locally.
+  # See https://supabase.com/docs/guides/cli/local-development
+
+volumes:
+  redis_data:
