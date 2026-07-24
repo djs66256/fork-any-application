@@ -1,6 +1,6 @@
 # 播放器 API 文档
 
-> 最后更新：2026-07-22
+> 最后更新：2026-07-24
 
 ---
 
@@ -8,11 +8,11 @@
 
 ### 功能简介
 
-开始播放视频。该接口替代了旧的 `/api/video/play` 路径。
+开始播放视频。当前骨架阶段返回 501 Not Implemented，后续 PRD 实现完整逻辑。
 
 ### 代码文件路径
 
-`backend/src/app/api/player/start/route.ts` [待确认]
+`backend/src/app/api/player/start/route.ts:L1`
 
 ### path / method
 
@@ -22,45 +22,26 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `videoId` | string | 是 | 视频唯一标识 |
+| `drama_id` | string (UUID) | 是 | 短剧唯一标识 |
+| `episode_id` | string (UUID) | 是 | 剧集唯一标识 |
+| `progress` | number | 否 | 续播位置（秒），默认 0 |
 
 **示例：**
 
 ```json
 {
-  "videoId": "vid_12345"
+  "drama_id": "550e8400-e29b-41d4-a716-446655440000",
+  "episode_id": "660e8400-e29b-41d4-a716-446655440001",
+  "progress": 0
 }
 ```
-
-### Response
-
-```json
-{
-  "streamUrl": "https://cdn.example.com/videos/vid_12345/master.m3u8",
-  "duration": 180
-}
-```
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `streamUrl` | string | 视频流地址 |
-| `duration` | number | 视频时长（秒） |
 
 ### Error Code
 
 | 状态码 | 错误码 | 说明 |
 |--------|--------|------|
-| 200 | — | 成功 |
-| 400 | `INVALID_PARAMS` | 参数校验失败 |
-| 401 | `UNAUTHORIZED` | 未登录 |
-| 404 | `NOT_FOUND` | 视频不存在 |
-| 500 | `INTERNAL_ERROR` | 服务内部错误 |
-
-### 路径变更记录
-
-| 旧路径 | 新路径 | 变更时间 |
-|--------|--------|---------|
-| `/api/video/play` | `/api/player/start` | 2026-07-22 |
+| 501 | `NOT_IMPLEMENTED` | 端点尚未实现 |
+| 400 | `VALIDATION_ERROR` | 参数校验失败 |
 
 ---
 
@@ -68,11 +49,11 @@
 
 ### 功能简介
 
-停止播放并上报播放进度。
+停止播放并上报播放进度。当前骨架阶段返回 501。
 
 ### 代码文件路径
 
-`backend/src/app/api/player/stop/route.ts` [待确认]
+`backend/src/app/api/player/stop/route.ts:L1`
 
 ### path / method
 
@@ -82,41 +63,36 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `videoId` | string | 是 | 视频唯一标识 |
-| `progress` | number | 是 | 当前播放进度（秒） |
+| `drama_id` | string (UUID) | 是 | 短剧唯一标识 |
+| `episode_id` | string (UUID) | 是 | 剧集唯一标识 |
+| `progress` | number | 是 | 当前播放位置（秒） |
 | `duration` | number | 是 | 视频总时长（秒） |
 
 **示例：**
 
 ```json
 {
-  "videoId": "vid_12345",
+  "drama_id": "550e8400-e29b-41d4-a716-446655440000",
+  "episode_id": "660e8400-e29b-41d4-a716-446655440001",
   "progress": 45.5,
   "duration": 180
 }
 ```
 
-### Response
-
-```json
-{
-  "success": true
-}
-```
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `success` | boolean | 操作是否成功 |
-
 ### Error Code
 
 | 状态码 | 错误码 | 说明 |
 |--------|--------|------|
-| 200 | — | 成功 |
-| 400 | `INVALID_PARAMS` | 参数校验失败 |
-| 401 | `UNAUTHORIZED` | 未登录 |
-| 404 | `NOT_FOUND` | 视频不存在 |
-| 500 | `INTERNAL_ERROR` | 服务内部错误 |
+| 501 | `NOT_IMPLEMENTED` | 端点尚未实现 |
+| 400 | `VALIDATION_ERROR` | 参数校验失败 |
+
+---
+
+## 参数变更记录
+
+| 旧字段 | 新字段 | 变更时间 | 说明 |
+|--------|--------|---------|------|
+| `videoId` | `drama_id` + `episode_id` | 2026-07-24 | 按数据模型拆分，同时关联短剧和剧集 |
 
 ---
 
@@ -124,6 +100,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-24 | 更新：请求 body 参数对齐实际 Zod Schema（drama_id / episode_id / progress），新增 Valid PlayerStartRequestSchema / PlayerStopRequestSchema 定义 |
 | 2026-07-22 | 初始创建：迁移 `/api/video/play` → `/api/player/start`，新增 `/api/player/stop` |
 
 ---
