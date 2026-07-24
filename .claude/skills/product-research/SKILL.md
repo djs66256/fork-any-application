@@ -11,119 +11,122 @@ description: >
 
 ## 定位
 
-本 skill 不是做一次性的「操作录屏 + 简单记录」，而是系统化地将竞品应用的**业务逻辑、交互行为、UI 样式**爬取并整理为完整的结构化文档，供自身产品团队持续参考。
+本 skill 将竞品应用的**业务逻辑、交互行为、UI 样式**系统化地采集并整理为结构化文档。
 
-## 能力线
+竞品分析是**迭代式深度分析**：
+- 用户提供一个入口，每次只分析**一个场景 / 页面 / 路径**
+- 每完成一轮分析后，根据采集中发现的新路径规划下一轮
+- 使用内置 Task 工具（TaskCreate / TaskUpdate / TaskList）追踪每轮进度
+- 循环推进，直到 PROGRESS.md 中所有路径采集完成
 
-本 skill 整合以下能力线，各司其职：
+## 能力线与目录
 
-| 能力线 | 职责 | 落地方式 |
-|--------|------|---------|
-| **规划** | 分析范围确认、子任务拆分、采集方案制定 | `references/planning.md` |
-| **文档工程** | 目录规范、文档模板、命名约定、索引维护 | `references/doc-standards.md` |
-| **应用操作** | 操控竞品应用，截屏、录屏、模拟用户事件 | `references/mobile-adb.md`（后续补充更多方案） |
-| **产物分析** | 通过单个多模态 subagent 分析截图/录屏，提取业务逻辑 | `references/analysis.md` |
-| **成文** | 通过 subagent 将分析结果合并到功能文档，更新索引，记录修订 | `references/compilation-subagent.md` |
-| **Review** | 通过 subagent 对照 checklist 逐项检查并修正，输出审查报告 | `references/review.md` |
+能力线分工和目录结构详见 `references/doc-standards.md`。
+
+频道下目录分两种类型：
+- **页面型**：按 UI 页面组织，如 `homepage-feed/`，可有子页面层级
+- **功能型**：按业务逻辑组织，如 `auth/`（登录流程）、`payment/`（支付流程），通常是跨页面的完整链路
 
 ## 工作流总览
 
-```
-  [1. 规划]          [2. 采集]           [3. 分析]            [4. 成文]          [5. Review]
-  检查已有进度    操控竞品应用       派发分析 subagent    派发 subagent      对照标准检查
-  明确分析范围    截图 + 录屏       读取产物多维度分析   合并分析到功能文档   补充遗漏维度
-  划分子任务      每步标注上下文    输出 analysis.md      更新索引/修订历史   输出最终文档
-  制定采集方案    回填 + 更新进度    更新进度              更新进度            更新进度
+```mermaid
+graph TD
+    A[规划] --> B[采集]
+    B --> C[分析]
+    C --> D[成文]
+    D --> E[验收]
+    E -->|有未采集路径| A
+    E -->|全部完成| F[提示用户]
 ```
 
-## 阶段 1：规划 —— 检查进度、预制采集文档，等待审批
+每轮迭代 5 个阶段，使用 TaskCreate 创建 5 个 Task 追踪。
 
-确认分析范围、拆分子任务、制定采集方案。详细指南见 `references/planning.md`。
+## 阶段 1：规划
+
+确定**一条**路径，预制 plan.md。详见 `references/planning.md`。
 
 核心步骤：
-1. 读取 `docs/product_research/PROGRESS.md`，检查目标模块的已有采集和进度（首次使用时自动初始化）
-2. 从用户描述中提取目标竞品、功能模块、分析深度、目标平台
-3. 按交互链路将大范围分析拆分为独立可执行的子任务
-4. 对每个子任务，按 `assets/capture-template.md` 预制采集文档，填入采集信息和操作序列，保存到 `captures/<日期>-<描述>/capture.md`
-5. 向用户呈现分析计划和已有进度概览，确认后在 `PROGRESS.md` 中追加新行（采集=`doing`）
+1. 读 `PROGRESS.md`，取第一个 `⬜` 路径。不存在则初始化
+2. 从用户输入提取竞品、频道、深度（首屏快照/交互流程/异常边界）
+3. 按 `assets/plan-template.md` 预制 plan.md 到 `.<页面或功能>/.captures/<日期>-<name>/plan.md`
+4. 使用 TaskCreate 创建 5 个 Task（采集/分析/成文/验收/下一轮规划），第一个标记 `in_progress`
+5. PROGRESS.md 中该路径置为 `🔄`
+6. 向用户呈现计划，确认后进入采集
 
-## 阶段 2：采集 —— 派发 subagent，传文档路径即可
+## 阶段 2：采集
 
-采集文档已在阶段 1 预制完成。按 `references/capture-subagent.md` 中的 subagent 定义，传入采集文档路径即可派发。
+按 plan.md 操作序列逐步骤执行。详见 `references/mobile-adb.md`（命令参考）。
 
-**采集不可并发**：所有采集共享同一设备/模拟器，必须逐个串行。
+1. 读取 plan.md，逐步骤执行 ADB 命令
+2. 每步完成后**立即回填** plan.md（观察、截图文件、采集日志、勾选执行状态）
+3. 全部完成后回填产物清单和异常记录
+4. TaskUpdate：采集 → completed，分析 → in_progress
 
-采集 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「采集」列更新为 `done`。
+## 阶段 3：分析
 
-## 阶段 3：分析 —— 派发 subagent，传文档路径即可
+多模态分析产物，产出 analysis.md。详见 `references/analysis.md`。
 
-采集完成后，对每个采集文档，按 `references/analysis.md` 中的 subagent 定义各派发一个分析 subagent，传入采集文档路径。subagent 会加载 `product-research` skill，自行读取采集文档和同目录 `assets/` 下的产物，产出分析文档。
+1. 读取 plan.md 和 assets/ 下所有截图/录屏
+2. 按分析维度逐一分析，按 `assets/analysis-template.md` 输出
+3. 自检后 TaskUpdate：分析 → completed，成文 → in_progress
 
-分析 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「分析」列更新为 `done`。
+## 阶段 4：成文
 
-## 阶段 4：成文 —— 派发 subagent，传文档路径即可
+将分析结果合并到业务功能文档。详见 `references/doc-standards.md`。
 
-分析完成后，按 `references/compilation-subagent.md` 中的 subagent 定义派发成文 subagent，传入采集文档路径。subagent 会加载 `product-research` skill，自行读取采集文档、分析文档和功能文档，完成合并。
+1. 从 plan.md 确定功能文档路径（`<目录>/<目录>.md`）
+2. 存在则增量更新（追加 use case、补充子页面引用），不存在则按 `assets/doc-template.md` 创建
+3. 更新附录和各级 index.md
+4. TaskUpdate：成文 → completed，验收 → in_progress
 
-**同模块必须串行，不同模块可并行**：多个采集对应同一功能模块时，成文 subagent 必须逐个串行执行（功能文档写入冲突），不同模块间可并发。
+## 阶段 5：验收
 
-成文 subagent 负责：
-- 首次创建或增量更新功能文档
-- 截图引用标注采集源
-- 更新模块和频道索引
-- 创建修订历史
+更新进度，发现新路径，决策下一轮。
 
-成文 subagent 完成后会自动将 `PROGRESS.md` 中对应行的「成文」列更新为 `done`。
-
-## 阶段 5：Review —— 派发 subagent，传文档路径即可
-
-成文完成后，按 `references/review.md` 中的 subagent 定义派发 Review subagent，传入采集文档路径。subagent 会加载 `product-research` skill，自行读取采集文档、分析文档、功能文档、索引和修订历史，逐项检查并输出审查报告。
-
-发现问题后 subagent 直接修正，修正后自检，直到全部通过。
-
-Review subagent 完成后会自动将 `PROGRESS.md` 中对应行的「Review」列更新为 `done`。
+1. 自检 plan.md、analysis.md、功能文档的一致性
+2. 更新 PROGRESS.md：该路径 → `✅`，填写业务介绍和文档链接
+3. 发现新路径：采集中观测到的新页面/新交互入口 → 追加到 PROGRESS.md 末尾
+4. TaskUpdate：验收 → completed，下一轮规划 → completed
+5. 检查 PROGRESS.md：有 `⬜` → 回阶段 1；全部 `✅` → 提示用户
 
 ## 完整示例
 
-用户：「爬一下《竞品》的播放器，从点击视频卡片到退出播放器的完整流程，包括所有的交互细节和 UI 样式」（产品信息见 PRODUCT.md）
+### 示例 1：页面型分析
 
-执行流程：
+用户：「分析红果的首页 Feed，从冷启动到浏览 Feed 的交互流程」
 
 **阶段 1 — 规划**
-- 读取 `PROGRESS.md`，检查 `video-player` 模块已有进度（首次可能为空或需初始化）
-- 范围：播放器完整交互流程 + UI 样式
-- 按路径拆分为 5 个子任务，每个独立预制采集文档：
-  1. 点击视频卡片 → 进入播放器 `captures/2026-07-22-player-enter/capture.md`
-  2. 播放页 UI 首屏（静态布局）`captures/2026-07-22-player-layout/capture.md`
-  3. 控制栏交互（唤出/隐藏 + 暂停/播放 + 进度 + 倍速）`captures/2026-07-22-player-controls/capture.md`
-  4. 横竖屏切换 `captures/2026-07-22-player-orientation/capture.md`
-  5. 播放器 → 退出回到首页 `captures/2026-07-22-player-exit/capture.md`
-- 平台：mobile
-- 向用户呈现分析计划和已有进度概览，确认后在 `PROGRESS.md` 追加 5 行（采集=`doing`）
+- 读 `mobile/PROGRESS.md`（首次使用，不存在）→ 按 `assets/progress-template.md` 初始化
+- 写入第一行：路径 `homepage-feed/`，来源：入口，状态：🔄
+- 预制 `mobile/homepage-feed/.captures/2026-07-24-homepage-tab/plan.md`
+- 创建 5 个 Task，呈现计划，确认后采集
 
-**阶段 2 — 采集**
-- 按 `references/capture-subagent.md` 逐个派发采集 subagent，只传采集文档路径
-- 以子任务 1 为例：subagent 读取 `captures/2026-07-22-player-enter/capture.md`，按操作序列执行并回填
-- 全部 subagent 返回后确认：各采集文档已回填观察/日志/产物清单，截图录屏在各自 `assets/` 中
-- 每个采集 subagent 完成后自动更新 `PROGRESS.md`（采集=`done`）
+**阶段 2 — 采集** → 按 plan.md 执行 ADB 截图/录屏，回填 plan.md
 
-**阶段 3 — 分析**
-- 按 `references/analysis.md` 逐个派发分析 subagent，只传采集文档路径
-- subagent 加载 product-research skill，读取采集文档和同目录产物，按模板产出 `analysis.md`
-- 每个分析 subagent 完成后自动更新 `PROGRESS.md`（分析=`done`）
+**阶段 3 — 分析** → 多模态分析，输出 `analysis.md`
 
-**阶段 4 — 成文**
-- 所有采集均为同一功能模块 `video-player`，成文 subagent 必须串行
-- 按 `references/compilation-subagent.md` 逐个派发成文 subagent，只传采集文档路径
-- subagent 加载 product-research skill，自行读取采集文档和分析文档
-- 首次成文：创建 `mobile/video-player/video-player.md`（功能文档）
-- 后续成文：增量更新同一功能文档，追加截图、合并发现、更新附录
-- 每次成文后更新模块 `index.md` 并创建修订历史
-- 每个成文 subagent 完成后自动更新 `PROGRESS.md`（成文=`done`）
+**阶段 4 — 成文** → 创建 `homepage-feed/homepage-feed.md`、`index.md`，更新频道 `index.md`
 
-**阶段 5 — Review**
-- 按 `references/review.md` 逐个派发 Review subagent，只传采集文档路径
-- subagent 加载 product-research skill，自行读取所有相关文档
-- 逐项检查采集文档、分析文档、功能文档、修订历史、索引
-- 输出审查报告，发现问题直接修正并自检
-- 每个 Review subagent 完成后自动更新 `PROGRESS.md`（Review=`done`）
+**阶段 5 — 验收**
+- 自检通过，PROGRESS.md 中 `homepage-feed/` → ✅
+- 发现新路径：评论、分享、搜索、菜单 → 追加到 PROGRESS.md
+- 回到阶段 1（下一个：`homepage-feed/comments`）
+
+### 示例 2：功能型分析
+
+用户：「分析红果的登录注册流程，覆盖手机号登录和第三方登录」
+
+**阶段 1 — 规划**
+- 读 `mobile/PROGRESS.md`（已有页面型条目）→ 追加功能型入口 `auth/`
+- 预制 `mobile/auth/.captures/2026-07-24-phone-login/plan.md`
+- 创建 5 个 Task，确认后采集
+
+**阶段 2 — 采集** → 首页点击登录 → 登录页 → 输入手机号 → 验证码 → 完成登录
+
+**阶段 3 — 分析** → 登录页 UI、验证码交互、协议勾选、错误状态
+
+**阶段 4 — 成文** → 创建 `auth/auth.md`、`index.md`，更新频道 `index.md`
+
+**阶段 5 — 验收**
+- `auth/` → ✅，发现新路径：第三方登录、忘记密码、注册流程 → 追加
+- 回到阶段 1（下一个：`auth/third-party-login`）
