@@ -5,9 +5,11 @@ Backend 端代码与说明统一维护在当前目录。
 
 ## 技术约束
 
-- 使用 TypeScript、Next.js、Supabase、Zod。
+- 使用 TypeScript、Next.js、Supabase、Zod、Redis。
+- 服务端运行时与数据库均使用 Supabase（PostgreSQL + Auth + Storage + Realtime）。
+- 缓存与消息队列（MQ）均使用 Redis。
 - 数据结构、请求参数、响应数据优先使用 Zod 做校验与约束。
-- 如接入 Supabase，需保持数据访问逻辑与接口逻辑的职责边界清晰。
+- 数据访问逻辑与接口逻辑需保持职责边界清晰。
 
 ## 架构约束
 
@@ -24,6 +26,8 @@ Backend 端代码与说明统一维护在当前目录。
 
 ## 命令约定
 
+- 本地开发依赖通过 Docker Compose 启动（Redis + Supabase），详见 `tests/README.md`。
+- 启动：`cd tests && docker compose up -d`
 - 当前目录尚未看到可确认的 Backend 工程配置文件。
 - 在未补充真实构建配置前，不要编造运行、测试、构建命令。
 
