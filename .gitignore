@@ -10,9 +10,9 @@ node_modules/
 
 # iOS
 ios/build/
-*.xcworkspace/xcuserdata/
-*.xcodeproj/xcuserdata/
-*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
 DerivedData/
 
 # Android
@@ -52,3 +52,4 @@ venv/
 # Logs
 *.log
 npm-debug.log*
+*.bak

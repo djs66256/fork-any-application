@@ -1,38 +1,77 @@
 # 文档工程规范
 
-竞品业务功能文档的目录结构、命名、模板、索引与写作标准。Review 规范见 `references/review.md`。
+竞品业务功能文档的目录结构、命名、模板、索引、写作标准和 PROGRESS.md 规范。
 
 ## 1. 三种文档的定位
 
 | 文档类型 | 定位 | 目录 | 更新方式 |
 |---------|------|------|---------|
-| **功能文档** | 完整的竞品业务功能文档，供产品团队持续参考 | `<频道>/<功能模块>/<功能>.md` | 每次采集后增量更新 |
-| **采集文档** | 操作计划兼实录。阶段 1 预制操作序列，阶段 2 subagent 回填观察和日志 | `captures/<日期>-<描述>/capture.md` | 阶段 1 预制（操作序列），阶段 2 subagent 回填（观察/日志/产物） |
-| **分析文档** | 基于采集产物的结构化分析结果 | `captures/<日期>-<描述>/analysis.md` | 每次采集后新建 |
+| **功能文档** | 完整的竞品业务功能文档，供产品团队持续参考 | `<频道>/<页面>/<页面>.md` | 每次采集后增量更新 |
+| **plan.md** | 采集规划兼实录。规划阶段预制操作序列，采集阶段回填观察和日志 | `<页面>/.captures/<日期>-<name>/plan.md` | 规划阶段预制，采集阶段回填 |
+| **分析文档** | 基于采集产物的结构化分析结果 | `<页面>/.captures/<日期>-<name>/analysis.md` | 每次采集后新建 |
 
-功能文档是**合成物**，采集文档是**计划 + 实录**，分析文档是**中间产物**。功能文档中的每一条结论都应能从采集文档和分析文档中找到对应佐证。
+功能文档是**合成物**，plan.md 是**计划 + 实录**，分析文档是**中间产物**。功能文档中的每一条结论都应能从 plan.md 和分析文档中找到对应佐证。
 
 ## 2. 目录结构
 
+频道下的目录分为两种类型：
+- **页面型（page）**：按 UI 页面结构组织，如 `homepage-feed/`、`user-profile/`。可以有子页面层级。
+- **功能型（func）**：按业务逻辑功能组织，如 `auth/`（登录注册流程）、`payment/`（支付流程）。这类功能通常是跨页面的完整业务链路。
+
+两种类型拥有相同的内部结构。
+
 ```
 docs/product_research/
-├── PROGRESS.md                            # 调研进度追踪（各阶段 subagent 自动维护）
-├── index.md                              # 总索引（频道列表 + captures + revisions）
-├── captures/                             # 采集文档目录（计划 + 实录）
-│   └── <YYYY-MM-DD>-<描述>/
-│       ├── capture.md                    # 采集文档（按 capture-template.md 模板）
-│       ├── analysis.md                   # 分析文档（按 analysis-template.md 模板）
-│       └── assets/                       # 本次采集的截图与录屏
-├── revisions/                            # 修订历史
-│   └── <YYYY-MM-DD>-<描述>.md
+├── index.md                              # 总索引（频道列表）
 ├── <频道>/                               # mobile / web
-│   ├── index.md                          # 频道索引（功能模块列表）
-│   └── <功能模块>/                        # kebab-case，如 homepage-feed
-│       ├── index.md                      # 模块索引（功能文档 + 子项列表）
-│       └── <功能>.md                      # 功能文档（完整合成文档，增量更新）
+│   ├── index.md                          # 频道索引（页面/功能列表）
+│   ├── PROGRESS.md                       # 频道调研进度（按路径追踪）
+│   ├── <page-a>/                         # 页面型：具体页面，kebab-case
+│   │   ├── .captures/                    # 采集文档（不进入业务逻辑索引）
+│   │   │   └── <YYYY-MM-DD>-<name>/
+│   │   │       ├── assets/               # 截图与录屏（png + mp4）
+│   │   │       ├── plan.md               # 采集规划和执行进展
+│   │   │       └── analysis.md           # 结构化分析结果
+│   │   ├── index.md                      # 页面/功能索引
+│   │   ├── <page-a>.md                   # 竞品业务功能文档（增量更新）
+│   │   └── <page-a-sub>/                 # 层次子页面（如有）
+│   │       ├── .captures/
+│   │       ├── index.md
+│   │       └── <page-a-sub>.md
+│   └── <func-a>/                         # 功能型：业务逻辑功能，kebab-case
+│       ├── .captures/
+│       │   └── <YYYY-MM-DD>-<name>/
+│       │       ├── assets/
+│       │       ├── plan.md
+│       │       └── analysis.md
+│       ├── index.md
+│       └── <func-a>.md                   # 竞品业务功能文档
 ```
 
-> `captures/` 和 `revisions/` 不需要 `index.md`。
+**示例：**
+```
+mobile/
+├── index.md
+├── PROGRESS.md
+├── homepage-feed/          # 页面型
+│   ├── .captures/
+│   ├── index.md
+│   ├── homepage-feed.md
+│   └── comments/           # 页面型的子页面
+├── user-profile/           # 页面型
+├── auth/                   # 功能型：登录注册流程
+│   ├── .captures/
+│   │   └── 2026-07-24-phone-login/
+│   │       ├── assets/
+│   │       ├── plan.md
+│   │       └── analysis.md
+│   ├── index.md
+│   └── auth.md
+└── payment/                # 功能型：支付流程
+```
+
+> `.captures/` 以 `.` 开头，表示该目录不进入业务逻辑索引范围，仅为采集过程的中间产物存放。
+> `index.md` 中不应包含 `.captures/` 的引用。
 
 ## 3. 频道与采集方案
 
@@ -44,14 +83,12 @@ docs/product_research/
 | mobile | iOS（后续补充） | — | 🔜 规划中 |
 | web | Playwright / Puppeteer | — | 🔜 规划中 |
 
-频道方案通过 `references/<频道>-<方案>.md` 文件引用，采集 subagent 按需加载对应命令参考。
-
 ## 4. 命名约定
 
 ### 功能文档
 
 ```
-<频道>/<功能模块>/<功能>.md
+<频道>/<页面>/<页面>.md
 ```
 
 固定名称。每次采集后增量更新同一文件。
@@ -59,22 +96,18 @@ docs/product_research/
 ### 采集文档
 
 ```
-captures/<YYYY-MM-DD>-<描述>/capture.md
+<页面>/.captures/<YYYY-MM-DD>-<name>/
+├── plan.md
+├── analysis.md
+└── assets/
+    └── *.png|*.mp4
 ```
 
-每次采集新建一个子目录。阶段 1 按 `assets/capture-template.md` 模板预制操作序列，阶段 2 由采集 subagent 读取并回填观察、日志、产物清单。
+每次采集新建一个子目录。规划阶段按 `assets/plan-template.md` 模板预制 plan.md，采集阶段回填观察、日志、产物清单。
 
-> 日期为固定 10 字符 `YYYY-MM-DD`，之后的第一个 `-` 到目录名末尾为描述部分。描述中避免使用纯数字前缀以免与日期混淆（如 `5g-test` 建议改为 `network-5g-test`）。
+> 日期为固定 10 字符 `YYYY-MM-DD`。`<name>` 为简短描述（如 `homepage-tab`、`core-chain`、`search-page`），kebab-case。
 
-截图/录屏放在同目录的 `assets/` 中，分析文档为同目录的 `analysis.md`。
-
-### 修订历史
-
-```
-revisions/<YYYY-MM-DD>-<描述>.md
-```
-
-每次触发 skill 并修改文档后新建。内容包含采集文档地址和所有修改文件的简介。
+截图/录屏放在同目录 `assets/` 中，分析文档为同目录 `analysis.md`。
 
 ### 功能模块目录
 
@@ -90,68 +123,62 @@ kebab-case：
 | 评论互动 | `comments` |
 | 分享 | `share` |
 | 付费/会员 | `subscription` |
+| 商城 | `mall` |
+| 赚取中心 | `earn-center` |
+| 剧场 | `theater` |
 
 ## 5. 索引规范
 
-所有 `index.md` 只保留当前目录的条目索引，格式：
-
-```markdown
-- [名称](路径)
-```
+所有 `index.md` 只保留当前目录的条目索引，格式：`- [名称](路径)`
 
 **根 `index.md`**：
-
 ```markdown
-- [captures](captures/)
-- [revisions](revisions/)
 - [mobile](mobile/index.md)
+- [web](web/index.md)
 ```
 
 **频道 `index.md`**：
-
 ```markdown
-- [video-player](video-player/index.md)
 - [homepage-feed](homepage-feed/index.md)
+- [user-profile](user-profile/index.md)
+- [earn-center](earn-center/index.md)
 ```
 
-**模块 `index.md`**：
-
+**页面 `index.md`**：
 ```markdown
 - [homepage-feed](homepage-feed.md)
+- [comments](comments/index.md)
 ```
 
-## 6. 模板引用
+## 6. PROGRESS.md 规范
 
-- 功能文档模板：`assets/doc-template.md`
-- 采集文档模板：`assets/capture-template.md`
+每个频道一个 PROGRESS.md，放在频道根目录下。模板和字段说明见 `assets/progress-template.md`。
+
+维护规则：
+- 规划阶段：用户指定的入口写入第一行
+- 验收阶段：每轮完成的路径标记为 ✅，新发现的路径追加到末尾
+- 全部完成后提示用户，由用户决定是否继续新增入口
+
+## 7. 模板引用
+
+- plan.md 模板：`assets/plan-template.md`
 - 分析文档模板：`assets/analysis-template.md`
-- 采集 subagent 模板：`references/capture-subagent.md`
-- 分析 subagent 模板：`references/analysis.md`
-- 成文 subagent 模板：`references/compilation-subagent.md`
-- Review subagent 模板：`references/review.md`
-- Meta-Review subagent 模板：`references/meta-review.md`（skill 自身一致性审查）
+- 功能文档模板：`assets/doc-template.md`
+- PROGRESS.md 模板：`assets/progress-template.md`
 
-## 7. 修订历史内容规范
+## 8. 截图引用规范
+
+功能文档引用同页面 `.captures/` 中的截图：
 
 ```markdown
-# 修订：{{日期}} — {{简短描述}}
-
-## 采集文档
-
-- [{{日期}}-{{描述}}](../captures/{{日期}}-{{描述}}/capture.md)
-
-## 修改内容
-
-### {{文档路径}}
-{{修改内容简介}}
+![截图说明](.captures/<日期>-<name>/assets/<文件名>.png)
+*图：<说明> | 采集于 <日期>*
 ```
 
-## 8. 交叉引用
-
-功能文档引用采集文档中的截图：
+plan.md 和 analysis.md 内部引用同目录 `assets/` 下的文件：
 
 ```markdown
-![冷启动首页](../../captures/2026-07-22-coldstart/assets/step-01-home.png)
+![截图](assets/<文件名>.png)
 ```
 
 ## 9. 写作规范
@@ -159,5 +186,6 @@ kebab-case：
 - **事实观察**与**主观推断**必须明确区分
 - 推断类结论标注 `[推断]`
 - UI 描述尽可能数值化（dp、sp、颜色值等），无法精确识别的标注「约」
+- 不适用当前功能文档的章节标注「本章节不适用」，不要删除
+- 增量更新时保留已有内容，仅追加/修订相关章节
 - 分析阶段额外规则见 `references/analysis.md`
-- 成文阶段额外规则见 `references/compilation-subagent.md`

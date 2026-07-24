@@ -31,7 +31,7 @@ product-research          product-manager           feature-workflow
 | **路线规划** | 综合分析，输出功能优先级建议 | 用户提出新想法、阶段性复盘 | 主 agent | [references/roadmap-planning.md](references/roadmap-planning.md) |
 | **需求拆解** | 模糊需求 → 精简 PRD → 子任务拆分 | 确定要做某个功能后 | 主 agent + subagent | [references/prd-writing.md](references/prd-writing.md) |
 | **进展管理** | 维护功能全景图，跟踪状态 | 每次 feature-workflow 完成后、用户主动查询 | 主 agent | [references/progress-management.md](references/progress-management.md) |
-| **PRD Review** | 审查 PRD 完整性、可落地性、跨端一致性 | PRD 撰写完成后 | subagent | [references/prd-review.md](references/prd-review.md) |
+| **PRD Review** | 审查 PRD 完整性、可落地性、跨端一致性，循环修正直至仅剩人工决策问题 | PRD 撰写完成后 | subagent（循环） | [references/prd-review.md](references/prd-review.md) |
 
 ## 文档结构
 
@@ -82,11 +82,11 @@ PM 阶段的 PRD 是**精简版**，只聚焦核心决策信息：
 ## 工作流总览
 
 ```
-  [A. 信息收集]       [B. 路线规划]        [C. 需求拆解]        [D. PRD Review]      [E. 交付跟踪]
-  用户提出想法     综合分析竞品+wiki    撰写精简 PRD        审查 PRD 完整性      feature-workflow
-  读取竞品调研     给出优先级建议       拆分子任务           确保可落地            启动开发
-  读取 wiki          记录决策过程       估算每端工时        修正问题              跟踪进展
-  读取当前进展       更新 backlog       更新 progress                             更新 progress
+  [A. 信息收集]       [B. 路线规划]        [C. 需求拆解]        [D. PRD Review]           [E. 交付跟踪]
+  用户提出想法     综合分析竞品+wiki    撰写精简 PRD        review-writing 循环       feature-workflow
+  读取竞品调研     给出优先级建议       拆分子任务           agent 自行修正问题         启动开发
+  读取 wiki          记录决策过程       估算每端工时         人工决策问题上报          跟踪进展
+  读取当前进展       更新 backlog       更新 progress         审查通过后更新 progress    更新 progress
 ```
 
 ### 触发路径
@@ -131,4 +131,5 @@ product-manager 根据用户意图的不同，进入不同的处理路径：
 | `assets/decision-record-template.md` | 决策记录模板 |
 | `assets/roadmap-template.md` | 路线图模板 |
 | `assets/backlog-template.md` | 功能待办池模板 |
+| `assets/prd-review-template.md` | PRD Review 输出模板 |
 | `assets/progress-template.md` | 进展跟踪模板 |

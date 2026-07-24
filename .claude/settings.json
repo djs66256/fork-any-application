@@ -1,6 +1,8 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "DISABLE_AUTO_COMPACT": 0,
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": 85
   },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,

@@ -20,15 +20,16 @@ Subagent：
     3. `.claude/skills/product-manager/references/prd-writing.md`（PRD 撰写）
     4. `.claude/skills/product-manager/references/prd-review.md`（PRD Review）
     5. `.claude/skills/product-manager/references/progress-management.md`（进展管理）
-    6. `.claude/skills/product-manager/assets/prd-template.md`（PRD 模板）
-    7. `.claude/skills/product-manager/assets/subtasks-template.md`（子任务模板）
-    8. `.claude/skills/product-manager/assets/progress-template.md`（进展模板）
-    9. `.claude/skills/product-manager/assets/roadmap-template.md`（路线图模板）
-    10. `.claude/skills/product-manager/assets/backlog-template.md`（待办池模板）
-    11. `.claude/skills/product-manager/assets/decision-record-template.md`（决策记录模板）
-    12. `docs/product_manager/roadmap.md`（实际路线图）
-    13. `docs/product_manager/backlog.md`（实际待办池）
-    14. `docs/product_manager/progress.md`（实际进展）
+    6. `.claude/skills/product-manager/assets/prd-review-template.md`（PRD Review 模板）
+    7. `.claude/skills/product-manager/assets/prd-template.md`（PRD 模板）
+    8. `.claude/skills/product-manager/assets/subtasks-template.md`（子任务模板）
+    9. `.claude/skills/product-manager/assets/progress-template.md`（进展模板）
+    10. `.claude/skills/product-manager/assets/roadmap-template.md`（路线图模板）
+    11. `.claude/skills/product-manager/assets/backlog-template.md`（待办池模板）
+    12. `.claude/skills/product-manager/assets/decision-record-template.md`（决策记录模板）
+    13. `docs/product_manager/roadmap.md`（实际路线图）
+    14. `docs/product_manager/backlog.md`（实际待办池）
+    15. `docs/product_manager/progress.md`（实际进展）
 
     > 注意：模板文件（assets/）中的占位符 `{{...}}` 和 `<!-- ... -->` 注释不是遗漏，是模板的预期行为。审查时区分「模板占位符」和「真正的信息缺失」。
 
@@ -63,7 +64,7 @@ Subagent：
     | 能力线覆盖 | SKILL.md 声明的 4 条能力线是否都有对应的 reference 文件？ |
     | 模板覆盖 | SKILL.md assets 表格中列出的模板是否都存在？ |
     | 流程闭环 | 从「用户提出想法」到「feature-workflow 完成后回写状态」，每个环节是否有对应的流程描述？ |
-    | 边界情况 | 是否考虑了：功能被取消、功能跨多个迭代、PRD 被驳回重写、用户中途改变主意？ |
+    | 边界情况 | 是否考虑了：功能被取消、功能跨多个迭代、PRD Review 循环终止条件（通过/仅剩人工决策/到达最大轮数）、用户中途改变主意？ |
 
     ### 4. 实际文档对齐
 

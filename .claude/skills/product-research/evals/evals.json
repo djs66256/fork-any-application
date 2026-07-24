@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "爬一下红果的首页推荐流，从冷启动到浏览 Feed 再到点击视频的完整交互流程，包括 UI 布局和加载策略，整理成完整的业务功能文档",
-      "expected_output": "按 5 阶段流程：确认分析范围（竞品=红果，平台=mobile，分析深度=交互流程）→ 按交互链路拆分子任务 → 预制采集文档到 captures/ → 呈现分析计划和各采集文档给用户确认 → 指定 ADB 采集方案",
+      "expected_output": "按迭代式 5 阶段流程：确认分析范围（竞品=红果，平台=mobile，深度=交互流程）→ 确定首条路径 → 预制 plan.md 到 .captures/ → 使用 TaskCreate 追踪各阶段 → 直接进入采集，无需等待用户确认",
       "files": [],
       "assertions": [
         {
@@ -13,18 +13,23 @@
           "type": "behavioral"
         },
         {
-          "name": "splits_into_independent_subtasks",
-          "description": "按交互链路将首页推荐流拆分为独立子任务（如冷启动→首屏Feed、Feed浏览/加载更多、点击视频卡片进入播放器等），每个子任务有明确起点和终点",
+          "name": "single_path_per_iteration",
+          "description": "每次只确定一条路径（如首页 Tab 首屏），不一次性拆分所有子任务。单路径步骤数控制在 5-8 步",
           "type": "behavioral"
         },
         {
-          "name": "pre_creates_capture_docs",
-          "description": "按 capture-template.md 为每个子任务预制采集文档，保存到 captures/<日期>-<描述>/capture.md，填入采集信息和操作序列",
+          "name": "pre_creates_plan_doc",
+          "description": "按 plan-template.md 预制 plan.md 到 <页面>/.captures/<日期>-<name>/plan.md，填入采集信息和操作序列",
           "type": "behavioral"
         },
         {
-          "name": "presents_plan_for_approval",
-          "description": "向用户呈现分析计划概览（包含竞品、平台、分析深度、子任务列表表格），确认后才进入采集阶段",
+          "name": "skips_user_approval",
+          "description": "规划完成后直接进入采集阶段，不等待用户确认。流程是全自动的",
+          "type": "behavioral"
+        },
+        {
+          "name": "creates_task_tracking",
+          "description": "使用 TaskCreate 创建 5 个 Task（采集/分析/成文/验收/下一轮规划）追踪本轮各阶段",
           "type": "behavioral"
         },
         {
@@ -34,7 +39,7 @@
         },
         {
           "name": "identifies_screen_recording_needs",
-          "description": "识别滚动/滑动行为和 Loading 过渡需要录屏（浏览 Feed 步骤），在采集文档中标注录屏需求",
+          "description": "识别滚动/滑动行为和 Loading 过渡需要录屏，在 plan.md 中标注录屏需求",
           "type": "behavioral"
         }
       ]
@@ -42,17 +47,17 @@
     {
       "id": 2,
       "prompt": "帮我看下红果的搜索是怎么做的，从搜索入口、输入联想、结果展示到搜索历史，写一份竞品分析文档，和我们的 ShortDrama 搜索做对比",
-      "expected_output": "启动 product-research skill：确认分析范围 → 拆分搜索路径子任务 → 预制采集文档到 captures/<日期>-search/capture.md → 分析后成文产出功能文档 search.md，文档含与自身产品 ShortDrama 的对比表格，截图引用标注采集源",
+      "expected_output": "启动 product-research skill：确认分析范围 → 确定首条搜索路径 → 预制 plan.md → 分析后成文产出功能文档 search.md，文档含与自身产品 ShortDrama 的对比表格，截图引用标注采集源",
       "files": [],
       "assertions": [
         {
           "name": "loads_product_research_skill",
-          "description": "识别用户意图为竞品分析，通过 Skill 工具加载 product-research skill",
+          "description": "识别用户意图为竞品分析，加载 product-research skill",
           "type": "behavioral"
         },
         {
-          "name": "splits_search_path_subtasks",
-          "description": "将搜索功能按交互路径拆分：搜索入口/触发 → 输入联想/建议 → 结果展示 → 搜索历史，每个路径独立子任务",
+          "name": "single_search_path_per_round",
+          "description": "将搜索功能按路径拆分，但每轮只执行一条（如搜索首页/入口），不一次性全部拆分执行",
           "type": "behavioral"
         },
         {
@@ -67,12 +72,12 @@
         },
         {
           "name": "screenshots_reference_capture_source",
-          "description": "功能文档中每条截图引用标注采集源链接（图源：采集 日期 → captures/.../capture.md）",
+          "description": "功能文档中每条截图引用标注采集日期（采集于 <日期>），路径使用 .captures/ 相对路径",
           "type": "behavioral"
         },
         {
-          "name": "covers_full_search_flow",
-          "description": "采集文档覆盖搜索的完整路径：入口触发 → 输入联想 → 搜索结果 → 搜索历史，不遗漏关键交互节点",
+          "name": "discovers_next_paths",
+          "description": "验收阶段根据采集中发现的交互入口，将新路径追加到 PROGRESS.md（如搜索结果页、搜索历史等）",
           "type": "behavioral"
         }
       ]
@@ -80,7 +85,7 @@
     {
       "id": 3,
       "prompt": "调研红果播放器的所有交互细节——进入退出动画、控制栏布局、横竖屏切换、进度拖拽、倍速、清晰度切换，录屏分析，产出完整的播放器业务功能文档",
-      "expected_output": "启动 product-research skill：识别播放器模块所有交互维度 → 按独立路径拆分（进入、布局、控制栏、横竖屏、退出）→ 标注录屏需求 → 采集录屏+截图到 assets/ → 多模态分析各交互维度 → 功能文档 video-player.md 含 UI 数值化描述和 mermaid 流程图 → revisions/ + index 全部更新",
+      "expected_output": "启动 product-research skill：识别播放器模块所有交互维度 → 按路径逐一迭代（每轮一条）→ 标注录屏需求 → 采集录屏+截图到 assets/ → 多模态分析各交互维度 → 功能文档 video-player.md 含 UI 数值化描述和 mermaid 流程图 → PROGRESS.md 追踪所有路径",
       "files": [],
       "assertions": [
         {
@@ -89,13 +94,13 @@
           "type": "behavioral"
         },
         {
-          "name": "splits_by_independent_paths",
-          "description": "按独立操作路径拆分，每个子任务有明确起点→操作链路→终点，如播放器进入路径、控制栏路径、横竖屏路径、退出路径等",
+          "name": "iterates_one_path_at_a_time",
+          "description": "每轮只采集一条播放器路径，验收后再进入下一轮（如先采集进入路径，验收后追加新路径到 PROGRESS.md）",
           "type": "behavioral"
         },
         {
           "name": "marks_animation_needs_recording",
-          "description": "识别进入退出动画和横竖屏转场需要录屏，在采集文档中标注录屏需求（覆盖步骤范围）",
+          "description": "识别进入退出动画和横竖屏转场需要录屏，在 plan.md 中标注录屏需求",
           "type": "behavioral"
         },
         {
@@ -109,8 +114,8 @@
           "type": "behavioral"
         },
         {
-          "name": "updates_revisions_and_index",
-          "description": "成文后创建 revisions/<日期>-<描述>.md 修订历史，更新模块 index.md 和频道 index.md",
+          "name": "iterates_until_progress_complete",
+          "description": "循环迭代直到 PROGRESS.md 中所有播放器路径采集完成，然后在验收阶段提示用户",
           "type": "behavioral"
         }
       ]
@@ -118,7 +123,7 @@
     {
       "id": 4,
       "prompt": "快速看下红果的个人中心页面布局，截个图描述下 UI 就行，不用太深入",
-      "expected_output": "启动 product-research skill：识别分析深度='首屏快照' → 单子任务，不拆分多条路径 → 采集方案仅截图不需要录屏 → 预制一份简单采集文档 → 呈现给用户确认",
+      "expected_output": "启动 product-research skill：识别分析深度='首屏快照' → 单路径，步骤数少 → 不录屏 → 预制 plan.md → 直接执行采集",
       "files": [],
       "assertions": [
         {
@@ -127,23 +132,18 @@
           "type": "behavioral"
         },
         {
-          "name": "single_subtask_no_split",
-          "description": "范围聚焦个人中心页面，只预制一个子任务/采集文档，不过度拆分为多条操作路径",
+          "name": "single_path_with_few_steps",
+          "description": "聚焦个人中心页面，只设计该页面的首屏截图步骤，步骤数精简",
           "type": "behavioral"
         },
         {
           "name": "no_screen_recording_needed",
-          "description": "静态页面布局无需录屏，采集文档中标注「本次采集无需录屏」",
+          "description": "静态页面布局无需录屏，plan.md 中标注「本次采集无需录屏」",
           "type": "behavioral"
         },
         {
-          "name": "pre_creates_simple_capture_doc",
-          "description": "按 capture-template.md 预制采集文档，操作序列聚焦于截图关键区域，不设计复杂的多步用户交互",
-          "type": "behavioral"
-        },
-        {
-          "name": "presents_plan_before_execution",
-          "description": "向用户呈现分析计划后等待确认，不跳过规划阶段直接采集",
+          "name": "auto_proceeds_to_collection",
+          "description": "规划完成后不等待用户确认，直接进入采集阶段",
           "type": "behavioral"
         }
       ]
@@ -151,32 +151,32 @@
     {
       "id": 5,
       "prompt": "我想分析红果的登录注册流程，先帮我出个采集计划看看，别直接采集",
-      "expected_output": "启动 product-research skill，只执行阶段 1（规划）：确认分析范围 → 拆分登录注册路径子任务 → 预制采集文档到 captures/ → 呈现分析计划给用户 — 到此为止，不派发采集 subagent，不执行 adb 命令",
+      "expected_output": "启动 product-research skill，只执行阶段 1（规划）：确认分析范围 → 确定首条登录路径 → 预制 plan.md 并告知用户计划已就绪 — 到此为止，不执行采集，不使用 adb 命令。用户明确说了「别直接采集」，需遵守而非按默认的自动执行逻辑。",
       "files": [],
       "assertions": [
         {
           "name": "executes_planning_only",
-          "description": "识别用户「先出计划别直接采集」的意图，只执行阶段 1（规划），不进入阶段 2（采集）",
+          "description": "识别用户「先出计划别直接采集」的明确意图，只执行阶段 1（规划），不进入阶段 2（采集）",
           "type": "behavioral"
         },
         {
-          "name": "splits_auth_flow_subtasks",
-          "description": "按登录注册交互链路拆分子任务：如手机号登录、第三方登录、注册流程、密码找回等独立路径",
+          "name": "single_auth_path",
+          "description": "按登录注册交互链路确定一条路径（如手机号登录入口），不一次性拆分全部 auth 路径",
           "type": "behavioral"
         },
         {
-          "name": "pre_creates_capture_docs_only",
-          "description": "为各子任务预制采集文档到 captures/<日期>-auth-*/capture.md，填入采集信息和操作序列，不执行 adb 命令",
+          "name": "pre_creates_plan_doc_only",
+          "description": "预制 plan.md 并填入采集信息和操作序列，不执行 adb 命令",
           "type": "behavioral"
         },
         {
-          "name": "presents_plan_without_executing",
-          "description": "向用户呈现分析计划概览和各采集文档路径后停止，明确等待用户确认，不派发任何采集 subagent",
+          "name": "respects_explicit_stop",
+          "description": "用户明确要求不执行时遵守该指令；与默认的自动执行行为不同，这里需要识别用户的明确阻止意图",
           "type": "behavioral"
         },
         {
           "name": "acknowledges_stop_instruction",
-          "description": "在回复中明确告知用户「计划已准备完毕，确认后进入采集阶段」，体现理解用户不要提前执行的意图",
+          "description": "在回复中明确告知用户「计划已准备完毕，可随时开始采集」",
           "type": "behavioral"
         }
       ]
@@ -184,17 +184,17 @@
     {
       "id": 6,
       "prompt": "帮我分析下竞品",
-      "expected_output": "Agent 不应直接开始规划或采集。应先反问用户确认：具体分析哪个竞品、哪个功能模块、分析到什么深度（首屏快照/交互流程/异常边界）、目标平台（mobile/web），待用户明确后再推进",
+      "expected_output": "不应直接开始规划或采集。应先反问用户确认：具体分析哪个竞品、哪个页面/功能、分析到什么深度（首屏快照/交互流程/异常边界）、目标平台（mobile/web），待用户明确后再推进",
       "files": [],
       "assertions": [
         {
           "name": "does_not_jump_to_planning",
-          "description": "不直接进入阶段 1（规划），不编制采集文档，不启动 product-research skill 的工作流",
+          "description": "不直接进入阶段 1（规划），不预制 plan.md，不启动 product-research skill 的工作流",
           "type": "behavioral"
         },
         {
           "name": "asks_clarifying_questions",
-          "description": "主动向用户反问至少以下部分要素：具体竞品名称、功能模块、分析深度（首屏快照/交互流程/异常边界）、目标平台",
+          "description": "主动向用户反问至少以下部分要素：具体竞品名称、功能模块/页面、分析深度、目标平台",
           "type": "behavioral"
         },
         {
