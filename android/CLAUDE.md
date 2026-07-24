@@ -1,33 +1,93 @@
-## 端说明
+# Android 端开发规范
 
-Android 端代码与说明统一维护在当前目录。
-如无额外说明，当前目录仅承载 Android 相关实现，不处理其他端逻辑。
+## 技术栈
 
-## 技术约束
+- Kotlin 2.0.21 + Jetpack Compose + Material3
+- Hilt (2.53.1) DI + KSP
+- Retrofit 2.11.0 + OkHttp 4.12.0 + kotlinx.serialization 1.7.3
+- Jetpack Navigation Compose 2.8.5
+- Detekt 1.23.7 静态分析
+- JUnit 4 + MockK + Turbine 测试
 
-- 使用 Kotlin 与 Jetpack Compose 搭建 UI。
-- 优先采用声明式 UI 组织方式，避免回退到 XML View 方案。
-- 界面状态应保持清晰、可追踪、可推导。
+## 目录结构
 
-## 架构约束
+```
+app/src/
+├── main/java/com/djs66256/short_drama/
+│   ├── ShortDramaApplication.kt    # @HiltAndroidApp 入口
+│   ├── MainActivity.kt             # 单 Activity + NavHost
+│   ├── core/                       # 基础设施层
+│   │   ├── config/                 # AppConfig 接口与 BuildConfig 实现
+│   │   ├── di/                     # Hilt 模块（AppModule, NetworkModule, RepositoryModule）
+│   │   ├── network/                # ApiResult, ApiService, ApiClient, AuthInterceptor
+│   │   └── theme/                  # Color, Typography, ShortDramaTheme
+│   ├── data/                       # 数据层
+│   │   ├── datasource/             # DramaRemoteDataSource
+│   │   ├── dto/                    # DramaDto, EpisodeDto, PaginationDto, ErrorDto
+│   │   └── repository/             # DramaRepositoryImpl
+│   ├── domain/                     # 领域层
+│   │   ├── model/                  # Drama, Episode 业务实体
+│   │   ├── repository/             # DramaRepository, EpisodeRepository 接口
+│   │   └── usecase/                # GetDramasUseCase
+│   ├── feature/                    # 功能模块
+│   │   ├── home/                   # 首页
+│   │   ├── player/                 # 播放器（占位）
+│   │   └── dramadetail/            # 剧集详情（占位）
+│   └── navigation/                 # Routes + NavGraph
+└── test/                           # 单元测试（JVM，无 Android 依赖）
+```
 
-- 需要采用业务逻辑可测试的架构方案。
-- UI、状态管理、业务逻辑、数据访问应尽量分层，避免将复杂逻辑直接堆叠在 Composable 中。
-- 优先保证核心场景可通过自动化方式验证，而不是依赖人工点击验证。
+## 架构分层
 
-## 测试要求
+```
+Presentation (Composable + ViewModel)
+    ↓ depends on
+Domain (Model + Repository Interface + UseCase)
+    ↑ implemented by
+Data (DTO + DataSource + RepositoryImpl)
+    ↓ depends on
+Core (Network, DI, Theme, Config)
+```
 
-- 每个场景都需要有单元测试。
-- 新增业务逻辑时，应同步补齐对应测试。
-- 如某个场景暂时无法直接测试，需要先说明原因，再决定实现方式。
+- **Domain 层**：纯 Kotlin，无 Android 依赖。Model、Repository 接口、UseCase 在此定义。
+- **Data 层**：实现 Domain 层的 Repository 接口。DTO 使用 kotlinx.serialization 反序列化 API 响应。
+- **Presentation 层**：Composable UI + ViewModel。使用 StateFlow 暴露状态，hiltViewModel() 注入。
 
-## 命令约定
+## 构建命令
 
-- 当前目录尚未看到可确认的 Android 工程配置。
-- 在未补充真实构建配置前，不要编造运行、测试、构建命令。
+```bash
+# 编译
+./gradlew assembleDebug
 
-## 开发约定
+# 运行所有单元测试
+./gradlew test
 
-- 仅修改 `android/` 目录下的文件。
-- Android 端如需依赖后端接口，对接方式需遵循仓库根目录中的 RESTful 约束。
-- 禁止硬编码环境地址、token、开关或其他环境相关常量，应通过配置或统一常量管理。
+# 运行指定测试
+./gradlew test --tests "fully.qualified.TestClassName"
+
+# 静态分析
+./gradlew detekt
+```
+
+## 测试策略
+
+- Domain 层用例：MockK mock Repository 接口，验证委托行为。
+- DTO 转换：构造 DTO 实例，验证 toDomain() 所有字段正确映射。
+- ViewModel：使用 MockK mock 依赖，Turbine 收集 StateFlow 验证状态流转。
+- 所有测试位于 `src/test/` 下，纯 JVM 运行，不依赖 Android 框架。
+
+## 编码约束
+
+- **禁止硬编码**：URL、token、环境变量等通过 AppConfig / BuildConfig 获取。
+- **禁止直接使用 BuildConfig**：通过 AppConfig 接口访问，保证可测试性。
+- **Repository 模式**：Data 层实现 Domain 层接口，依赖方向 Data → Domain。
+- **Sealed class 封装**：API 响应统一使用 ApiResult<T>（Success / Error / Exception）。
+- **Kotlin 2.0+**：使用 kotlinx.serialization，不使用 Gson/Moshi。
+
+## 代码风格
+
+- 遵循 Kotlin 官方代码风格（kotlin.code.style=official）
+- 缩进 4 空格
+- 每行最大 120 字符
+- Composable 函数命名以大写开头
+- ViewModel 使用 @HiltViewModel + @Inject constructor

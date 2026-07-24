@@ -1,9 +1,13 @@
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -16,6 +20,17 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/v1")
+
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "APP_NAME", "\"ShortDrama\"")
+        buildConfigField("String", "APP_VERSION", "\"${versionName}\"")
     }
 
     signingConfigs {
@@ -63,17 +78,58 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom:2024.09.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    // Compose BOM
+    val composeBom = platform(libs.compose.bom)
+    implementation(composeBom)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.extended)
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
+    // Activity & Lifecycle
+    implementation(libs.activity.compose)
+    implementation(libs.lifecycle.viewmodel.compose)
+
+    // Navigation
+    implementation(libs.navigation.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // Networking
+    implementation(libs.retrofit)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.retrofit.kotlinx.serialization.converter)
+
+    // Core
+    implementation(libs.core.ktx)
+
+    // DataStore
+    implementation(libs.datastore.preferences)
+
+    // Test
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.coroutines.test)
+
+    // Compose UI Test
+    androidTestImplementation(libs.compose.ui.test)
+}
+
+detekt {
+    config.setFrom(file("$rootDir/.detekt/detekt.yml"))
+    buildUponDefaultConfig = false
 }
