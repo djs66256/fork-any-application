@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "爬一下红果的首页推荐流，从冷启动到浏览 Feed 再到点击视频的完整交互流程，包括 UI 布局和加载策略，整理成完整的业务功能文档",
-      "expected_output": "按迭代式 5 阶段流程：确认分析范围（竞品=红果，平台=mobile，深度=交互流程）→ 确定首条路径 → 预制 plan.md 到 .captures/ → 呈现计划给用户确认 → 使用 TaskCreate 追踪各阶段",
+      "expected_output": "按迭代式 5 阶段流程：确认分析范围（竞品=红果，平台=mobile，深度=交互流程）→ 确定首条路径 → 预制 plan.md 到 .captures/ → 使用 TaskCreate 追踪各阶段 → 直接进入采集，无需等待用户确认",
       "files": [],
       "assertions": [
         {
@@ -23,8 +23,8 @@
           "type": "behavioral"
         },
         {
-          "name": "presents_plan_for_approval",
-          "description": "向用户呈现本轮采集计划（包含竞品、路径、平台、深度、步骤数、录屏需求），确认后才进入采集",
+          "name": "skips_user_approval",
+          "description": "规划完成后直接进入采集阶段，不等待用户确认。流程是全自动的",
           "type": "behavioral"
         },
         {
@@ -123,7 +123,7 @@
     {
       "id": 4,
       "prompt": "快速看下红果的个人中心页面布局，截个图描述下 UI 就行，不用太深入",
-      "expected_output": "启动 product-research skill：识别分析深度='首屏快照' → 单路径，步骤数少 → 不录屏 → 预制 plan.md → 呈现给用户确认",
+      "expected_output": "启动 product-research skill：识别分析深度='首屏快照' → 单路径，步骤数少 → 不录屏 → 预制 plan.md → 直接执行采集",
       "files": [],
       "assertions": [
         {
@@ -142,8 +142,8 @@
           "type": "behavioral"
         },
         {
-          "name": "presents_plan_before_execution",
-          "description": "向用户呈现本轮采集计划后等待确认，不跳过规划阶段直接采集",
+          "name": "auto_proceeds_to_collection",
+          "description": "规划完成后不等待用户确认，直接进入采集阶段",
           "type": "behavioral"
         }
       ]
@@ -151,12 +151,12 @@
     {
       "id": 5,
       "prompt": "我想分析红果的登录注册流程，先帮我出个采集计划看看，别直接采集",
-      "expected_output": "启动 product-research skill，只执行阶段 1（规划）：确认分析范围 → 确定首条登录路径 → 预制 plan.md → 呈现计划给用户 — 到此为止，不执行采集，不使用 adb 命令",
+      "expected_output": "启动 product-research skill，只执行阶段 1（规划）：确认分析范围 → 确定首条登录路径 → 预制 plan.md 并告知用户计划已就绪 — 到此为止，不执行采集，不使用 adb 命令。用户明确说了「别直接采集」，需遵守而非按默认的自动执行逻辑。",
       "files": [],
       "assertions": [
         {
           "name": "executes_planning_only",
-          "description": "识别用户「先出计划别直接采集」的意图，只执行阶段 1（规划），不进入阶段 2（采集）",
+          "description": "识别用户「先出计划别直接采集」的明确意图，只执行阶段 1（规划），不进入阶段 2（采集）",
           "type": "behavioral"
         },
         {
@@ -170,13 +170,13 @@
           "type": "behavioral"
         },
         {
-          "name": "presents_plan_without_executing",
-          "description": "向用户呈现本轮采集计划后停止，明确等待用户确认，不进入采集阶段",
+          "name": "respects_explicit_stop",
+          "description": "用户明确要求不执行时遵守该指令；与默认的自动执行行为不同，这里需要识别用户的明确阻止意图",
           "type": "behavioral"
         },
         {
           "name": "acknowledges_stop_instruction",
-          "description": "在回复中明确告知用户「计划已准备完毕，确认后进入采集阶段」",
+          "description": "在回复中明确告知用户「计划已准备完毕，可随时开始采集」",
           "type": "behavioral"
         }
       ]

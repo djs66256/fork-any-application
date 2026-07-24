@@ -47,11 +47,11 @@ graph TD
 
 核心步骤：
 1. 读 `PROGRESS.md`，取第一个 `⬜` 路径。不存在则初始化
-2. 从用户输入提取竞品、频道、深度（首屏快照/交互流程/异常边界）
+2. 从用户输入提取竞品、频道、深度（首屏快照/交互流程/异常边界），默认交互流程
 3. 按 `assets/plan-template.md` 预制 plan.md 到 `.<页面或功能>/.captures/<日期>-<name>/plan.md`
 4. 使用 TaskCreate 创建 5 个 Task（采集/分析/成文/验收/下一轮规划），第一个标记 `in_progress`
 5. PROGRESS.md 中该路径置为 `🔄`
-6. 向用户呈现计划，确认后进入采集
+6. 直接进入采集阶段，无需等待用户确认。仅首轮用户信息不足（如只说"分析竞品"未指定具体目标）时才反问
 
 ## 阶段 2：采集
 
@@ -99,7 +99,7 @@ graph TD
 - 读 `mobile/PROGRESS.md`（首次使用，不存在）→ 按 `assets/progress-template.md` 初始化
 - 写入第一行：路径 `homepage-feed/`，来源：入口，状态：🔄
 - 预制 `mobile/homepage-feed/.captures/2026-07-24-homepage-tab/plan.md`
-- 创建 5 个 Task，呈现计划，确认后采集
+- 创建 5 个 Task，直接进入采集
 
 **阶段 2 — 采集** → 按 plan.md 执行 ADB 截图/录屏，回填 plan.md
 
@@ -119,7 +119,7 @@ graph TD
 **阶段 1 — 规划**
 - 读 `mobile/PROGRESS.md`（已有页面型条目）→ 追加功能型入口 `auth/`
 - 预制 `mobile/auth/.captures/2026-07-24-phone-login/plan.md`
-- 创建 5 个 Task，确认后采集
+- 创建 5 个 Task，直接进入采集
 
 **阶段 2 — 采集** → 首页点击登录 → 登录页 → 输入手机号 → 验证码 → 完成登录
 
