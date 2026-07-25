@@ -4,10 +4,70 @@ import Testing
 
 struct DramaRepositoryTests {
 
-    // MARK: - T-25: fetchDramas returns empty array
+    private func makeDramaPayload() -> String {
+        """
+        {
+          "data": [
+            {
+              "id": "drama-001",
+              "title": "示例短剧",
+              "description": "首页卡片描述",
+              "cover_url": "https://example.com/cover.jpg",
+              "category": "都市",
+              "episode_count": 12,
+              "tags": ["逆袭", "甜宠"],
+              "rating": 8.6,
+              "created_at": "2026-07-25T00:00:00Z",
+              "updated_at": "2026-07-25T00:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 20,
+            "total_pages": 2
+          }
+        }
+        """
+    }
 
-    @Test("T-25: DramaRepository.fetchDramas returns empty array on empty response")
-    func testFetchDramasEmptySuccess() async throws {
+    private func makeSession(handler: @escaping URLProtocolMock.RequestHandler) -> URLSession {
+        URLProtocolMock.handler = handler
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [URLProtocolMock.self]
+        return URLSession(configuration: config)
+    }
+
+    @Test("T-02: DramaRepository maps canonical response to entities")
+    func testFetchDramasMapsCanonicalResponse() async throws {
+        let url = URL(string: "https://api.example.com/api/dramas?page=1&pageSize=10")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas")
+            let response = HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, Data(self.makeDramaPayload().utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let dataSource = DramaRemoteDataSource(client: client)
+        let repository = DramaRepository(dataSource: dataSource)
+
+        let dramas = try await repository.fetchDramas(page: 1, pageSize: 10)
+
+        #expect(dramas.count == 1)
+        #expect(dramas[0].id == "drama-001")
+        #expect(dramas[0].title == "示例短剧")
+        #expect(dramas[0].episodeCount == 12)
+        #expect(dramas[0].tags == ["逆袭", "甜宠"])
+    }
+
+    @Test("T-25: MockDramaRepository returns empty array on empty response")
+    func testMockFetchDramasEmptySuccess() async throws {
         let mock = MockDramaRepository()
         mock.behavior = .success([])
 
@@ -15,10 +75,8 @@ struct DramaRepositoryTests {
         #expect(dramas.isEmpty)
     }
 
-    // MARK: - T-25: fetchDramas returns dramas
-
-    @Test("T-25: DramaRepository.fetchDramas returns correct drama count")
-    func testFetchDramasReturnsData() async throws {
+    @Test("T-25: MockDramaRepository returns correct drama count")
+    func testMockFetchDramasReturnsData() async throws {
         let drama = Drama(
             id: "1",
             title: "Test",
@@ -39,10 +97,8 @@ struct DramaRepositoryTests {
         #expect(dramas[0].id == "1")
     }
 
-    // MARK: - T-26: fetchDramas error propagation
-
-    @Test("T-26: DramaRepository.fetchDramas propagates errors from data source")
-    func testFetchDramasErrorPropagation() async {
+    @Test("T-26: MockDramaRepository propagates notImplemented errors")
+    func testMockFetchDramasErrorPropagation() async {
         let mock = MockDramaRepository()
         mock.behavior = .failure(.notImplemented("Service unavailable"))
 
@@ -60,10 +116,8 @@ struct DramaRepositoryTests {
         }
     }
 
-    // MARK: - T-26: network error propagation
-
-    @Test("T-26: DramaRepository propagates network errors")
-    func testFetchDramasNetworkErrorPropagation() async {
+    @Test("T-26: MockDramaRepository propagates network errors")
+    func testMockFetchDramasNetworkErrorPropagation() async {
         let mock = MockDramaRepository()
         let underlying = URLError(.notConnectedToInternet)
         mock.behavior = .failure(.network(underlying: underlying))

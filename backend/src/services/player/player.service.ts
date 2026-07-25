@@ -1,11 +1,18 @@
 import { Errors } from '@/lib/errors';
 
 export class PlayerService {
-  async startPlayback(_dramaId: string, _episodeId: string, _progress: number): Promise<void> {
+  async startPlayback(dramaId: string, episodeId: string, progress: number): Promise<void> {
+    void dramaId;
+    void episodeId;
+    void progress;
     throw Errors.notImplemented('startPlayback not implemented');
   }
 
-  async stopPlayback(_dramaId: string, _episodeId: string, _progress: number, _duration: number): Promise<void> {
+  async stopPlayback(dramaId: string, episodeId: string, progress: number, duration: number): Promise<void> {
+    void dramaId;
+    void episodeId;
+    void progress;
+    void duration;
     throw Errors.notImplemented('stopPlayback not implemented');
   }
 }

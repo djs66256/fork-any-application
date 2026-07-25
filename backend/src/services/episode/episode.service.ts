@@ -5,7 +5,8 @@ import { Errors } from '@/lib/errors';
 export class EpisodeService {
   constructor(private episodeRepository: EpisodeRepositoryInterface) {}
 
-  async getEpisodeById(_id: string): Promise<Episode> {
+  async getEpisodeById(id: string): Promise<Episode> {
+    void id;
     throw Errors.notImplemented('getEpisodeById not implemented');
   }
 }

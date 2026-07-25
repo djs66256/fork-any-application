@@ -48,20 +48,34 @@ describe('DramaSchema', () => {
     description: 'A test drama series',
     cover_url: 'https://example.com/cover.jpg',
     category: 'Romance',
-    total_episodes: 24,
-    release_year: 2025,
+    episode_count: 24,
+    tags: ['甜宠', '逆袭'],
     rating: 8.5,
-    status: 'ongoing' as const,
     created_at: '2026-07-24T00:00:00.000Z',
     updated_at: '2026-07-24T00:00:00.000Z',
-    play_count: 100,
   };
 
-  it('should parse valid drama data with all fields', () => {
+  it('should parse valid drama data with homepage feed fields', () => {
     const result = DramaSchema.parse(validDrama);
     expect(result.title).toBe('Test Drama');
-    expect(result.total_episodes).toBe(24);
-    expect(result.play_count).toBe(100);
+    expect(result.episode_count).toBe(24);
+    expect(result.tags).toEqual(['甜宠', '逆袭']);
+  });
+
+  it('should default nullable and collection fields', () => {
+    const result = DramaSchema.parse({
+      id: validDrama.id,
+      title: validDrama.title,
+      episode_count: 12,
+      created_at: validDrama.created_at,
+      updated_at: validDrama.updated_at,
+    });
+
+    expect(result.description).toBe('');
+    expect(result.cover_url).toBeNull();
+    expect(result.category).toBe('');
+    expect(result.tags).toEqual([]);
+    expect(result.rating).toBeNull();
   });
 
   it('should reject empty title', () => {
@@ -72,25 +86,24 @@ describe('DramaSchema', () => {
     expect(() => DramaSchema.parse({ ...validDrama, id: 'not-a-uuid' })).toThrow();
   });
 
-  it('should reject negative total_episodes', () => {
-    expect(() => DramaSchema.parse({ ...validDrama, total_episodes: -1 })).toThrow();
+  it('should reject negative episode_count', () => {
+    expect(() => DramaSchema.parse({ ...validDrama, episode_count: -1 })).toThrow();
   });
 
   it('should reject rating outside 0-10 range', () => {
     expect(() => DramaSchema.parse({ ...validDrama, rating: 11 })).toThrow();
   });
 
-  it('should reject invalid status', () => {
-    expect(() => DramaSchema.parse({ ...validDrama, status: 'finished' })).toThrow();
-  });
-
-  it('should allow nullable optional fields', () => {
-    const result = DramaSchema.parse({
-      ...validDrama,
-      description: null,
-      cover_url: null,
-    });
-    expect(result.description).toBeNull();
+  it('should reject legacy total_episodes-only payloads', () => {
+    expect(() =>
+      DramaSchema.parse({
+        id: validDrama.id,
+        title: validDrama.title,
+        total_episodes: 24,
+        created_at: validDrama.created_at,
+        updated_at: validDrama.updated_at,
+      }),
+    ).toThrow();
   });
 });
 
@@ -129,14 +142,27 @@ describe('EpisodeSchema', () => {
 });
 
 describe('DramaListResponseSchema', () => {
-  it('should parse list response with empty data', () => {
+  it('should parse list response with canonical homepage payload', () => {
     const data = {
-      data: [],
-      pagination: { page: 1, page_size: 10, total: 0, total_pages: 0 },
+      data: [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          title: 'Test Drama',
+          description: '',
+          cover_url: null,
+          category: 'Romance',
+          episode_count: 24,
+          tags: [],
+          rating: null,
+          created_at: '2026-07-24T00:00:00.000Z',
+          updated_at: '2026-07-24T00:00:00.000Z',
+        },
+      ],
+      pagination: { page: 1, page_size: 10, total: 1, total_pages: 1 },
     };
     const result = DramaListResponseSchema.parse(data);
-    expect(result.data).toHaveLength(0);
-    expect(result.pagination.total_pages).toBe(0);
+    expect(result.data).toHaveLength(1);
+    expect(result.pagination.total_pages).toBe(1);
   });
 });
 

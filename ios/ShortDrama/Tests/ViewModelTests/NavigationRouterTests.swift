@@ -5,6 +5,21 @@ import Testing
 @MainActor
 struct NavigationRouterTests {
 
+    private func makeDrama(id: String = "drama-001") -> Drama {
+        Drama(
+            id: id,
+            title: "示例短剧",
+            description: "首页卡片描述",
+            coverUrl: "https://example.com/cover.jpg",
+            category: "都市",
+            episodeCount: 12,
+            tags: ["逆袭"],
+            rating: 8.6,
+            createdAt: "2026-07-25T00:00:00Z",
+            updatedAt: "2026-07-25T00:00:00Z"
+        )
+    }
+
     @Test("router defaults to home tab with empty stacks")
     func testDefaults() {
         let router = NavigationRouter()
@@ -17,12 +32,44 @@ struct NavigationRouterTests {
         #expect(router.containerReady == false)
     }
 
-    @Test("navigate appends child route to home stack")
-    func testNavigateAppendsPath() {
+    @Test("home route builder creates player route from drama id")
+    func testHomeRouteBuilderPlayerRoute() {
+        let route = HomeRouteBuilder.playerRoute(for: makeDrama(id: "play-001"))
+
+        #expect(route == .player(videoId: "play-001"))
+    }
+
+    @Test("home route builder creates detail route from drama id")
+    func testHomeRouteBuilderDetailRoute() {
+        let route = HomeRouteBuilder.detailRoute(for: makeDrama(id: "detail-001"))
+
+        #expect(route == .dramaDetail(dramaId: "detail-001"))
+    }
+
+    @Test("home route builder rejects empty ids")
+    func testHomeRouteBuilderRejectsEmptyIds() {
+        let drama = makeDrama(id: "")
+
+        #expect(HomeRouteBuilder.playerRoute(for: drama) == nil)
+        #expect(HomeRouteBuilder.detailRoute(for: drama) == nil)
+    }
+
+    @Test("navigate appends player route to home stack")
+    func testNavigatePlayerAppendsPath() {
         let router = NavigationRouter()
-        #expect(router.pathsByTab[.home]?.count == 0)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
 
         router.navigate(to: .player(videoId: "123"))
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("navigate appends drama detail route to home stack")
+    func testNavigateDramaDetailAppendsPath() {
+        let router = NavigationRouter()
+
+        router.navigate(to: .dramaDetail(dramaId: "456"))
+
         #expect(router.selectedTab == .home)
         #expect(router.pathsByTab[.home]?.count == 1)
     }
@@ -34,7 +81,7 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 1)
 
         router.dismiss()
-        #expect(router.pathsByTab[.home]?.count == 0)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
     }
 
     @Test("popToRoot clears target tab stack")
@@ -45,7 +92,7 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 2)
 
         router.popToRoot(of: .home)
-        #expect(router.pathsByTab[.home]?.count == 0)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
         #expect(router.selectedTab == .home)
     }
 
@@ -57,7 +104,7 @@ struct NavigationRouterTests {
 
         #expect(router.selectedTab == .mall)
         #expect(router.pathsByTab[.home]?.count == 1)
-        #expect(router.pathsByTab[.mall]?.count == 0)
+        #expect(router.pathsByTab[.mall]?.isEmpty == true)
     }
 
     @Test("markContainerReady consumes pending route")
@@ -77,6 +124,6 @@ struct NavigationRouterTests {
     func testDismissEmptyPathSafe() {
         let router = NavigationRouter()
         router.dismiss()
-        #expect(router.pathsByTab[.home]?.count == 0)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
     }
 }

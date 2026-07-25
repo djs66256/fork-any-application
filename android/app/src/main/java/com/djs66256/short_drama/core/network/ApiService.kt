@@ -20,7 +20,7 @@ interface ApiService {
     @GET("dramas")
     suspend fun getDramas(
         @Query("page") page: Int = 1,
-        @Query("page_size") pageSize: Int = 20
+        @Query("pageSize") pageSize: Int = 10,
     ): DramaListResponseDto
 
     @POST("dramas")

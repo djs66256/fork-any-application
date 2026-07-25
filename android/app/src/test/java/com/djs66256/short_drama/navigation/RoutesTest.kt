@@ -24,4 +24,12 @@ class RoutesTest {
     fun `detail route generates correct path`() {
         assertEquals("detail/xyz456", AppDestination.detail("xyz456"))
     }
+
+    @Test
+    fun `feed actions reuse play and detail destinations with drama id`() {
+        val dramaId = "feed-drama-001"
+
+        assertEquals("play/feed-drama-001", AppDestination.play(dramaId))
+        assertEquals("detail/feed-drama-001", AppDestination.detail(dramaId))
+    }
 }

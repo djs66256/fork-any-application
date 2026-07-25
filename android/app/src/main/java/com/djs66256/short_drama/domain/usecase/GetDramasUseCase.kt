@@ -10,11 +10,11 @@ import javax.inject.Inject
  * Delegates to [DramaRepository] and adds no additional business logic at this stage.
  */
 class GetDramasUseCase @Inject constructor(
-    private val dramaRepository: DramaRepository
+    private val dramaRepository: DramaRepository,
 ) {
     suspend operator fun invoke(
         page: Int = 1,
-        pageSize: Int = 20
+        pageSize: Int = 10,
     ): ApiResult<List<Drama>> {
         return dramaRepository.getDramas(page, pageSize)
     }

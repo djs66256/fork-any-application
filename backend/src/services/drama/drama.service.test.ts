@@ -6,14 +6,12 @@ import { Drama } from '@/lib/schemas';
 function makeDramaInput(overrides: Partial<Omit<Drama, 'id' | 'created_at' | 'updated_at'>> = {}): Omit<Drama, 'id' | 'created_at' | 'updated_at'> {
   return {
     title: overrides.title ?? 'Test Drama',
-    description: overrides.description ?? null,
+    description: overrides.description ?? '',
     cover_url: overrides.cover_url ?? null,
-    category: overrides.category ?? null,
-    total_episodes: overrides.total_episodes ?? 12,
-    release_year: overrides.release_year ?? null,
+    category: overrides.category ?? 'Test Category',
+    episode_count: overrides.episode_count ?? 12,
+    tags: overrides.tags ?? [],
     rating: overrides.rating ?? null,
-    status: overrides.status ?? 'ongoing',
-    play_count: overrides.play_count ?? 0,
   };
 }
 
@@ -26,19 +24,39 @@ describe('DramaService', () => {
     service = new DramaService(repo);
   });
 
-  it('should list dramas (empty when no data)', async () => {
+  it('should list seeded homepage dramas by default', async () => {
     const result = await service.listDramas({ page: 1, pageSize: 10 });
-    expect(result.data).toEqual([]);
-    expect(result.pagination.total).toBe(0);
+    expect(result.data).toHaveLength(10);
+    expect(result.pagination.total).toBe(12);
+    expect(result.pagination.total_pages).toBe(2);
   });
 
-  it('should list dramas after creating some via repo', async () => {
-    await repo.create(makeDramaInput({ title: 'Drama A' }));
-    await repo.create(makeDramaInput({ title: 'Drama B' }));
-
-    const result = await service.listDramas({ page: 1, pageSize: 10 });
+  it('should return correct second page slice', async () => {
+    const result = await service.listDramas({ page: 2, pageSize: 10 });
     expect(result.data).toHaveLength(2);
-    expect(result.pagination.total).toBe(2);
+    expect(result.data[0].id).toBe('550e8400-e29b-41d4-a716-446655440011');
+  });
+
+  it('should return empty data for oversized page without failing', async () => {
+    const result = await service.listDramas({ page: 999, pageSize: 10 });
+    expect(result.data).toEqual([]);
+    expect(result.pagination.total).toBe(12);
+    expect(result.pagination.total_pages).toBe(2);
+  });
+
+  it('should validate repository output against canonical schema', async () => {
+    const emptyRepo = new DramaMockRepository([]);
+    const emptyService = new DramaService(emptyRepo);
+    const created = await emptyRepo.create(makeDramaInput({ title: 'Schema Check', episode_count: 9, tags: ['测试'] }));
+
+    const result = await emptyService.listDramas({ page: 1, pageSize: 10 });
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0]).toMatchObject({
+      id: created.id,
+      title: 'Schema Check',
+      episode_count: 9,
+      tags: ['测试'],
+    });
   });
 
   it('should throw notImplemented for getDramaById', async () => {
