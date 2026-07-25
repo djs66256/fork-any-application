@@ -1,25 +1,64 @@
 import SwiftUI
 
-/// Manages the navigation stack for the app.
+/// Manages the navigation state for the app.
 @MainActor
 final class NavigationRouter: ObservableObject {
 
-    /// The shared navigation path used by NavigationStack.
-    @Published var path = NavigationPath()
+    @Published var selectedTab: AppTab = .home
+    @Published private(set) var pathsByTab: [AppTab: NavigationPath] = AppTab.allCases.reduce(into: [:]) {
+        $0[$1] = NavigationPath()
+    }
+    @Published private(set) var pendingRoute: AppRoute?
+    @Published private(set) var containerReady = false
 
-    /// Navigates to the specified route by pushing it onto the stack.
+    func pathBinding(for tab: AppTab) -> Binding<NavigationPath> {
+        Binding(
+            get: { self.pathsByTab[tab] ?? NavigationPath() },
+            set: { self.pathsByTab[tab] = $0 }
+        )
+    }
+
+    func select(tab: AppTab) {
+        selectedTab = tab
+    }
+
     func navigate(to route: AppRoute) {
-        path.append(route)
+        let tab = route.owningTab
+        selectedTab = tab
+
+        switch route {
+        case .home:
+            popToRoot(of: .home)
+        case .player, .dramaDetail:
+            var path = pathsByTab[tab] ?? NavigationPath()
+            path.append(route)
+            pathsByTab[tab] = path
+        }
     }
 
-    /// Dismisses the topmost view in the navigation stack.
-    func dismiss() {
-        guard !path.isEmpty else { return }
+    func enqueueDeepLink(_ route: AppRoute) {
+        pendingRoute = route
+    }
+
+    func markContainerReady() {
+        guard !containerReady else { return }
+        containerReady = true
+
+        if let pendingRoute {
+            self.pendingRoute = nil
+            navigate(to: pendingRoute)
+        }
+    }
+
+    func dismiss(in tab: AppTab? = nil) {
+        let targetTab = tab ?? selectedTab
+        guard var path = pathsByTab[targetTab], !path.isEmpty else { return }
         path.removeLast()
+        pathsByTab[targetTab] = path
     }
 
-    /// Pops back to the root of the navigation stack.
-    func popToRoot() {
-        path.removeLast(path.count)
+    func popToRoot(of tab: AppTab) {
+        pathsByTab[tab] = NavigationPath()
+        selectedTab = tab
     }
 }

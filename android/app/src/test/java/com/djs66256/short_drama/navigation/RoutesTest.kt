@@ -6,17 +6,22 @@ import org.junit.Test
 class RoutesTest {
 
     @Test
-    fun `T-07 HOME route is "home"`() {
-        assertEquals("home", Routes.HOME)
+    fun `home route is home`() {
+        assertEquals("home", AppDestination.Route.HOME)
     }
 
     @Test
-    fun `T-07 player route generates correct path`() {
-        assertEquals("player/abc123", Routes.player("abc123"))
+    fun `play route generates correct path`() {
+        assertEquals("play/abc123", AppDestination.play("abc123"))
     }
 
     @Test
-    fun `T-07 dramaDetail route generates correct path`() {
-        assertEquals("dramaDetail/xyz456", Routes.dramaDetail("xyz456"))
+    fun `player alias route generates correct path`() {
+        assertEquals("player/abc123", AppDestination.playerAlias("abc123"))
+    }
+
+    @Test
+    fun `detail route generates correct path`() {
+        assertEquals("detail/xyz456", AppDestination.detail("xyz456"))
     }
 }

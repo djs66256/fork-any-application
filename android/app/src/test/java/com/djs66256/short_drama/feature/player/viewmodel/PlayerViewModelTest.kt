@@ -14,6 +14,13 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `T-08 videoId falls back to generic id`() {
+        val savedStateHandle = SavedStateHandle(mapOf("id" to "fallback-001"))
+        val viewModel = PlayerViewModel(savedStateHandle)
+        assertEquals("fallback-001", viewModel.videoId)
+    }
+
+    @Test
     fun `T-08 videoId defaults to empty string when not in SavedStateHandle`() {
         val savedStateHandle = SavedStateHandle()
         val viewModel = PlayerViewModel(savedStateHandle)

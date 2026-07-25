@@ -24,10 +24,16 @@ enum DeeplinkHandler {
         case "open":
             return .home
         case "play":
-            let videoId = pathComponents.first ?? ""
+            guard let videoId = pathComponents.first?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !videoId.isEmpty else {
+                return nil
+            }
             return .player(videoId: videoId)
         case "drama":
-            let dramaId = pathComponents.first ?? ""
+            guard let dramaId = pathComponents.first?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !dramaId.isEmpty else {
+                return nil
+            }
             return .dramaDetail(dramaId: dramaId)
         default:
             return nil

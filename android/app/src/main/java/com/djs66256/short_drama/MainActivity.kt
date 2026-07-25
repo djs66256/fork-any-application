@@ -5,19 +5,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.djs66256.short_drama.core.theme.ShortDramaTheme
+import com.djs66256.short_drama.navigation.DeeplinkRouteParser
+import com.djs66256.short_drama.navigation.MainNavigationViewModel
 import com.djs66256.short_drama.navigation.NavGraph
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val navigationViewModel: MainNavigationViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleDeepLink(intent)
         enableEdgeToEdge()
         setContent {
             ShortDramaTheme {
@@ -26,16 +32,23 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    NavGraph(
+                        navController = navController,
+                        navigationViewModel = navigationViewModel,
+                    )
                 }
             }
         }
     }
 
-    /**
-     * Handles deep link intents. Reserved for future deep link routing.
-     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLink(intent)
+    }
+
     fun handleDeepLink(intent: Intent) {
-        // TODO: Route to appropriate screen based on intent data
+        val route = DeeplinkRouteParser.parse(intent.data) ?: return
+        navigationViewModel.enqueuePendingRoute(route)
     }
 }
