@@ -1,20 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PlayerScreen } from '@/features/player/PlayerScreen';
 
 describe('PlayerScreen', () => {
-  it('should display the dramaId', () => {
-    render(<PlayerScreen dramaId="test123" />);
-    expect(screen.getByText(/Drama ID: test123/)).toBeInTheDocument();
+  it('renders the video id', () => {
+    render(<PlayerScreen videoId="test123" />);
+    expect(screen.getByText(/Video ID: test123/)).toBeInTheDocument();
   });
 
-  it('should display "播放页" title', () => {
-    render(<PlayerScreen dramaId="abc" />);
+  it('renders placeholder content', () => {
+    render(<PlayerScreen videoId="abc" />);
     expect(screen.getByText('播放页')).toBeInTheDocument();
-  });
-
-  it('should display "待实现" placeholder', () => {
-    render(<PlayerScreen dramaId="abc" />);
     expect(screen.getByText('待实现')).toBeInTheDocument();
   });
 });

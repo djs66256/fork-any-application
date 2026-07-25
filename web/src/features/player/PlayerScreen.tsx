@@ -1,10 +1,10 @@
 import { Container, Card } from '@/components/ui';
 
 export interface PlayerScreenProps {
-  dramaId: string;
+  videoId: string;
 }
 
-export function PlayerScreen({ dramaId }: PlayerScreenProps) {
+export function PlayerScreen({ videoId }: PlayerScreenProps) {
   return (
     <Container>
       <main style={{ paddingBlock: 'var(--spacing-2xl)' }}>
@@ -13,7 +13,7 @@ export function PlayerScreen({ dramaId }: PlayerScreenProps) {
             播放页
           </h1>
           <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
-            Drama ID: {dramaId}
+            Video ID: {videoId}
           </p>
           <p style={{ color: 'var(--color-text-secondary)' }}>
             待实现

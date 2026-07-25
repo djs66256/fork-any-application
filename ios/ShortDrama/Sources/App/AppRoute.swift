@@ -8,4 +8,22 @@ enum AppRoute: Hashable {
     case player(videoId: String)
     /// Detail screen for a specific drama.
     case dramaDetail(dramaId: String)
+
+    var owningTab: AppTab {
+        switch self {
+        case .home, .player, .dramaDetail:
+            return .home
+        }
+    }
+
+    var publicRouteName: String {
+        switch self {
+        case .home:
+            return "home"
+        case .player:
+            return "play"
+        case .dramaDetail:
+            return "detail"
+        }
+    }
 }

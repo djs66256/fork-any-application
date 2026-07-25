@@ -4,16 +4,12 @@ import Testing
 
 struct DeeplinkHandlerTests {
 
-    // MARK: - T-21: djsdrama://open
-
     @Test("T-21: djsdrama://open returns .home")
     func testOpenSchemeReturnsHome() {
         let url = URL(string: "djsdrama://open")!
         let route = DeeplinkHandler.handleDeepLink(url)
         #expect(route == .home)
     }
-
-    // MARK: - T-22: djsdrama://play/v123
 
     @Test("T-22: djsdrama://play/v123 returns .player(videoId: \"v123\")")
     func testPlaySchemeReturnsPlayer() {
@@ -22,16 +18,12 @@ struct DeeplinkHandlerTests {
         #expect(route == .player(videoId: "v123"))
     }
 
-    // MARK: - T-23: djsdrama://drama/d456
-
     @Test("T-23: djsdrama://drama/d456 returns .dramaDetail(dramaId: \"d456\")")
     func testDramaSchemeReturnsDramaDetail() {
         let url = URL(string: "djsdrama://drama/d456")!
         let route = DeeplinkHandler.handleDeepLink(url)
         #expect(route == .dramaDetail(dramaId: "d456"))
     }
-
-    // MARK: - T-24: Invalid URL
 
     @Test("T-24: http://evil.com returns nil")
     func testInvalidSchemeReturnsNil() {
@@ -47,17 +39,17 @@ struct DeeplinkHandlerTests {
         #expect(route == nil)
     }
 
-    @Test("djsdrama://play without video ID returns player with empty ID")
+    @Test("djsdrama://play without video ID returns nil")
     func testPlayWithoutVideoID() {
         let url = URL(string: "djsdrama://play")!
         let route = DeeplinkHandler.handleDeepLink(url)
-        #expect(route == .player(videoId: ""))
+        #expect(route == nil)
     }
 
-    @Test("djsdrama://drama without drama ID returns dramaDetail with empty ID")
+    @Test("djsdrama://drama without drama ID returns nil")
     func testDramaWithoutDramaID() {
         let url = URL(string: "djsdrama://drama")!
         let route = DeeplinkHandler.handleDeepLink(url)
-        #expect(route == .dramaDetail(dramaId: ""))
+        #expect(route == nil)
     }
 }

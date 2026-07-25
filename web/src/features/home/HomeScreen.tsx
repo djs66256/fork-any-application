@@ -1,6 +1,13 @@
-import { config } from '@/lib/config';
-import { Container, Card } from '@/components/ui';
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
+import { Card, Container } from '@/components/ui';
+import { config } from '@/lib/config';
+
+const linkStyle = {
+  color: 'var(--color-primary)',
+  fontWeight: 600,
+  textDecoration: 'underline',
+} satisfies CSSProperties;
 
 export function HomeScreen() {
   return (
@@ -17,26 +24,29 @@ export function HomeScreen() {
             Environment: {config.app.env}
           </p>
 
-          <nav style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center', marginTop: 'var(--spacing-lg)' }}>
-            <Link
-              href="/play/sample"
-              style={{
-                color: 'var(--color-primary)',
-                fontWeight: 600,
-                textDecoration: 'underline',
-              }}
-            >
-              Play Sample
+          <nav
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 'var(--spacing-md)',
+              justifyContent: 'center',
+              marginTop: 'var(--spacing-lg)',
+            }}
+          >
+            <Link href="/play/sample" style={linkStyle}>
+              播放页示例
             </Link>
-            <Link
-              href="/detail/sample"
-              style={{
-                color: 'var(--color-primary)',
-                fontWeight: 600,
-                textDecoration: 'underline',
-              }}
-            >
-              Detail Sample
+            <Link href="/detail/sample" style={linkStyle}>
+              详情页示例
+            </Link>
+            <Link href="/search" style={linkStyle}>
+              搜索
+            </Link>
+            <Link href="/rankings" style={linkStyle}>
+              榜单
+            </Link>
+            <Link href="/mall" style={linkStyle}>
+              商城
             </Link>
           </nav>
         </Card>
