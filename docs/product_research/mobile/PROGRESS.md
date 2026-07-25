@@ -43,6 +43,12 @@
 | homepage-feed/menu-panel/common-functions/my-bookings/ | homepage-feed/menu-panel/common-functions 采集 2026-07-24 | ✅ | 常用功能代表入口；点击后进入“我的预约”内容管理页并返回菜单抽屉 | [my-bookings.md](homepage-feed/menu-panel/common-functions/my-bookings/my-bookings.md) |
 | homepage-feed/full-watch/episode-selector/ | homepage-feed/full-watch 采集 2026-07-24 | ✅ | 剧集播放页底部选集栏 | [episode-selector.md](homepage-feed/full-watch/episode-selector/episode-selector.md) |
 | homepage-feed/full-watch/playback-options/ | homepage-feed/full-watch 采集 2026-07-24 | ✅ | 剧集播放页顶部倍速和更多操作 | [playback-options.md](homepage-feed/full-watch/playback-options/playback-options.md) |
+| theater/ | 入口 | ✅ | 红果底部“剧场”Tab 首页；默认“找剧”频道，含频道分栏、快捷入口与双列内容卡片流 | [theater.md](theater/theater.md) |
+| theater/first-card/ | theater/ 采集 2026-07-24 | ✅ | 剧场首屏代表内容卡；点击后直达“第1集”播放页并返回剧场首屏 | [first-card.md](theater/first-card/first-card.md) |
+| mall/ | 入口 | ✅ | 红果底部“商城”Tab 首页；含搜索、权益快捷入口、活动横幅与双列商品分发流 | [mall.md](mall/mall.md) |
+| earn-center/ | 入口 | ✅ | 红果底部“赚钱”Tab 首页；含收益头图、新手奖励、连续看剧福利与现金任务模块 | [earn-center.md](earn-center/earn-center.md) |
+| mall/product-card/ | mall/ 采集 2026-07-24 | ✅ | 商城首屏代表商品卡；匿名态下点击后先触发交易前登录拦截弹层并返回商城首屏 | [product-card.md](mall/product-card/product-card.md) |
+| earn-center/claim-reward/ | earn-center/ 采集 2026-07-24 | ✅ | 赚钱首屏代表性奖励领取入口；点击后直达短剧播放承接页并返回赚钱首屏 | [claim-reward.md](earn-center/claim-reward/claim-reward.md) |
 
 > 使用「路径」作为主键。每次采集完成并验收后，分析新发现的交互路径**并先去重再追加**（同 UI 结构/交互模式仅标签名不同的，只保留一个代表）。
 > 所有路径采集完成后，回到规划阶段确认是否继续深入。
