@@ -11,9 +11,19 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     }
 
     var behavior: MockBehavior = .success([])
+    var queuedBehaviors: [MockBehavior] = []
+    private(set) var fetchDramasCallCount = 0
+    private(set) var lastRequestedPage: Int?
+    private(set) var lastRequestedPageSize: Int?
 
     func fetchDramas(page: Int, pageSize: Int) async throws -> [Drama] {
-        switch behavior {
+        fetchDramasCallCount += 1
+        lastRequestedPage = page
+        lastRequestedPageSize = pageSize
+
+        let currentBehavior = queuedBehaviors.isEmpty ? behavior : queuedBehaviors.removeFirst()
+
+        switch currentBehavior {
         case .success(let dramas):
             return dramas
         case .failure(let error):

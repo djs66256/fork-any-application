@@ -1,0 +1,35 @@
+package com.djs66256.short_drama.feature.home.ui
+
+import com.djs66256.short_drama.domain.model.Drama
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class HomeScreenTest {
+
+    @Test
+    fun `T-05 feed actions only enable navigation for non-blank drama id`() {
+        assertTrue(hasNavigableDramaId("drama-001"))
+        assertFalse(hasNavigableDramaId(""))
+        assertFalse(hasNavigableDramaId("   "))
+    }
+
+    @Test
+    fun `home card meta text includes category tags episodes and rating`() {
+        val drama = Drama(
+            id = "drama-1",
+            title = "示例短剧",
+            description = "首页卡片描述",
+            coverUrl = "https://example.com/cover.jpg",
+            category = "都市",
+            episodeCount = 12,
+            tags = listOf("逆袭", "甜宠", "爽文"),
+            rating = 8.6,
+            createdAt = "2026-07-25T00:00:00Z",
+            updatedAt = "2026-07-25T00:00:00Z",
+        )
+
+        assertEquals("都市 · 逆袭 / 甜宠 · 12 集 · 评分 8.6", buildDramaMeta(drama))
+    }
+}

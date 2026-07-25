@@ -13,8 +13,8 @@ const PaginationQuerySchema = z.object({
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const { page, pageSize } = PaginationQuerySchema.parse({
-    page: searchParams.get('page') ?? 1,
-    pageSize: searchParams.get('pageSize') ?? 10,
+    page: searchParams.get('page') ?? undefined,
+    pageSize: searchParams.get('pageSize') ?? undefined,
   });
 
   const repository = new DramaMockRepository();

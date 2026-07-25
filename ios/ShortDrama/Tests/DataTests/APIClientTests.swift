@@ -142,6 +142,70 @@ struct APIClientTests {
         }
     }
 
+    @Test("T-01: Drama endpoint uses canonical path and query")
+    func testDramaEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.GetDramas(page: 1, pageSize: 10)
+
+        #expect(endpoint.path == "/api/dramas")
+        #expect(endpoint.queryItems?.count == 2)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page", value: "1")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "pageSize", value: "10")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page_size", value: "10")) == false)
+    }
+
+    @Test("T-02: Drama list response decodes canonical payload")
+    func testDramaListResponseDecoding() async throws {
+        let json = """
+        {
+          "data": [
+            {
+              "id": "drama-001",
+              "title": "示例短剧",
+              "description": "首页卡片描述",
+              "cover_url": "https://example.com/cover.jpg",
+              "category": "都市",
+              "episode_count": 12,
+              "tags": ["逆袭", "甜宠"],
+              "rating": 8.6,
+              "created_at": "2026-07-25T00:00:00Z",
+              "updated_at": "2026-07-25T00:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 20,
+            "total_pages": 2
+          }
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas?page=1&pageSize=10")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas")
+            #expect(request.url?.query?.contains("page=1") == true)
+            #expect(request.url?.query?.contains("pageSize=10") == true)
+            let response = HTTPURLResponse(
+                url: url,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.GetDramas(page: 1, pageSize: 10)
+        let response: DramaListResponse = try await client.request(endpoint)
+
+        #expect(response.data.count == 1)
+        #expect(response.data.first?.id == "drama-001")
+        #expect(response.pagination.page == 1)
+        #expect(response.pagination.pageSize == 10)
+        #expect(response.pagination.total == 20)
+        #expect(response.pagination.totalPages == 2)
+    }
+
     // MARK: - Server error
 
     @Test("APIClient throws server error on 400 response")

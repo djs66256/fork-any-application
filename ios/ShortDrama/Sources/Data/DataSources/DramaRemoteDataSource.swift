@@ -1,13 +1,8 @@
 import Foundation
 
-/// API response wrapper for the drama list endpoint.
+/// API response for the drama list endpoint.
 struct DramaListResponse: Decodable {
-    let code: Int
-    let data: DramaListData
-}
-
-struct DramaListData: Decodable {
-    let items: [DramaDTO]
+    let data: [DramaDTO]
     let pagination: PaginationDTO
 }
 
@@ -24,7 +19,7 @@ final class DramaRemoteDataSource: @unchecked Sendable {
     func fetchDramas(page: Int, pageSize: Int) async throws -> [DramaDTO] {
         let endpoint = DramaEndpoints.GetDramas(page: page, pageSize: pageSize)
         let response: DramaListResponse = try await client.request(endpoint)
-        return response.data.items
+        return response.data
     }
 
     /// Fetches a single drama by ID from the remote API.
@@ -50,12 +45,12 @@ enum DramaEndpoints {
         let page: Int
         let pageSize: Int
 
-        var path: String { "/api/v1/dramas" }
+        var path: String { "/api/dramas" }
         var method: HTTPMethod { .get }
         var queryItems: [URLQueryItem]? {
             [
                 URLQueryItem(name: "page", value: String(page)),
-                URLQueryItem(name: "page_size", value: String(pageSize))
+                URLQueryItem(name: "pageSize", value: String(pageSize))
             ]
         }
     }
@@ -65,7 +60,7 @@ enum DramaEndpoints {
 
         let id: String
 
-        var path: String { "/api/v1/dramas/\(id)" }
+        var path: String { "/api/dramas/\(id)" }
         var method: HTTPMethod { .get }
     }
 }

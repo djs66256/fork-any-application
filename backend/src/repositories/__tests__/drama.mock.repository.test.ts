@@ -5,14 +5,12 @@ import { Drama } from '@/lib/schemas';
 function makeDrama(overrides: Partial<Drama> = {}): Omit<Drama, 'id' | 'created_at' | 'updated_at'> {
   return {
     title: overrides.title ?? 'Test Drama',
-    description: overrides.description ?? null,
+    description: overrides.description ?? '',
     cover_url: overrides.cover_url ?? null,
-    category: overrides.category ?? null,
-    total_episodes: overrides.total_episodes ?? 12,
-    release_year: overrides.release_year ?? null,
+    category: overrides.category ?? 'Test Category',
+    episode_count: overrides.episode_count ?? 12,
+    tags: overrides.tags ?? [],
     rating: overrides.rating ?? null,
-    status: overrides.status ?? 'ongoing',
-    play_count: overrides.play_count ?? 0,
   };
 }
 
@@ -23,17 +21,29 @@ describe('DramaMockRepository', () => {
     repo = new DramaMockRepository();
   });
 
-  it('should return empty list with correct pagination for empty repo', async () => {
+  it('should seed homepage dramas by default', async () => {
     const result = await repo.findMany({ page: 1, pageSize: 10 });
+    expect(result.data).toHaveLength(10);
+    expect(result.pagination.total).toBe(12);
+    expect(result.pagination.total_pages).toBe(2);
+    expect(result.data[0]).toMatchObject({
+      title: '逆袭归来后我成了豪门团宠',
+      episode_count: 68,
+      tags: ['逆袭', '豪门'],
+    });
+  });
+
+  it('should support empty repositories when initialized with no data', async () => {
+    const emptyRepo = new DramaMockRepository([]);
+    const result = await emptyRepo.findMany({ page: 1, pageSize: 10 });
     expect(result.data).toEqual([]);
     expect(result.pagination.total).toBe(0);
     expect(result.pagination.total_pages).toBe(0);
-    expect(result.pagination.page).toBe(1);
-    expect(result.pagination.page_size).toBe(10);
   });
 
   it('should create a drama and return it', async () => {
-    const drama = await repo.create(makeDrama());
+    const emptyRepo = new DramaMockRepository([]);
+    const drama = await emptyRepo.create(makeDrama());
     expect(drama.id).toBeDefined();
     expect(drama.title).toBe('Test Drama');
     expect(drama.created_at).toBeDefined();
@@ -41,8 +51,9 @@ describe('DramaMockRepository', () => {
   });
 
   it('should find a created drama by id', async () => {
-    const created = await repo.create(makeDrama({ title: 'Found Me' }));
-    const found = await repo.findById(created.id);
+    const emptyRepo = new DramaMockRepository([]);
+    const created = await emptyRepo.create(makeDrama({ title: 'Found Me' }));
+    const found = await emptyRepo.findById(created.id);
     expect(found).not.toBeNull();
     expect(found!.title).toBe('Found Me');
   });
@@ -53,11 +64,12 @@ describe('DramaMockRepository', () => {
   });
 
   it('should update a drama', async () => {
-    const created = await repo.create(makeDrama({ title: 'Original' }));
-    const updated = await repo.update(created.id, { title: 'Updated' });
+    const emptyRepo = new DramaMockRepository([]);
+    const created = await emptyRepo.create(makeDrama({ title: 'Original' }));
+    const updated = await emptyRepo.update(created.id, { title: 'Updated', tags: ['已更新'] });
     expect(updated).not.toBeNull();
     expect(updated!.title).toBe('Updated');
-    // updated_at should be >= created_at (same ms possible in fast test)
+    expect(updated!.tags).toEqual(['已更新']);
     expect(new Date(updated!.updated_at).getTime()).toBeGreaterThanOrEqual(
       new Date(created.updated_at).getTime(),
     );
@@ -69,10 +81,11 @@ describe('DramaMockRepository', () => {
   });
 
   it('should delete a drama and not find it afterwards', async () => {
-    const created = await repo.create(makeDrama());
-    const deleted = await repo.delete(created.id);
+    const emptyRepo = new DramaMockRepository([]);
+    const created = await emptyRepo.create(makeDrama());
+    const deleted = await emptyRepo.delete(created.id);
     expect(deleted).toBe(true);
-    const found = await repo.findById(created.id);
+    const found = await emptyRepo.findById(created.id);
     expect(found).toBeNull();
   });
 
@@ -81,25 +94,20 @@ describe('DramaMockRepository', () => {
     expect(result).toBe(false);
   });
 
-  it('should paginate multiple dramas correctly', async () => {
-    // Create 25 dramas
-    for (let i = 0; i < 25; i++) {
-      await repo.create(makeDrama({ title: `Drama ${i}` }));
-    }
-
-    // Page 1, size 10
+  it('should paginate seeded dramas correctly across multiple pages', async () => {
     const page1 = await repo.findMany({ page: 1, pageSize: 10 });
-    expect(page1.data).toHaveLength(10);
-    expect(page1.pagination.total).toBe(25);
-    expect(page1.pagination.total_pages).toBe(3);
-
-    // Page 2, size 10
     const page2 = await repo.findMany({ page: 2, pageSize: 10 });
-    expect(page2.data).toHaveLength(10);
-    expect(page2.pagination.page).toBe(2);
+    const page999 = await repo.findMany({ page: 999, pageSize: 10 });
 
-    // Page 3, size 10 (should have 5 items)
-    const page3 = await repo.findMany({ page: 3, pageSize: 10 });
-    expect(page3.data).toHaveLength(5);
+    expect(page1.data).toHaveLength(10);
+    expect(page2.data).toHaveLength(2);
+    expect(page2.pagination.page).toBe(2);
+    expect(page2.pagination.total).toBe(12);
+    expect(page2.pagination.total_pages).toBe(2);
+    expect(page2.data[0].id).toBe('550e8400-e29b-41d4-a716-446655440011');
+
+    expect(page999.data).toEqual([]);
+    expect(page999.pagination.total).toBe(12);
+    expect(page999.pagination.total_pages).toBe(2);
   });
 });

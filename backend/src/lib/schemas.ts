@@ -15,16 +15,14 @@ export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 export const DramaSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1),
-  description: z.string().optional().nullable(),
-  cover_url: z.string().url().optional().nullable(),
-  category: z.string().optional().nullable(),
-  total_episodes: z.number().int().min(0),
-  release_year: z.number().int().optional().nullable(),
-  rating: z.number().min(0).max(10).optional().nullable(),
-  status: z.enum(['ongoing', 'completed', 'announced']).default('ongoing'),
+  description: z.string().default(''),
+  cover_url: z.string().url().nullable().default(null),
+  category: z.string().default(''),
+  episode_count: z.number().int().min(0),
+  tags: z.array(z.string()).default([]),
+  rating: z.number().min(0).max(10).nullable().default(null),
   created_at: z.string(),
   updated_at: z.string(),
-  play_count: z.number().int().min(0).default(0),
 });
 
 export type Drama = z.infer<typeof DramaSchema>;
