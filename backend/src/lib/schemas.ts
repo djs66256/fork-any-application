@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const SeriesStatusSchema = z.enum(['completed', 'ongoing']);
+
 export const HealthResponseSchema = z.object({
   status: z.enum(['ok', 'degraded', 'error']),
   timestamp: z.string(),
@@ -54,6 +56,22 @@ export const DramaListResponseSchema = z.object({
 
 export type DramaListResponse = z.infer<typeof DramaListResponseSchema>;
 
+export const DramaIdPathSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export type DramaIdPath = z.infer<typeof DramaIdPathSchema>;
+
+export const PlaybackSessionIdHeaderSchema = z.string().uuid();
+
+export type PlaybackSessionIdHeader = z.infer<typeof PlaybackSessionIdHeaderSchema>;
+
+export const PlayerProgressQuerySchema = z.object({
+  dramaId: z.string().uuid(),
+});
+
+export type PlayerProgressQuery = z.infer<typeof PlayerProgressQuerySchema>;
+
 export const PlayerStartRequestSchema = z.object({
   drama_id: z.string().uuid(),
   episode_id: z.string().uuid(),
@@ -70,6 +88,71 @@ export const PlayerStopRequestSchema = z.object({
 });
 
 export type PlayerStopRequest = z.infer<typeof PlayerStopRequestSchema>;
+
+export const PlaybackHistorySchema = z.object({
+  playback_session_id: z.string().uuid(),
+  drama_id: z.string().uuid(),
+  episode_id: z.string().uuid(),
+  progress: z.number().min(0),
+  duration: z.number().min(1).nullable().optional(),
+  updated_at: z.string(),
+});
+
+export type PlaybackHistory = z.infer<typeof PlaybackHistorySchema>;
+
+export const EpisodeListResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    drama_id: z.string().uuid(),
+    series_status: SeriesStatusSchema.default('completed'),
+    items: z.array(EpisodeSchema),
+  }),
+  message: z.string(),
+});
+
+export type EpisodeListResponse = z.infer<typeof EpisodeListResponseSchema>;
+
+export const PlayerProgressResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    drama_id: z.string().uuid(),
+    has_history: z.boolean(),
+    episode_id: z.string().uuid().nullable(),
+    start_time: z.number().min(0),
+    updated_at: z.string().nullable(),
+  }),
+  message: z.string(),
+});
+
+export type PlayerProgressResponse = z.infer<typeof PlayerProgressResponseSchema>;
+
+export const PlayerStartResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    drama_id: z.string().uuid(),
+    episode_id: z.string().uuid(),
+    accepted_progress: z.number().min(0),
+    playback_session_id: z.string().uuid(),
+    started_at: z.string(),
+  }),
+  message: z.string(),
+});
+
+export type PlayerStartResponse = z.infer<typeof PlayerStartResponseSchema>;
+
+export const PlayerStopResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    drama_id: z.string().uuid(),
+    episode_id: z.string().uuid(),
+    saved_progress: z.number().min(0),
+    duration: z.number().min(1),
+    updated_at: z.string(),
+  }),
+  message: z.string(),
+});
+
+export type PlayerStopResponse = z.infer<typeof PlayerStopResponseSchema>;
 
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),

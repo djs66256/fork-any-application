@@ -9,6 +9,7 @@ struct EpisodeDTO: Codable, Equatable {
     let videoUrl: String
     let duration: Int
     let thumbnailUrl: String
+    let description: String?
     let createdAt: String
     let updatedAt: String
 }
@@ -25,6 +26,7 @@ extension EpisodeDTO {
             videoUrl: videoUrl,
             duration: duration,
             thumbnailUrl: thumbnailUrl,
+            description: description,
             createdAt: createdAt,
             updatedAt: updatedAt
         )

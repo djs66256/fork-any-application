@@ -4,7 +4,16 @@ import {
   DramaSchema,
   EpisodeSchema,
   DramaListResponseSchema,
+  DramaIdPathSchema,
+  EpisodeListResponseSchema,
+  PlaybackHistorySchema,
+  PlaybackSessionIdHeaderSchema,
+  PlayerProgressQuerySchema,
+  PlayerProgressResponseSchema,
   PlayerStartRequestSchema,
+  PlayerStartResponseSchema,
+  PlayerStopRequestSchema,
+  PlayerStopResponseSchema,
   UserProfileSchema,
 } from '../schemas';
 
@@ -166,7 +175,113 @@ describe('DramaListResponseSchema', () => {
   });
 });
 
-describe('PlayerStartRequestSchema', () => {
+describe('player schemas', () => {
+  it('should parse valid drama path params', () => {
+    const result = DramaIdPathSchema.parse({
+      id: '550e8400-e29b-41d4-a716-446655440001',
+    });
+
+    expect(result.id).toBe('550e8400-e29b-41d4-a716-446655440001');
+  });
+
+  it('should reject invalid drama path params', () => {
+    expect(() => DramaIdPathSchema.parse({ id: 'not-a-uuid' })).toThrow();
+  });
+
+  it('should parse playback session header', () => {
+    const result = PlaybackSessionIdHeaderSchema.parse('770e8400-e29b-41d4-a716-446655440000');
+    expect(result).toBe('770e8400-e29b-41d4-a716-446655440000');
+  });
+
+  it('should reject invalid playback session header', () => {
+    expect(() => PlaybackSessionIdHeaderSchema.parse('missing')).toThrow();
+  });
+
+  it('should parse progress query', () => {
+    const result = PlayerProgressQuerySchema.parse({
+      dramaId: '550e8400-e29b-41d4-a716-446655440001',
+    });
+
+    expect(result.dramaId).toBe('550e8400-e29b-41d4-a716-446655440001');
+  });
+
+  it('should reject invalid progress query', () => {
+    expect(() => PlayerProgressQuerySchema.parse({ dramaId: 'bad-id' })).toThrow();
+  });
+
+  it('should parse playback history row', () => {
+    const result = PlaybackHistorySchema.parse({
+      playback_session_id: '770e8400-e29b-41d4-a716-446655440000',
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+      episode_id: '660e8400-e29b-41d4-a716-446655440001',
+      progress: 120,
+      duration: 180,
+      updated_at: '2026-07-26T00:00:00Z',
+    });
+
+    expect(result.duration).toBe(180);
+  });
+
+  it('should parse episode list response', () => {
+    const result = EpisodeListResponseSchema.parse({
+      code: 0,
+      data: {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        series_status: 'completed',
+        items: [
+          {
+            id: '660e8400-e29b-41d4-a716-446655440001',
+            drama_id: '550e8400-e29b-41d4-a716-446655440001',
+            title: '第 1 集',
+            episode_number: 1,
+            duration: 180,
+            video_url: 'https://example.com/video-1.mp4',
+            thumbnail_url: 'https://example.com/thumb-1.jpg',
+            description: '第一集简介',
+            created_at: '2026-07-26T00:00:00Z',
+            updated_at: '2026-07-26T00:00:00Z',
+          },
+        ],
+      },
+      message: 'ok',
+    });
+
+    expect(result.data.items).toHaveLength(1);
+  });
+
+  it('should parse progress response without history', () => {
+    const result = PlayerProgressResponseSchema.parse({
+      code: 0,
+      data: {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        has_history: false,
+        episode_id: null,
+        start_time: 0,
+        updated_at: null,
+      },
+      message: 'ok',
+    });
+
+    expect(result.data.has_history).toBe(false);
+    expect(result.data.start_time).toBe(0);
+  });
+
+  it('should reject invalid progress response shape', () => {
+    expect(() =>
+      PlayerProgressResponseSchema.parse({
+        code: 0,
+        data: {
+          drama_id: '550e8400-e29b-41d4-a716-446655440001',
+          has_history: true,
+          episode_id: null,
+          start_time: -1,
+          updated_at: null,
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
+  });
+
   it('should parse valid start request', () => {
     const data = {
       drama_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -177,13 +292,88 @@ describe('PlayerStartRequestSchema', () => {
     expect(result.progress).toBe(0);
   });
 
-  it('should default progress to 0', () => {
+  it('should default start progress to 0', () => {
     const data = {
       drama_id: '123e4567-e89b-12d3-a456-426614174000',
       episode_id: '123e4567-e89b-12d3-a456-426614174001',
     };
     const result = PlayerStartRequestSchema.parse(data);
     expect(result.progress).toBe(0);
+  });
+
+  it('should parse start response', () => {
+    const result = PlayerStartResponseSchema.parse({
+      code: 0,
+      data: {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        episode_id: '660e8400-e29b-41d4-a716-446655440001',
+        accepted_progress: 330,
+        playback_session_id: '770e8400-e29b-41d4-a716-446655440000',
+        started_at: '2026-07-26T00:00:00Z',
+      },
+      message: 'ok',
+    });
+
+    expect(result.data.accepted_progress).toBe(330);
+  });
+
+  it('should reject invalid accepted_progress in start response', () => {
+    expect(() =>
+      PlayerStartResponseSchema.parse({
+        code: 0,
+        data: {
+          drama_id: '550e8400-e29b-41d4-a716-446655440001',
+          episode_id: '660e8400-e29b-41d4-a716-446655440001',
+          accepted_progress: -1,
+          playback_session_id: '770e8400-e29b-41d4-a716-446655440000',
+          started_at: '2026-07-26T00:00:00Z',
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
+  });
+
+  it('should parse valid stop request', () => {
+    const result = PlayerStopRequestSchema.parse({
+      drama_id: '123e4567-e89b-12d3-a456-426614174000',
+      episode_id: '123e4567-e89b-12d3-a456-426614174001',
+      progress: 120,
+      duration: 180,
+    });
+
+    expect(result.duration).toBe(180);
+  });
+
+  it('should parse stop response', () => {
+    const result = PlayerStopResponseSchema.parse({
+      code: 0,
+      data: {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        episode_id: '660e8400-e29b-41d4-a716-446655440001',
+        saved_progress: 180,
+        duration: 180,
+        updated_at: '2026-07-26T00:00:00Z',
+      },
+      message: 'ok',
+    });
+
+    expect(result.data.saved_progress).toBe(180);
+  });
+
+  it('should reject invalid saved_progress in stop response', () => {
+    expect(() =>
+      PlayerStopResponseSchema.parse({
+        code: 0,
+        data: {
+          drama_id: '550e8400-e29b-41d4-a716-446655440001',
+          episode_id: '660e8400-e29b-41d4-a716-446655440001',
+          saved_progress: -1,
+          duration: 180,
+          updated_at: '2026-07-26T00:00:00Z',
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
   });
 });
 

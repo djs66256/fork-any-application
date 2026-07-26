@@ -72,24 +72,29 @@
 #### 用户旅程
 
 1. 用户从首页 Feed 点击「观看完整短剧」→ 进入 `/play/:dramaId` 播放页
-2. 页面请求 Backend 获取剧集列表，加载第 1 集视频
-3. 视频自动开始播放，顶部栏显示：← 返回 | 第 1 集  | 倍速 | ⋯
-4. 用户点击「倍速」→ 弹出倍速面板，选择 1.5x → 视频切换倍速播放
-5. 用户点击底部「选集 · 全 N 集」→ 弹出选集面板，点击第 5 集 → 切换到第 5 集播放
-6. 用户点击顶部 ← 返回 → 退出播放页，上报播放进度
+2. 页面先调用 `GET /api/player/progress?dramaId=...` 检查是否存在最近一次观看的 `episode_id + start_time`
+3. 页面再请求 Backend 获取剧集列表；若无恢复记录则加载默认播放集，若有恢复记录则加载对应恢复集；首版 `GET /api/dramas/:id/episodes` 不要求携带 `X-Playback-Session-Id`
+4. 视频自动开始播放，顶部栏显示：← 返回 | 第 N 集 | 倍速 | ⋯
+5. 用户点击「倍速」→ 弹出倍速面板，选择 1.5x → 视频切换倍速播放
+6. 用户点击底部「选集 · 全 N 集」→ 弹出选集面板，点击第 5 集 → 切换到第 5 集并从第 0 秒开始播放
+7. 用户点击顶部 ← 返回 → 退出播放页，上报播放进度
 
 ```mermaid
 flowchart TD
-    A[进入 /play/:dramaId] --> B[请求剧集列表 API]
-    B --> C[加载第 1 集视频]
-    C --> D[自动播放]
-    D --> E{用户操作}
-    E -->|点击倍速| F[弹出倍速面板]
-    F --> G[选择倍速 → 切换]
-    E -->|点击选集栏| H[弹出选集面板]
-    H --> I[选择集数 → 切换播放]
-    E -->|点击返回| J[上报播放进度]
-    J --> K[退出播放页]
+    A[进入 /play/:dramaId] --> B[GET /api/player/progress]
+    B --> C[GET /api/dramas/:id/episodes]
+    C --> D{是否存在恢复记录}
+    D -->|否| E[加载默认播放集]
+    D -->|是| F[加载恢复 episode]
+    E --> G[自动播放]
+    F --> G
+    G --> H{用户操作}
+    H -->|点击倍速| I[弹出倍速面板]
+    I --> J[选择倍速 → 切换]
+    H -->|点击选集栏| K[弹出选集面板]
+    K --> L[选择集数 → 从第 0 秒开始播放]
+    H -->|点击返回| M[上报播放进度]
+    M --> N[退出播放页]
 ```
 
 #### UI/交互要点
@@ -115,16 +120,18 @@ flowchart TD
 #### 用户旅程
 
 1. 用户观看第 3 集到 5 分 30 秒，退出播放页
-2. 发送 `POST /api/player/stop` 上报进度
-3. 用户再次进入同一剧集 → `POST /api/player/start` 携带上次进度 → 从 5 分 30 秒续播
+2. 客户端发送 `POST /api/player/stop` 上报当前 `episode_id` 的播放进度
+3. 用户再次进入同一短剧时，先调用 `GET /api/player/progress?dramaId=...` 获取最近一次观看的 `episode_id + start_time`
+4. 客户端在已知恢复 `episode_id` 后，再调用 `POST /api/player/start` 开始该集播放，并从 `start_time` 对应位置续播
 
 ```mermaid
 flowchart TD
     A[退出播放页] --> B[POST /api/player/stop]
     B --> C[保存 progress=330s]
-    D[再次进入同一剧集] --> E[POST /api/player/start]
-    E --> F[返回 start_time=330]
-    F --> G[从 5:30 开始播放]
+    D[再次进入同一短剧] --> E[GET /api/player/progress]
+    E --> F[返回 episode_id + start_time=330]
+    F --> G[POST /api/player/start 开始已知 episode]
+    G --> H[从 5:30 开始播放]
 ```
 
 ---
@@ -133,9 +140,9 @@ flowchart TD
 
 | 依赖项 | 类型 | 说明 | 状态 |
 |--------|------|------|------|
-| 底部导航 | 内部能力 | `/play/:dramaId` 路由已注册（PRD-01） | 🚧 待开发 |
-| 首页 Feed UI | 内部能力 | 用户从 Feed CTA 进入播放页（PRD-02） | 🚧 待开发 |
-| 播放器 API | 内部能力 | `/api/player/start`、`/api/player/stop` 已有 | ✅ 已就绪 |
+| 底部导航 | 内部能力 | `play/:id` 播放路由已在 PRD-01 中注册 | ✅ 已就绪 |
+| 首页 Feed UI | 内部能力 | 用户已可从首页 Feed CTA 进入播放页（PRD-02） | ✅ 已就绪 |
+| 播放器 API | 内部能力 | `/api/player/start`、`/api/player/stop` 路由已存在，但当前仍需从 501 占位改造为可用能力 | 🚧 待开发 |
 | 数据模型 (Episode) | 内部能力 | Episode 已有 Schema（含 video_url、episode_number、duration） | ✅ 已就绪 |
 
 ---
@@ -153,7 +160,6 @@ flowchart TD
 
 | 编号 | 问题 | 阻塞 |
 |------|------|------|
-| Q-01 | 首版使用模拟视频 URL 还是接入真实 CDN？ | 否（用占位视频 URL 即可，后续对接 CDN） |
 | Q-02 | 选集面板是否同时展示已完结和连载中的剧集？ | 否（首版统一处理） |
 | Q-03 | iOS/Android 播放器使用系统原生播放器还是第三方（如 ExoPlayer）？ | 否（spec 阶段确定技术选型） |
 

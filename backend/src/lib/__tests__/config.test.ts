@@ -1,12 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { config as configModule } from '../config';
 
 describe('config', () => {
-  beforeEach(() => {
-    // Clear require cache might be needed, but for our purposes
-    // the module is already loaded. We test existing values.
-  });
-
   it('should have app config with default values when env vars are not set', () => {
     expect(configModule.app.name).toBeDefined();
     expect(configModule.app.version).toBeDefined();
@@ -25,9 +20,11 @@ describe('config', () => {
     expect(configModule.redis.url).toBe('redis://localhost:6379');
   });
 
-  it('should use environment variables when set', () => {
-    // We verify the config structure is correct rather than relying
-    // on env var mutation (module-level constants are already evaluated).
+  it('should default player history repository to mock', () => {
+    expect(configModule.player.historyRepository).toBe('mock');
+  });
+
+  it('should expose environment-backed supabase keys', () => {
     expect(configModule.supabase.url).toBeDefined();
     expect(configModule.supabase.anonKey).toBeDefined();
     expect(configModule.supabase.serviceRoleKey).toBeDefined();

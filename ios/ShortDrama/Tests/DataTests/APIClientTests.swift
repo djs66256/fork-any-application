@@ -4,8 +4,6 @@ import Testing
 
 struct APIClientTests {
 
-    // MARK: - Test Models
-
     private struct TestResponse: Decodable, Equatable {
         let code: Int
         let data: TestData
@@ -22,7 +20,28 @@ struct APIClientTests {
         var method: HTTPMethod { .get }
     }
 
-    // MARK: - Helper
+    private struct TestHeaderEndpoint: APIEndpoint {
+        typealias Response = TestResponse
+
+        let path: String
+        let method: HTTPMethod
+        let endpointHeaders: [String: String]
+
+        var headers: [String: String] { endpointHeaders }
+    }
+
+    private struct TestMessageErrorEnvelope: Encodable {
+        let message: String
+    }
+
+    private struct TestNestedErrorEnvelope: Encodable {
+        let error: NestedError
+
+        struct NestedError: Encodable {
+            let code: String
+            let message: String
+        }
+    }
 
     private func makeSession(
         handler: @escaping URLProtocolMock.RequestHandler
@@ -32,28 +51,6 @@ struct APIClientTests {
         config.protocolClasses = [URLProtocolMock.self]
         return URLSession(configuration: config)
     }
-
-    /// Asserts that an async closure throws a specific APIError case.
-    private func expectAPIError(
-        _ operation: () async throws -> some Any,
-        expectedCase: @escaping (APIError) -> Bool,
-        sourceLocation: SourceLocation = #_sourceLocation
-    ) async {
-        do {
-            _ = try await operation()
-            Issue.record("Expected APIError but no error thrown", sourceLocation: sourceLocation)
-        } catch let error as APIError {
-            #expect(
-                expectedCase(error),
-                "Unexpected APIError case: \(error)",
-                sourceLocation: sourceLocation
-            )
-        } catch {
-            return
-        }
-    }
-
-    // MARK: - T-11: GET returns 200 success
 
     @Test("T-11: APIClient GET returns 200 success and decodes response")
     func testGetSuccess() async throws {
@@ -81,7 +78,138 @@ struct APIClientTests {
         #expect(result.data.title == "Test")
     }
 
-    // MARK: - T-12: 501 Not Implemented
+    @Test("T-01: progress start and stop inject playback session header")
+    func testPlayerEndpointsInjectPlaybackSessionHeader() async throws {
+        let json = """
+        {"code":0,"data":{"id":"1","title":"Test"}}
+        """
+        let expectedHeader = "session-123"
+        let expectedPaths = ["/api/player/progress", "/api/player/start", "/api/player/stop"]
+        var observedPaths: [String] = []
+
+        let handler: URLProtocolMock.RequestHandler = { request in
+            observedPaths.append(request.url?.path ?? "")
+            #expect(request.value(forHTTPHeaderField: "X-Playback-Session-Id") == expectedHeader)
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+
+        let endpoints = [
+            TestHeaderEndpoint(
+                path: "/api/player/progress",
+                method: .get,
+                endpointHeaders: ["X-Playback-Session-Id": expectedHeader]
+            ),
+            TestHeaderEndpoint(
+                path: "/api/player/start",
+                method: .post,
+                endpointHeaders: ["X-Playback-Session-Id": expectedHeader]
+            ),
+            TestHeaderEndpoint(
+                path: "/api/player/stop",
+                method: .post,
+                endpointHeaders: ["X-Playback-Session-Id": expectedHeader]
+            )
+        ]
+
+        for endpoint in endpoints {
+            let _: TestResponse = try await client.request(endpoint)
+        }
+
+        #expect(observedPaths == expectedPaths)
+    }
+
+    @Test("T-01: episodes endpoint does not inject playback session header")
+    func testEpisodesEndpointDoesNotInjectPlaybackSessionHeader() async throws {
+        let json = """
+        {"code":0,"data":{"id":"1","title":"Test"}}
+        """
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/drama-001/episodes")
+            #expect(request.value(forHTTPHeaderField: "X-Playback-Session-Id") == nil)
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: 200,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = TestHeaderEndpoint(
+            path: "/api/dramas/drama-001/episodes",
+            method: .get,
+            endpointHeaders: [:]
+        )
+
+        let _: TestResponse = try await client.request(endpoint)
+    }
+
+    @Test("T-02: APIClient parses nested backend error envelope")
+    func testNestedBackendErrorEnvelope() async throws {
+        let payload = TestNestedErrorEnvelope(
+            error: .init(code: "INVALID_PLAYBACK_SESSION", message: "播放身份异常，请重试")
+        )
+        let encoded = try JSONEncoder().encode(payload)
+        let url = URL(string: "https://api.example.com/test")!
+        let handler: URLProtocolMock.RequestHandler = { _ in
+            let response = HTTPURLResponse(
+                url: url,
+                statusCode: 400,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, encoded)
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = TestGetEndpoint(path: "/test")
+
+        do {
+            let _: TestResponse = try await client.request(endpoint)
+            Issue.record("Expected server error but none thrown")
+        } catch let error as APIError {
+            #expect(error == .server(code: 400, message: "播放身份异常，请重试"))
+        }
+    }
+
+    @Test("T-02: APIClient parses message-only backend error envelope")
+    func testMessageOnlyBackendErrorEnvelope() async throws {
+        let payload = TestMessageErrorEnvelope(message: "Bad request")
+        let encoded = try JSONEncoder().encode(payload)
+        let url = URL(string: "https://api.example.com/test")!
+        let handler: URLProtocolMock.RequestHandler = { _ in
+            let response = HTTPURLResponse(
+                url: url,
+                statusCode: 400,
+                httpVersion: nil,
+                headerFields: nil
+            )!
+            return (response, encoded)
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = TestGetEndpoint(path: "/test")
+
+        do {
+            let _: TestResponse = try await client.request(endpoint)
+            Issue.record("Expected server error but none thrown")
+        } catch let error as APIError {
+            #expect(error == .server(code: 400, message: "Bad request"))
+        }
+    }
 
     @Test("T-12: APIClient throws notImplemented on 501 response")
     func test501NotImplemented() async throws {
@@ -116,8 +244,6 @@ struct APIClientTests {
             Issue.record("Unexpected error type: \(error)")
         }
     }
-
-    // MARK: - T-13: Network error
 
     @Test("T-13: APIClient wraps network errors as APIError.network")
     func testNetworkErrorWrapping() async throws {
@@ -205,8 +331,6 @@ struct APIClientTests {
         #expect(response.pagination.total == 20)
         #expect(response.pagination.totalPages == 2)
     }
-
-    // MARK: - Server error
 
     @Test("APIClient throws server error on 400 response")
     func testServerError() async throws {

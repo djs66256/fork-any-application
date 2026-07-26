@@ -64,6 +64,18 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 1)
     }
 
+    @Test("player route keeps legacy videoId naming while representing dramaId")
+    func testPlayerRouteKeepsLegacyVideoIdNaming() {
+        let route = AppRoute.player(videoId: "drama-123")
+
+        if case .player(let videoId) = route {
+            #expect(videoId == "drama-123")
+        } else {
+            Issue.record("Expected player route")
+        }
+        #expect(route.publicRouteName == "play")
+    }
+
     @Test("navigate appends drama detail route to home stack")
     func testNavigateDramaDetailAppendsPath() {
         let router = NavigationRouter()

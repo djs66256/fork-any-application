@@ -13,7 +13,7 @@ struct TabNavigationHostView: View {
                     case .home:
                         HomeView()
                     case .player(let videoId):
-                        PlayerView(viewModel: PlayerViewModel(videoId: videoId))
+                        PlayerView(viewModel: makePlayerViewModel(videoId: videoId))
                     case .dramaDetail(let dramaId):
                         DramaDetailView(viewModel: DramaDetailViewModel(dramaId: dramaId))
                     }
@@ -29,5 +29,18 @@ struct TabNavigationHostView: View {
         case .theater, .mall, .earn, .profile:
             PlaceholderTabView(tab: tab)
         }
+    }
+
+    private func makePlayerViewModel(videoId: String) -> PlayerViewModel {
+        let repository = PlayerRepository()
+        return PlayerViewModel(
+            videoId: videoId,
+            router: router,
+            fetchPlayerProgressUseCase: FetchPlayerProgressUseCase(repository: repository),
+            fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase(repository: repository),
+            startPlaybackUseCase: StartPlaybackUseCase(repository: repository),
+            stopPlaybackUseCase: StopPlaybackUseCase(repository: repository),
+            playbackSessionStore: KeychainPlaybackSessionStore()
+        )
     }
 }

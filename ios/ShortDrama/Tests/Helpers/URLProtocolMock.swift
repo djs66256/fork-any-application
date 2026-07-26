@@ -20,7 +20,8 @@ final class URLProtocolMock: URLProtocol {
         }
 
         do {
-            let (response, data) = try handler(request)
+            let interceptedRequest = try materializedRequest(from: request)
+            let (response, data) = try handler(interceptedRequest)
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data)
             client?.urlProtocolDidFinishLoading(self)
@@ -30,4 +31,36 @@ final class URLProtocolMock: URLProtocol {
     }
 
     override func stopLoading() {}
+
+    private func materializedRequest(from request: URLRequest) throws -> URLRequest {
+        guard request.httpBody == nil, let stream = request.httpBodyStream else {
+            return request
+        }
+
+        var request = request
+        request.httpBody = try readAllData(from: stream)
+        return request
+    }
+
+    private func readAllData(from stream: InputStream) throws -> Data {
+        stream.open()
+        defer { stream.close() }
+
+        let bufferSize = 1024
+        var buffer = Array(repeating: UInt8(0), count: bufferSize)
+        var data = Data()
+
+        while stream.hasBytesAvailable {
+            let readCount = stream.read(&buffer, maxLength: bufferSize)
+            if readCount < 0 {
+                throw stream.streamError ?? URLError(.cannotDecodeRawData)
+            }
+            if readCount == 0 {
+                break
+            }
+            data.append(buffer, count: readCount)
+        }
+
+        return data
+    }
 }

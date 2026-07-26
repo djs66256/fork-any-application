@@ -8,6 +8,11 @@ export enum ErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  INVALID_PARAMS = 'INVALID_PARAMS',
+  INVALID_PLAYBACK_SESSION = 'INVALID_PLAYBACK_SESSION',
+  DRAMA_NOT_FOUND = 'DRAMA_NOT_FOUND',
+  EPISODE_NOT_FOUND = 'EPISODE_NOT_FOUND',
+  EPISODE_NOT_PLAYABLE = 'EPISODE_NOT_PLAYABLE',
 }
 
 const ErrorStatusCode: Record<ErrorCode, number> = {
@@ -20,6 +25,11 @@ const ErrorStatusCode: Record<ErrorCode, number> = {
   [ErrorCode.INTERNAL_ERROR]: 500,
   [ErrorCode.NOT_IMPLEMENTED]: 501,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
+  [ErrorCode.INVALID_PARAMS]: 400,
+  [ErrorCode.INVALID_PLAYBACK_SESSION]: 400,
+  [ErrorCode.DRAMA_NOT_FOUND]: 404,
+  [ErrorCode.EPISODE_NOT_FOUND]: 404,
+  [ErrorCode.EPISODE_NOT_PLAYABLE]: 409,
 };
 
 export class AppError extends Error {
@@ -42,6 +52,21 @@ export const Errors = {
 
   validationError: (message: string, details?: unknown) =>
     new AppError(ErrorCode.VALIDATION_ERROR, message, details),
+
+  invalidParams: (message: string, details?: unknown) =>
+    new AppError(ErrorCode.INVALID_PARAMS, message, details),
+
+  invalidPlaybackSession: (message = 'Playback session is invalid') =>
+    new AppError(ErrorCode.INVALID_PLAYBACK_SESSION, message),
+
+  dramaNotFound: (dramaId: string) =>
+    new AppError(ErrorCode.DRAMA_NOT_FOUND, `Drama (${dramaId}) not found`),
+
+  episodeNotFound: (episodeId: string) =>
+    new AppError(ErrorCode.EPISODE_NOT_FOUND, `Episode (${episodeId}) not found`),
+
+  episodeNotPlayable: (episodeId: string) =>
+    new AppError(ErrorCode.EPISODE_NOT_PLAYABLE, `Episode (${episodeId}) has no playable resource`),
 
   unauthorized: (message = 'Authentication required') =>
     new AppError(ErrorCode.UNAUTHORIZED, message),

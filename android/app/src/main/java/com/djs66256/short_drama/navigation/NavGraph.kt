@@ -76,35 +76,37 @@ fun NavGraph(
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                AppDestination.topLevelTabs.forEach { tab ->
-                    val selected = currentDestination
-                        ?.hierarchy
-                        ?.any { destination ->
-                            destination.route == tab.graphRoute || destination.route == tab.rootRoute
-                        } == true
+            if (shouldShowBottomBar(currentDestination?.route)) {
+                NavigationBar {
+                    AppDestination.topLevelTabs.forEach { tab ->
+                        val selected = currentDestination
+                            ?.hierarchy
+                            ?.any { destination ->
+                                destination.route == tab.graphRoute || destination.route == tab.rootRoute
+                            } == true
 
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            navController.navigate(tab.graphRoute) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                navController.navigate(tab.graphRoute) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = tab.icon(),
-                                contentDescription = tab.label,
-                            )
-                        },
-                        label = {
-                            Text(tab.label)
-                        },
-                    )
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = tab.icon(),
+                                    contentDescription = tab.label,
+                                )
+                            },
+                            label = {
+                                Text(tab.label)
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -141,8 +143,17 @@ fun NavGraph(
                     arguments = listOf(
                         navArgument(AppDestination.Arg.VIDEO_ID) { type = NavType.StringType },
                     ),
-                ) {
-                    PlayerScreen()
+                ) { backStackEntry ->
+                    val videoId = backStackEntry.arguments?.getString(AppDestination.Arg.VIDEO_ID).orEmpty()
+                    LaunchedEffect(videoId) {
+                        if (videoId.isNotBlank()) {
+                            navController.navigate(AppDestination.play(videoId)) {
+                                popUpTo(backStackEntry.destination.route ?: AppDestination.Route.PLAYER_ALIAS) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    }
                 }
                 composable(
                     route = AppDestination.Route.DETAIL,
@@ -212,6 +223,8 @@ fun NavGraph(
         }
     }
 }
+
+internal fun shouldShowBottomBar(route: String?): Boolean = !AppDestination.isPlayerRoute(route)
 
 private fun TopLevelTab.icon(): ImageVector = when (this) {
     TopLevelTab.HOME -> Icons.Filled.Home

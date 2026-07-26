@@ -84,6 +84,7 @@ struct DTOMappingTests {
             id: "ep-1", dramaId: "d-1", title: "E1",
             episodeNumber: 1, videoUrl: "https://v.example.com/1.mp4",
             duration: 180, thumbnailUrl: "https://img.example.com/1.jpg",
+            description: "简介",
             createdAt: "2026-01-01T00:00:00Z",
             updatedAt: "2026-01-01T00:00:00Z"
         )
@@ -103,12 +104,12 @@ struct DTOMappingTests {
         let a = Episode(
             id: "ep-1", dramaId: "d-1", title: "E1",
             episodeNumber: 1, videoUrl: "v1", duration: 180,
-            thumbnailUrl: "t1", createdAt: "c1", updatedAt: "u1"
+            thumbnailUrl: "t1", description: nil, createdAt: "c1", updatedAt: "u1"
         )
         let b = Episode(
             id: "ep-1", dramaId: "d-1", title: "E1",
             episodeNumber: 1, videoUrl: "v1", duration: 180,
-            thumbnailUrl: "t1", createdAt: "c1", updatedAt: "u1"
+            thumbnailUrl: "t1", description: nil, createdAt: "c1", updatedAt: "u1"
         )
         #expect(a == b)
     }

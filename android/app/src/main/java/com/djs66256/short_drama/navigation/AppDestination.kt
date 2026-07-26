@@ -66,6 +66,7 @@ object AppDestination {
     }
 
     val topLevelTabs = TopLevelTab.entries
+    val playerRoutes = setOf(Route.PLAY, Route.PLAYER_ALIAS)
 
     fun play(videoId: String): String = "play/$videoId"
 
@@ -74,6 +75,8 @@ object AppDestination {
     fun detail(dramaId: String): String = "detail/$dramaId"
 
     fun dramaDetailAlias(dramaId: String): String = "dramaDetail/$dramaId"
+
+    fun isPlayerRoute(route: String?): Boolean = route in playerRoutes
 }
 
 sealed interface PendingRoute {

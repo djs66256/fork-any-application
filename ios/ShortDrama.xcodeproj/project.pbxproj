@@ -7,32 +7,54 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05E429A57D81DC6144DBE868 /* PlayerDTOs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A84EAB62848A342C45C2FF85 /* PlayerDTOs.swift */; };
+		078BE83F5C78C16F8DFE8EFA /* PlayerEpisodeDock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DD8818CF2A8AA639610B114 /* PlayerEpisodeDock.swift */; };
 		088AB23648F38FD150DEAEA1 /* DramaDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3FB4D945EB2BEACB8CA72D /* DramaDTO.swift */; };
+		1218649228DD41CE960AF15A /* PlayerBottomInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215CDEE8352635765DF60A8E /* PlayerBottomInfoView.swift */; };
 		1386998872F92498026B96F5 /* DeeplinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B4912E196246343FE36873 /* DeeplinkHandler.swift */; };
+		1396032543A28010DEDF04DE /* PlayerRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1218CD15E8909DDDD5394E43 /* PlayerRemoteDataSource.swift */; };
 		265775812D9932F0FAA068DF /* FetchDramasUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2D817CAB11819EF49DB1AF /* FetchDramasUseCase.swift */; };
 		280C646A6E918DDFA8FE0776 /* AppTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = C24632A9074239EB7F34980B /* AppTab.swift */; };
 		2A24E11176FCE195EDECA362 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9AB69441F3FE4F9621454C /* HomeView.swift */; };
 		2FB8C53A67DDCCD6D04AE532 /* APIEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8A7CAF55CB99F42EC09BF0 /* APIEndpoint.swift */; };
 		30BEA8E6E0D057F4E6EDB377 /* DramaRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55AEE83531A2526B0E2DC314 /* DramaRepository.swift */; };
+		43F8536F332883D4B48B942C /* StopPlaybackUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49CB9DA1F63D5B58CFAEFF1D /* StopPlaybackUseCase.swift */; };
 		464D9AA51F0DEE2D53809E78 /* MockDramaRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CEC02DD2096A9474FE6A5B4 /* MockDramaRepository.swift */; };
 		4E530F12F0F3FF51045F2F2F /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40F5FB6EDAFAA733EBFFCFAE /* AppConfig.swift */; };
+		4F92ABAD603640FAD1E94292 /* PlayerRemoteDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB1917DF994759A9B93DA35 /* PlayerRemoteDataSourceTests.swift */; };
 		50CF4B0EA8AC1A08E204BD16 /* HomeViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B603923ABCD5E312FA3ABA7 /* HomeViewModelTests.swift */; };
 		574D1F5888F3D2C0135998FF /* APIErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE01D9F8E8DCDB672BBE840C /* APIErrorTests.swift */; };
 		59376C417E446F16B0C2008E /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D64D5CAB341E1CD6EB762AE /* APIError.swift */; };
 		5B1F6F45184D121D9A1A8D5B /* DramaDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52694B07D9609033E73459F7 /* DramaDetailView.swift */; };
+		5C3E76FBBFF219B6F11DDFF9 /* PlayerViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D69A847ED729F6FEEE28C63 /* PlayerViewModelTests.swift */; };
 		60552E91BC578FB7E4E4DC86 /* PlaceholderTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23F08A8FA21CFD88F69374E1 /* PlaceholderTabView.swift */; };
 		64169BD1EFED18568B4D63B7 /* TabNavigationHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03178F3FD467F6DD9E17A95F /* TabNavigationHostView.swift */; };
 		65B1E1EA85746FD2A628C05E /* DTOMappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F324377B3D90BA0C0A91C7F /* DTOMappingTests.swift */; };
+		66508D63930295B8F913DC14 /* FetchDramaEpisodesUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEA22A9D944A884B5BA708E /* FetchDramaEpisodesUseCase.swift */; };
+		6754898016541453D522586B /* PlaybackSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA3614140644FEAEFE93181 /* PlaybackSessionStore.swift */; };
+		6F47D529CB0B5BDFC719ABCF /* NativeVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70EC88E4CE5420F2A0D25185 /* NativeVideoPlayerView.swift */; };
+		6F4AB6EB6299678EFE5D4C66 /* PlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF121E91F5231724820D6FA4 /* PlayerRepository.swift */; };
+		70D1FFE908AD1BA056B6F814 /* PlayerTopBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A8155D5B48B88E2DE79084 /* PlayerTopBar.swift */; };
 		73EBC807E799F4FB7A57B190 /* DramaDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070F631B3561F1007A8997C7 /* DramaDetailViewModel.swift */; };
 		74E008F605B186B2856519D3 /* AppRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73C4337E5FCCD8D0164A9B77 /* AppRoute.swift */; };
 		76021A1EDB45B1EBE4549A8F /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82468013FC371A0EF264F8B0 /* PlayerViewModel.swift */; };
+		78C46F17F23E2177AC8F194F /* FetchPlayerProgressUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D92BF2D7BD700E9675F8C51 /* FetchPlayerProgressUseCase.swift */; };
+		7E1CFE3168212B28670853B3 /* PlayerRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0F9D56BC59FA2D600BDE20 /* PlayerRepositoryTests.swift */; };
 		86B4C1F4C8D25BACE4C6C1E0 /* NavigationRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E084F9FBA54B4E74BED744C1 /* NavigationRouterTests.swift */; };
+		90DA3035BE0CFA92F9A33279 /* PlayerRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1372539E0C2FBCEC6E623A60 /* PlayerRepositoryProtocol.swift */; };
 		925AA6C5ED397E5BB9BAA9C1 /* DramaDTOTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCC971A5AE37C44AE55FD13 /* DramaDTOTests.swift */; };
 		98CB956FB1AAE21B4B131EA2 /* NavigationRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF86673F5E81BF29337DCEAE /* NavigationRouter.swift */; };
 		9A633E174DD7DC459906A782 /* PaginationDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25229CC1E78F10B92E6B7F8B /* PaginationDTO.swift */; };
 		9B45981185002F898B300701 /* ShortDramaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D10B465928C809BE023B3AA /* ShortDramaApp.swift */; };
+		AA140834ED6F9D49EA0CA47C /* MockPlaybackSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */; };
+		B23806F0D5161FF83512BE6D /* PlaybackSessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED30C3ACD4C501E7BB22413A /* PlaybackSessionStoreTests.swift */; };
+		BA05C8D4DB4E008DE0441203 /* StartPlaybackUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868C5C743F02EA2C96CE9BDE /* StartPlaybackUseCase.swift */; };
 		BB2CF7CFF63FEBE8ABBB43AF /* DramaRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02129614AB57CA475B3BAA3A /* DramaRepositoryTests.swift */; };
+		BB4A1BA1D24B9242544EA13B /* PlayerStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89D1940B04D7BBA4D9288FB /* PlayerStatusView.swift */; };
+		BCDB3F0A17EDF218936BC860 /* PlayerRightActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 513419277BC0B3D7ECE94E18 /* PlayerRightActionBar.swift */; };
+		C110B862AE52BDFCC69D1FF4 /* MockPlayerRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F57E15F14AE8245561C7E6C /* MockPlayerRepository.swift */; };
 		C11AB0FFC7138C79655BCD92 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FE449EBA66E3DB15CA32B0 /* AppShellView.swift */; };
+		C2DB1B7DE18D9DC95B687F6A /* EpisodePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CA0397F1AE279EF957A0B2 /* EpisodePickerSheet.swift */; };
 		C3FE037C111A8767F7DAA74E /* EpisodeRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66097FA6CD19BC4254CF5FD3 /* EpisodeRepositoryProtocol.swift */; };
 		C49C77FECC1D134E882A052C /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71DAC345C822E4283AB9050A /* APIClientTests.swift */; };
 		C9D529DE60A98B54BCFD58D9 /* Drama.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34F358FCDF42FEB4A5F51449 /* Drama.swift */; };
@@ -44,6 +66,7 @@
 		E1021F87084241EA484BF95D /* DramaRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3EF62A7F40CC12BF33B4EF /* DramaRepositoryProtocol.swift */; };
 		E2DDE85DE310252C90AA91FE /* URLProtocolMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1794AD940AEAE63739477ECF /* URLProtocolMock.swift */; };
 		E4A058157EEBE77D2B369954 /* AppConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 987683F8C0805C22F4B8F618 /* AppConfigTests.swift */; };
+		E5DC330FB51730C1FF9DA20E /* PlayerModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2FD9955A8E7FA3A00C780C /* PlayerModels.swift */; };
 		EBEFFEA53CF2388CF4022DA6 /* DramaRemoteDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC4E1CEBECA64159FAFC8F1E /* DramaRemoteDataSource.swift */; };
 		ED770A3C641A77368B04BEFE /* EpisodeDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B568A8A0FC443A4B32A11559 /* EpisodeDTO.swift */; };
 		F59AF7EE30E29EE19A666F68 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8149629279CB27F44BDB2080 /* APIClient.swift */; };
@@ -65,19 +88,29 @@
 		03178F3FD467F6DD9E17A95F /* TabNavigationHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabNavigationHostView.swift; sourceTree = "<group>"; };
 		070F631B3561F1007A8997C7 /* DramaDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaDetailViewModel.swift; sourceTree = "<group>"; };
 		0A2D817CAB11819EF49DB1AF /* FetchDramasUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchDramasUseCase.swift; sourceTree = "<group>"; };
+		0DA3614140644FEAEFE93181 /* PlaybackSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSessionStore.swift; sourceTree = "<group>"; };
 		0E9AB69441F3FE4F9621454C /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		1218CD15E8909DDDD5394E43 /* PlayerRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRemoteDataSource.swift; sourceTree = "<group>"; };
+		1372539E0C2FBCEC6E623A60 /* PlayerRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRepositoryProtocol.swift; sourceTree = "<group>"; };
 		1794AD940AEAE63739477ECF /* URLProtocolMock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLProtocolMock.swift; sourceTree = "<group>"; };
 		1CEC02DD2096A9474FE6A5B4 /* MockDramaRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDramaRepository.swift; sourceTree = "<group>"; };
+		215CDEE8352635765DF60A8E /* PlayerBottomInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerBottomInfoView.swift; sourceTree = "<group>"; };
 		23F08A8FA21CFD88F69374E1 /* PlaceholderTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderTabView.swift; sourceTree = "<group>"; };
 		25229CC1E78F10B92E6B7F8B /* PaginationDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaginationDTO.swift; sourceTree = "<group>"; };
 		2812171BED0E103FF5462A63 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		29A8155D5B48B88E2DE79084 /* PlayerTopBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTopBar.swift; sourceTree = "<group>"; };
 		2D10B465928C809BE023B3AA /* ShortDramaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortDramaApp.swift; sourceTree = "<group>"; };
+		2F57E15F14AE8245561C7E6C /* MockPlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPlayerRepository.swift; sourceTree = "<group>"; };
 		34F358FCDF42FEB4A5F51449 /* Drama.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drama.swift; sourceTree = "<group>"; };
 		36A77D248E5778C63CCF26B7 /* Episode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Episode.swift; sourceTree = "<group>"; };
 		3D64D5CAB341E1CD6EB762AE /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		3D69A847ED729F6FEEE28C63 /* PlayerViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModelTests.swift; sourceTree = "<group>"; };
+		3DD8818CF2A8AA639610B114 /* PlayerEpisodeDock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEpisodeDock.swift; sourceTree = "<group>"; };
 		3F324377B3D90BA0C0A91C7F /* DTOMappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOMappingTests.swift; sourceTree = "<group>"; };
 		40F5FB6EDAFAA733EBFFCFAE /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		49B4912E196246343FE36873 /* DeeplinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeeplinkHandler.swift; sourceTree = "<group>"; };
+		49CB9DA1F63D5B58CFAEFF1D /* StopPlaybackUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopPlaybackUseCase.swift; sourceTree = "<group>"; };
+		513419277BC0B3D7ECE94E18 /* PlayerRightActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRightActionBar.swift; sourceTree = "<group>"; };
 		52694B07D9609033E73459F7 /* DramaDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaDetailView.swift; sourceTree = "<group>"; };
 		55AEE83531A2526B0E2DC314 /* DramaRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaRepository.swift; sourceTree = "<group>"; };
 		59FE449EBA66E3DB15CA32B0 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
@@ -87,20 +120,33 @@
 		69E919CA09B73F78C8960EE8 /* ShortDrama.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ShortDrama.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B603923ABCD5E312FA3ABA7 /* HomeViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModelTests.swift; sourceTree = "<group>"; };
 		6C6E88F39AD1FFDEE65B0EBC /* ShortDramaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ShortDramaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		6CEA22A9D944A884B5BA708E /* FetchDramaEpisodesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchDramaEpisodesUseCase.swift; sourceTree = "<group>"; };
+		70EC88E4CE5420F2A0D25185 /* NativeVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeVideoPlayerView.swift; sourceTree = "<group>"; };
 		71DAC345C822E4283AB9050A /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		73C4337E5FCCD8D0164A9B77 /* AppRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRoute.swift; sourceTree = "<group>"; };
+		7D0F9D56BC59FA2D600BDE20 /* PlayerRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRepositoryTests.swift; sourceTree = "<group>"; };
 		7E8A7CAF55CB99F42EC09BF0 /* APIEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEndpoint.swift; sourceTree = "<group>"; };
 		8149629279CB27F44BDB2080 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		82468013FC371A0EF264F8B0 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
+		868C5C743F02EA2C96CE9BDE /* StartPlaybackUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartPlaybackUseCase.swift; sourceTree = "<group>"; };
 		876C382615F9AB96597EFE01 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		8D92BF2D7BD700E9675F8C51 /* FetchPlayerProgressUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchPlayerProgressUseCase.swift; sourceTree = "<group>"; };
 		987683F8C0805C22F4B8F618 /* AppConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfigTests.swift; sourceTree = "<group>"; };
 		A57E26C6928F3766118EA976 /* DeeplinkHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeeplinkHandlerTests.swift; sourceTree = "<group>"; };
+		A84EAB62848A342C45C2FF85 /* PlayerDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDTOs.swift; sourceTree = "<group>"; };
 		AF86673F5E81BF29337DCEAE /* NavigationRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRouter.swift; sourceTree = "<group>"; };
+		B2CA0397F1AE279EF957A0B2 /* EpisodePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodePickerSheet.swift; sourceTree = "<group>"; };
 		B568A8A0FC443A4B32A11559 /* EpisodeDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeDTO.swift; sourceTree = "<group>"; };
+		B89D1940B04D7BBA4D9288FB /* PlayerStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStatusView.swift; sourceTree = "<group>"; };
 		BE01D9F8E8DCDB672BBE840C /* APIErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIErrorTests.swift; sourceTree = "<group>"; };
 		C24632A9074239EB7F34980B /* AppTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTab.swift; sourceTree = "<group>"; };
+		CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPlaybackSessionStore.swift; sourceTree = "<group>"; };
+		CEB1917DF994759A9B93DA35 /* PlayerRemoteDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRemoteDataSourceTests.swift; sourceTree = "<group>"; };
+		CF121E91F5231724820D6FA4 /* PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRepository.swift; sourceTree = "<group>"; };
 		E084F9FBA54B4E74BED744C1 /* NavigationRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRouterTests.swift; sourceTree = "<group>"; };
+		EC2FD9955A8E7FA3A00C780C /* PlayerModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerModels.swift; sourceTree = "<group>"; };
 		EC4E1CEBECA64159FAFC8F1E /* DramaRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaRemoteDataSource.swift; sourceTree = "<group>"; };
+		ED30C3ACD4C501E7BB22413A /* PlaybackSessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackSessionStoreTests.swift; sourceTree = "<group>"; };
 		ED502C63020760EBCE411D37 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
 		FB3FB4D945EB2BEACB8CA72D /* DramaDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaDTO.swift; sourceTree = "<group>"; };
 		FFCC971A5AE37C44AE55FD13 /* DramaDTOTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DramaDTOTests.swift; sourceTree = "<group>"; };
@@ -139,8 +185,17 @@
 			children = (
 				987683F8C0805C22F4B8F618 /* AppConfigTests.swift */,
 				3F324377B3D90BA0C0A91C7F /* DTOMappingTests.swift */,
+				ED30C3ACD4C501E7BB22413A /* PlaybackSessionStoreTests.swift */,
 			);
 			path = DomainTests;
+			sourceTree = "<group>";
+		};
+		38036946E0DAB216E5B1A2FE /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				0DA3614140644FEAEFE93181 /* PlaybackSessionStore.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 		3853F09B9ADD3F44F2151607 /* Views */ = {
@@ -171,7 +226,11 @@
 		48533029ABFAE3B1CDB46C2D /* UseCases */ = {
 			isa = PBXGroup;
 			children = (
+				6CEA22A9D944A884B5BA708E /* FetchDramaEpisodesUseCase.swift */,
 				0A2D817CAB11819EF49DB1AF /* FetchDramasUseCase.swift */,
+				8D92BF2D7BD700E9675F8C51 /* FetchPlayerProgressUseCase.swift */,
+				868C5C743F02EA2C96CE9BDE /* StartPlaybackUseCase.swift */,
+				49CB9DA1F63D5B58CFAEFF1D /* StopPlaybackUseCase.swift */,
 			);
 			path = UseCases;
 			sourceTree = "<group>";
@@ -193,6 +252,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		588940852491B394389F29B1 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B2CA0397F1AE279EF957A0B2 /* EpisodePickerSheet.swift */,
+				70EC88E4CE5420F2A0D25185 /* NativeVideoPlayerView.swift */,
+				215CDEE8352635765DF60A8E /* PlayerBottomInfoView.swift */,
+				3DD8818CF2A8AA639610B114 /* PlayerEpisodeDock.swift */,
+				513419277BC0B3D7ECE94E18 /* PlayerRightActionBar.swift */,
+				B89D1940B04D7BBA4D9288FB /* PlayerStatusView.swift */,
+				29A8155D5B48B88E2DE79084 /* PlayerTopBar.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		60F3B9A62DE83BB1587A4AEB /* DramaDetail */ = {
 			isa = PBXGroup;
 			children = (
@@ -206,6 +279,7 @@
 			isa = PBXGroup;
 			children = (
 				876C382615F9AB96597EFE01 /* PlayerView.swift */,
+				588940852491B394389F29B1 /* Components */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -245,6 +319,7 @@
 				8466D6ABEC87EA5C0AE05BEB /* DesignSystem */,
 				80FC323035C644FF42DA5264 /* Extensions */,
 				6B28962B65CCE6289FFBCE4A /* Network */,
+				38036946E0DAB216E5B1A2FE /* Storage */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -291,6 +366,8 @@
 				BE01D9F8E8DCDB672BBE840C /* APIErrorTests.swift */,
 				FFCC971A5AE37C44AE55FD13 /* DramaDTOTests.swift */,
 				02129614AB57CA475B3BAA3A /* DramaRepositoryTests.swift */,
+				CEB1917DF994759A9B93DA35 /* PlayerRemoteDataSourceTests.swift */,
+				7D0F9D56BC59FA2D600BDE20 /* PlayerRepositoryTests.swift */,
 			);
 			path = DataTests;
 			sourceTree = "<group>";
@@ -300,6 +377,7 @@
 			children = (
 				5C3EF62A7F40CC12BF33B4EF /* DramaRepositoryProtocol.swift */,
 				66097FA6CD19BC4254CF5FD3 /* EpisodeRepositoryProtocol.swift */,
+				1372539E0C2FBCEC6E623A60 /* PlayerRepositoryProtocol.swift */,
 			);
 			path = RepositoryProtocols;
 			sourceTree = "<group>";
@@ -331,6 +409,7 @@
 				FB3FB4D945EB2BEACB8CA72D /* DramaDTO.swift */,
 				B568A8A0FC443A4B32A11559 /* EpisodeDTO.swift */,
 				25229CC1E78F10B92E6B7F8B /* PaginationDTO.swift */,
+				A84EAB62848A342C45C2FF85 /* PlayerDTOs.swift */,
 			);
 			path = DTOs;
 			sourceTree = "<group>";
@@ -349,6 +428,7 @@
 			children = (
 				34F358FCDF42FEB4A5F51449 /* Drama.swift */,
 				36A77D248E5778C63CCF26B7 /* Episode.swift */,
+				EC2FD9955A8E7FA3A00C780C /* PlayerModels.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -357,6 +437,7 @@
 			isa = PBXGroup;
 			children = (
 				EC4E1CEBECA64159FAFC8F1E /* DramaRemoteDataSource.swift */,
+				1218CD15E8909DDDD5394E43 /* PlayerRemoteDataSource.swift */,
 			);
 			path = DataSources;
 			sourceTree = "<group>";
@@ -367,6 +448,7 @@
 				A57E26C6928F3766118EA976 /* DeeplinkHandlerTests.swift */,
 				6B603923ABCD5E312FA3ABA7 /* HomeViewModelTests.swift */,
 				E084F9FBA54B4E74BED744C1 /* NavigationRouterTests.swift */,
+				3D69A847ED729F6FEEE28C63 /* PlayerViewModelTests.swift */,
 			);
 			path = ViewModelTests;
 			sourceTree = "<group>";
@@ -375,6 +457,7 @@
 			isa = PBXGroup;
 			children = (
 				55AEE83531A2526B0E2DC314 /* DramaRepository.swift */,
+				CF121E91F5231724820D6FA4 /* PlayerRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -404,6 +487,8 @@
 			isa = PBXGroup;
 			children = (
 				1CEC02DD2096A9474FE6A5B4 /* MockDramaRepository.swift */,
+				CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */,
+				2F57E15F14AE8245561C7E6C /* MockPlayerRepository.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -545,16 +630,33 @@
 				E1021F87084241EA484BF95D /* DramaRepositoryProtocol.swift in Sources */,
 				DBFC3DC0D42F0ED3D550080F /* Episode.swift in Sources */,
 				ED770A3C641A77368B04BEFE /* EpisodeDTO.swift in Sources */,
+				C2DB1B7DE18D9DC95B687F6A /* EpisodePickerSheet.swift in Sources */,
 				C3FE037C111A8767F7DAA74E /* EpisodeRepositoryProtocol.swift in Sources */,
+				66508D63930295B8F913DC14 /* FetchDramaEpisodesUseCase.swift in Sources */,
 				265775812D9932F0FAA068DF /* FetchDramasUseCase.swift in Sources */,
+				78C46F17F23E2177AC8F194F /* FetchPlayerProgressUseCase.swift in Sources */,
 				2A24E11176FCE195EDECA362 /* HomeView.swift in Sources */,
 				F93C5646B05EC138D538FAC0 /* HomeViewModel.swift in Sources */,
+				6F47D529CB0B5BDFC719ABCF /* NativeVideoPlayerView.swift in Sources */,
 				98CB956FB1AAE21B4B131EA2 /* NavigationRouter.swift in Sources */,
 				9A633E174DD7DC459906A782 /* PaginationDTO.swift in Sources */,
 				60552E91BC578FB7E4E4DC86 /* PlaceholderTabView.swift in Sources */,
+				6754898016541453D522586B /* PlaybackSessionStore.swift in Sources */,
+				1218649228DD41CE960AF15A /* PlayerBottomInfoView.swift in Sources */,
+				05E429A57D81DC6144DBE868 /* PlayerDTOs.swift in Sources */,
+				078BE83F5C78C16F8DFE8EFA /* PlayerEpisodeDock.swift in Sources */,
+				E5DC330FB51730C1FF9DA20E /* PlayerModels.swift in Sources */,
+				1396032543A28010DEDF04DE /* PlayerRemoteDataSource.swift in Sources */,
+				6F4AB6EB6299678EFE5D4C66 /* PlayerRepository.swift in Sources */,
+				90DA3035BE0CFA92F9A33279 /* PlayerRepositoryProtocol.swift in Sources */,
+				BCDB3F0A17EDF218936BC860 /* PlayerRightActionBar.swift in Sources */,
+				BB4A1BA1D24B9242544EA13B /* PlayerStatusView.swift in Sources */,
+				70D1FFE908AD1BA056B6F814 /* PlayerTopBar.swift in Sources */,
 				DD8861D600FAEF2B4FC15517 /* PlayerView.swift in Sources */,
 				76021A1EDB45B1EBE4549A8F /* PlayerViewModel.swift in Sources */,
 				9B45981185002F898B300701 /* ShortDramaApp.swift in Sources */,
+				BA05C8D4DB4E008DE0441203 /* StartPlaybackUseCase.swift in Sources */,
+				43F8536F332883D4B48B942C /* StopPlaybackUseCase.swift in Sources */,
 				64169BD1EFED18568B4D63B7 /* TabNavigationHostView.swift in Sources */,
 				DCC5C8ED1DD088EBDE626991 /* View+Extensions.swift in Sources */,
 			);
@@ -573,7 +675,13 @@
 				BB2CF7CFF63FEBE8ABBB43AF /* DramaRepositoryTests.swift in Sources */,
 				50CF4B0EA8AC1A08E204BD16 /* HomeViewModelTests.swift in Sources */,
 				464D9AA51F0DEE2D53809E78 /* MockDramaRepository.swift in Sources */,
+				AA140834ED6F9D49EA0CA47C /* MockPlaybackSessionStore.swift in Sources */,
+				C110B862AE52BDFCC69D1FF4 /* MockPlayerRepository.swift in Sources */,
 				86B4C1F4C8D25BACE4C6C1E0 /* NavigationRouterTests.swift in Sources */,
+				B23806F0D5161FF83512BE6D /* PlaybackSessionStoreTests.swift in Sources */,
+				4F92ABAD603640FAD1E94292 /* PlayerRemoteDataSourceTests.swift in Sources */,
+				7E1CFE3168212B28670853B3 /* PlayerRepositoryTests.swift in Sources */,
+				5C3E76FBBFF219B6F11DDFF9 /* PlayerViewModelTests.swift in Sources */,
 				E2DDE85DE310252C90AA91FE /* URLProtocolMock.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

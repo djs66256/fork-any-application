@@ -4,7 +4,7 @@ import { Episode } from '@/lib/schemas';
 
 function makeEpisode(overrides: Partial<Episode> = {}): Episode {
   return {
-    id: overrides.id ?? '550e8400-e29b-41d4-a716-446655440001',
+    id: overrides.id ?? '660e8400-e29b-41d4-a716-446655449999',
     drama_id: overrides.drama_id ?? '550e8400-e29b-41d4-a716-446655440000',
     title: overrides.title ?? 'Episode 1',
     episode_number: overrides.episode_number ?? 1,
@@ -24,8 +24,14 @@ describe('EpisodeMockRepository', () => {
     repo = new EpisodeMockRepository();
   });
 
+  it('should seed player episodes by default', async () => {
+    const result = await repo.findByDramaId('550e8400-e29b-41d4-a716-446655440001');
+    expect(result).toHaveLength(3);
+    expect(result[0].title).toBe('第 1 集');
+  });
+
   it('should return empty array for drama with no episodes', async () => {
-    const result = await repo.findByDramaId('drama-no-episodes');
+    const result = await repo.findByDramaId('550e8400-e29b-41d4-a716-446655440012');
     expect(result).toEqual([]);
   });
 
@@ -35,28 +41,27 @@ describe('EpisodeMockRepository', () => {
   });
 
   it('should find seeded episode by id', async () => {
-    const episode = makeEpisode({ id: 'ep-001', title: 'Pilot' });
-    repo.addSeed(episode);
-    const found = await repo.findById('ep-001');
+    const found = await repo.findById('660e8400-e29b-41d4-a716-446655440001');
     expect(found).not.toBeNull();
-    expect(found!.title).toBe('Pilot');
+    expect(found!.title).toBe('第 1 集');
   });
 
   it('should find episodes by drama id', async () => {
-    const dramaId = '550e8400-e29b-41d4-a716-446655440000';
-    repo.addSeed(makeEpisode({ id: 'ep-1', drama_id: dramaId, title: 'Ep 1', episode_number: 1 }));
-    repo.addSeed(makeEpisode({ id: 'ep-2', drama_id: dramaId, title: 'Ep 2', episode_number: 2 }));
-    repo.addSeed(makeEpisode({ id: 'ep-3', drama_id: 'other-drama', title: 'Other' }));
+    const dramaId = '550e8400-e29b-41d4-a716-446655441111';
+    const emptyRepo = new EpisodeMockRepository([]);
+    emptyRepo.addSeed(makeEpisode({ id: '660e8400-e29b-41d4-a716-446655441001', drama_id: dramaId, title: 'Ep 1', episode_number: 1 }));
+    emptyRepo.addSeed(makeEpisode({ id: '660e8400-e29b-41d4-a716-446655441002', drama_id: dramaId, title: 'Ep 2', episode_number: 2 }));
+    emptyRepo.addSeed(makeEpisode({ id: '660e8400-e29b-41d4-a716-446655441003', drama_id: '550e8400-e29b-41d4-a716-446655442222', title: 'Other' }));
 
-    const results = await repo.findByDramaId(dramaId);
+    const results = await emptyRepo.findByDramaId(dramaId);
     expect(results).toHaveLength(2);
     expect(results.map((e) => e.title)).toContain('Ep 1');
     expect(results.map((e) => e.title)).toContain('Ep 2');
   });
 
-  it('should return empty array for drama id with no episodes', async () => {
-    repo.addSeed(makeEpisode({ id: 'ep-1', drama_id: 'drama-a' }));
-    const results = await repo.findByDramaId('drama-b');
-    expect(results).toEqual([]);
+  it('should remove episode from repository', async () => {
+    repo.remove('660e8400-e29b-41d4-a716-446655440001');
+    const result = await repo.findById('660e8400-e29b-41d4-a716-446655440001');
+    expect(result).toBeNull();
   });
 });

@@ -30,9 +30,6 @@ final class APIClient: @unchecked Sendable {
     }
 
     /// Performs a type-safe API request.
-    ///
-    /// - Parameter endpoint: The API endpoint definition.
-    /// - Returns: Decoded response of type T.
     func request<T: Decodable>(_ endpoint: some APIEndpoint) async throws -> T {
         guard var components = URLComponents(string: baseURL) else {
             throw APIError.invalidURL
@@ -47,6 +44,10 @@ final class APIClient: @unchecked Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
 
+        for (headerField, value) in endpoint.headers {
+            request.setValue(value, forHTTPHeaderField: headerField)
+        }
+
         if let body = endpoint.body {
             let encoder = JSONEncoder()
             encoder.keyEncodingStrategy = .convertToSnakeCase
@@ -56,8 +57,6 @@ final class APIClient: @unchecked Sendable {
 
         return try await perform(request: request)
     }
-
-    // MARK: - Private
 
     private func perform<T: Decodable>(request: URLRequest) async throws -> T {
         let (data, response): (Data, URLResponse)
@@ -83,7 +82,6 @@ final class APIClient: @unchecked Sendable {
                 throw APIError.decodingFailed(error)
             }
         case 501:
-            // Attempt to parse error response body
             if let errorResponse = try? decoder.decode(ErrorResponse.self, from: data) {
                 throw APIError.notImplemented(errorResponse.message)
             }
@@ -100,16 +98,34 @@ final class APIClient: @unchecked Sendable {
     }
 }
 
-/// Generic error response structure.
 private struct ErrorResponse: Decodable {
     let message: String
 
+    private struct NestedError: Decodable {
+        let code: String?
+        let message: String?
+    }
+
     enum CodingKeys: String, CodingKey {
         case message
+        case error
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        message = try container.decodeIfPresent(String.self, forKey: .message) ?? "未知错误"
+        if let directMessage = try container.decodeIfPresent(String.self, forKey: .message),
+           !directMessage.isEmpty {
+            message = directMessage
+            return
+        }
+
+        if let nestedError = try container.decodeIfPresent(NestedError.self, forKey: .error),
+           let nestedMessage = nestedError.message,
+           !nestedMessage.isEmpty {
+            message = nestedMessage
+            return
+        }
+
+        message = "未知错误"
     }
 }

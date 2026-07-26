@@ -23,6 +23,43 @@ describe('Errors factory', () => {
     expect(err.statusCode).toBe(400);
   });
 
+  it('should create invalidParams error with correct properties', () => {
+    const err = Errors.invalidParams('Invalid dramaId');
+    expect(err.code).toBe(ErrorCode.INVALID_PARAMS);
+    expect(err.statusCode).toBe(400);
+    expect(err.message).toBe('Invalid dramaId');
+  });
+
+  it('should create invalidPlaybackSession with default message', () => {
+    const err = Errors.invalidPlaybackSession();
+    expect(err.code).toBe(ErrorCode.INVALID_PLAYBACK_SESSION);
+    expect(err.statusCode).toBe(400);
+    expect(err.message).toBe('Playback session is invalid');
+  });
+
+  it('should create invalidPlaybackSession with custom message', () => {
+    const err = Errors.invalidPlaybackSession('Missing X-Playback-Session-Id');
+    expect(err.message).toBe('Missing X-Playback-Session-Id');
+  });
+
+  it('should create dramaNotFound error', () => {
+    const err = Errors.dramaNotFound('550e8400-e29b-41d4-a716-446655440001');
+    expect(err.code).toBe(ErrorCode.DRAMA_NOT_FOUND);
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('should create episodeNotFound error', () => {
+    const err = Errors.episodeNotFound('660e8400-e29b-41d4-a716-446655440001');
+    expect(err.code).toBe(ErrorCode.EPISODE_NOT_FOUND);
+    expect(err.statusCode).toBe(404);
+  });
+
+  it('should create episodeNotPlayable error', () => {
+    const err = Errors.episodeNotPlayable('660e8400-e29b-41d4-a716-446655440001');
+    expect(err.code).toBe(ErrorCode.EPISODE_NOT_PLAYABLE);
+    expect(err.statusCode).toBe(409);
+  });
+
   it('should create unauthorized with default message', () => {
     const err = Errors.unauthorized();
     expect(err.code).toBe(ErrorCode.UNAUTHORIZED);
@@ -83,6 +120,13 @@ describe('formatErrorResponse', () => {
         message: 'Bad input',
       },
     });
+  });
+
+  it('should serialize player domain error correctly', () => {
+    const err = Errors.invalidPlaybackSession('Missing X-Playback-Session-Id');
+    const body = formatErrorResponse(err);
+    expect(body.error.code).toBe('INVALID_PLAYBACK_SESSION');
+    expect(body.error.message).toBe('Missing X-Playback-Session-Id');
   });
 
   it('should serialize notImplemented error correctly', () => {

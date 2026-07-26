@@ -130,6 +130,7 @@ struct DramaDTOTests {
             "video_url": "https://video.example.com/ep001.mp4",
             "duration": 180,
             "thumbnail_url": "https://img.example.com/ep001.jpg",
+            "description": "第一集简介",
             "created_at": "2026-07-01T00:00:00Z",
             "updated_at": "2026-07-01T00:00:00Z"
         }
@@ -143,6 +144,7 @@ struct DramaDTOTests {
         #expect(dto.dramaId == "drama-001")
         #expect(dto.episodeNumber == 1)
         #expect(dto.duration == 180)
+        #expect(dto.description == "第一集简介")
     }
 
     @Test("EpisodeDTO.toEntity maps all fields correctly")
@@ -155,6 +157,7 @@ struct DramaDTOTests {
             videoUrl: "https://video.example.com/ep001.mp4",
             duration: 180,
             thumbnailUrl: "https://img.example.com/ep001.jpg",
+            description: "第一集简介",
             createdAt: "2026-07-01T00:00:00Z",
             updatedAt: "2026-07-01T00:00:00Z"
         )
@@ -168,5 +171,6 @@ struct DramaDTOTests {
         #expect(entity.videoUrl == dto.videoUrl)
         #expect(entity.duration == dto.duration)
         #expect(entity.thumbnailUrl == dto.thumbnailUrl)
+        #expect(entity.description == dto.description)
     }
 }

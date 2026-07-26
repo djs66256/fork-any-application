@@ -13,14 +13,15 @@ data class EpisodeDto(
     @SerialName("episode_number")
     val episodeNumber: Int,
     @SerialName("video_url")
-    val videoUrl: String,
-    val duration: Int,
+    val videoUrl: String = "",
+    val duration: Int = 0,
     @SerialName("thumbnail_url")
     val thumbnailUrl: String = "",
+    val description: String = "",
     @SerialName("created_at")
     val createdAt: String,
     @SerialName("updated_at")
-    val updatedAt: String
+    val updatedAt: String,
 ) {
     fun toDomain(): Episode = Episode(
         id = id,
@@ -30,7 +31,8 @@ data class EpisodeDto(
         videoUrl = videoUrl,
         duration = duration,
         thumbnailUrl = thumbnailUrl,
+        description = description,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 }

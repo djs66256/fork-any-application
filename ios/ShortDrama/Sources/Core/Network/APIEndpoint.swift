@@ -21,6 +21,9 @@ protocol APIEndpoint {
     /// Optional query parameters.
     var queryItems: [URLQueryItem]? { get }
 
+    /// Optional per-endpoint request headers.
+    var headers: [String: String] { get }
+
     /// Optional request body.
     var body: Encodable? { get }
 }
@@ -28,5 +31,6 @@ protocol APIEndpoint {
 // Default implementations for optional properties.
 extension APIEndpoint {
     var queryItems: [URLQueryItem]? { nil }
+    var headers: [String: String] { [:] }
     var body: Encodable? { nil }
 }
