@@ -72,6 +72,28 @@ src/
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase 服务角色密钥（仅 admin 操作） | 是 |
 | `REDIS_URL` | Redis 连接地址 | 否 |
 
+### 本地开发环境（tests/docker-compose.yml）
+
+本地 Supabase + Redis 环境由 `backend/tests/docker-compose.yml` 定义，包含以下服务：
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| PostgreSQL | 5432 | Supabase 兼容数据库 |
+| Redis | 6379 | 缓存 + MQ |
+| Supabase Studio | 8000 | Web 管理面板 |
+| Mailpit | 8025 (HTTP) / 1025 (SMTP) | 本地邮件捕获 |
+
+启动后，后端 `.env.local` 应配置：
+
+```
+SUPABASE_URL=http://localhost:54321
+SUPABASE_ANON_KEY=<docker-compose.yml 中的 ANON_KEY 默认值>
+SUPABASE_SERVICE_ROLE_KEY=<docker-compose.yml 中的 SERVICE_ROLE_KEY 默认值>
+REDIS_URL=redis://localhost:6379
+```
+
+> 测试（vitest）不依赖真实 Supabase/Redis 连接，Repository 测试使用 mock client。
+
 ### Client 双实例策略
 
 - `getSupabaseClient()` — 使用 anon key，遵循 RLS 策略，用于用户端操作。
@@ -93,9 +115,10 @@ src/
 - **Lint**：`npm run lint`
 - **测试**：`npm run test`（vitest）
 - **运行单个测试文件**：`npm run test -- src/lib/__tests__/errors.test.ts`
-- **启动 Supabase 本地**：`npx supabase start`
+- **启动本地开发环境（Supabase + Redis）**：`docker compose -f tests/docker-compose.yml up -d`
+- **停止本地开发环境**：`docker compose -f tests/docker-compose.yml down`
+- **清空本地环境（含数据卷）**：`docker compose -f tests/docker-compose.yml down -v`
 - **应用 migration**：`npx supabase db push`
-- **启动 Redis（Docker）**：`docker compose up -d`
 
 ## 开发约定
 
