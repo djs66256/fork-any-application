@@ -5,7 +5,7 @@
 ## 执行者
 
 - `design-shared`：主 agent 直接执行
-- `design-platforms`：主 agent 派发 subagent（各端可并行）
+- `design-platforms`：主 agent 直接执行（不再使用 subagent，按平台顺序撰写）
 
 ## 前置条件
 
@@ -57,9 +57,13 @@ design-review 发现了问题，本次任务是**只修复** review 报告中指
 
 ## design-platforms（各端方案）
 
+### 执行者
+
+**主 agent 直接执行**（不使用 subagent）。主 agent 逐平台顺序撰写方案文件，充分利用上下文连贯性。
+
 ### 目录结构
 
-各平台设计 agent 定义在 `references/<platform>-design/*.md` 中：
+各平台设计参考指南位于 `references/<platform>-design/` 目录中：
 
 ```
 references/
@@ -77,38 +81,42 @@ references/
 
 #### 修复轮次判断
 
-在派发 design-platforms subagent 前，主 agent 必须根据 `design-review.md` 中的问题归属来决定是否派发：
+在开始撰写各端方案前，主 agent 必须根据 `design-review.md` 中的问题归属来决定哪些平台需要修复：
 
 1. 读取 `design-review.md`，找出各 🔴 阻塞 / 🟡 关注 问题的归属平台
-2. **只对有问题的平台派发 subagent**，无问题的平台不派发（其方案文件保持不变）
-3. 如果有跨端一致性问题，派发所有涉及的平台 subagent
+2. **只对有问题的平台进行修复**，无问题的平台不修改（其方案文件保持不变）
+3. 如果有跨端一致性问题，修复所有涉及的平台方案
 
-例如：review 只指出 `design-ios.md` 和 `design-backend.md` 有缺陷，则只派发 iOS 和 Backend 两个 subagent，Android 和 Web 不派发。
+例如：review 只指出 `design-ios.md` 和 `design-backend.md` 有缺陷，则只修复 iOS 和 Backend 两个端，Android 和 Web 不修改。
 
-Subagent 的 prompt 中已内置「模式检测」逻辑（见各 `references/<platform>-design/*.md`），会自动识别修复轮次并执行靶向修复。主 agent 无需额外传递参数或修改 prompt。
+#### 第一步：了解各端现状
 
-#### 第一步：加载 agent 定义
+对于每个涉及的平台：
+1. 读取 `references/<platform>-design/` 下的参考指南，了解该端设计维度和要求
+2. 读取对应端的 `CLAUDE.md`（通过访问对应端目录自动加载）
+3. 调用 `Skill("llm-wiki")` 了解该端已有功能架构
+4. 读取对应端的源代码，理解当前实现
 
-扫描 `references/<platform>-design/` 目录，读取所有 `*.md` 文件中的 `Subagent：` 定义块。
-将 `<YYYY-MM-dd>-<name>`、`<feature-name>` 占位符替换为实际值。
+#### 第二步：逐平台撰写方案
 
-仅加载涉及平台的目录，跳过不涉及的端。
+按各平台的 `assets/design-{platform}-template.md` 模板，逐平台撰写方案文件。
 
-#### 第二步：并行派发所有 agent
+各平台方案之间能够保证一致性（因为都由同一个主 agent 撰写），但可以二次检查。
 
-将加载的所有 agent **并行派发**。
-
-**优先使用 agent team 模式派发**，详见 [references/agent-team.md](agent-team.md)。
-如 agent team 不可用，回退到独立 subagent 模式，功能和行为保持一致。
-
-各平台 subagent 可同时派发，互不依赖——它们各自独立读取 `spec.md` 和 `design.md`，独立写入 `design-{platform}.md`。
+**撰写顺序建议**：先写 Backend（数据模型和 API 是其他端的基础），再写 Web/iOS/Android。
 
 #### 第三步：标记完成并推进
 
-全部 agent 完成后，主 agent 为每个平台调用：
+全部平台方案完成后，主 agent 为每个涉及的平台调用：
 
 ```
 workflow.py mark-platform design-platforms <platform> --status completed
+```
+
+不涉及的平台标记为 skipped：
+
+```
+workflow.py mark-platform design-platforms <platform> --status skipped
 ```
 
 全部标记完成后调用：
@@ -119,9 +127,18 @@ workflow.py advance
 
 推进到 design-review。
 
+### 修复模式
+
+当 design-review 发现问题后回到 design-platforms 修复时：
+
+1. 读取 `design-review.md`，找出各平台归属的问题
+2. 对于有问题的平台，读取现有的 `design-{platform}.md`，**只修改/补充** review 指出的问题
+3. 不修改未被指出的章节和内容
+4. 修复完成后，在 `design-review.md` 中对应问题的描述后追加 `✅ 已修复于第 N 轮（{Platform}）`
+
 ## 注意事项
 
 - 先查阅 wiki 和代码，不要凭空设计
 - 跨平台方案必须与 shared design.md 中的 API 设计和数据模型保持一致
 - 各端方案需遵循对应端的开发约束
-- 如某端不涉及，跳过该端的 agent 加载和派发
+- 如某端不涉及，跳过该端的方案撰写，标记为 skipped

@@ -33,7 +33,7 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 | **Worktree 管理** | 创建/合并/清理 git worktree | 主 agent + Bash | [references/worktree.md](references/worktree.md) |
 | **需求撰写** | 查阅 wiki + 代码，撰写 spec | 主 agent | [references/spec-writing.md](references/spec-writing.md) |
 | **需求 Review** | 审查需求完整性/一致性/可行性 | subagent（循环修复） | [references/spec-review.md](references/spec-review.md) |
-| **技术方案设计** | Shared 设计 + 各端方案 | 主 agent + subagent（并行） | [references/design-writing.md](references/design-writing.md) |
+| **技术方案设计** | Shared 设计 + 各端方案 | 主 agent 直接撰写 | [references/design-writing.md](references/design-writing.md) |
 | **技术方案 Review** | 审查设计完整性/一致性/跨端对齐（单 subagent） | subagent（循环修复，回到 writing） | [references/design-review.md](references/design-review.md) |
 | **Plan 撰写** | 轻量 TDD 实现计划 | subagent（并行） | [references/plan-writing.md](references/plan-writing.md) |
 | **Coding** | 按 plan 逐步骤实现 | subagent（并行，内部含 code review） | [references/coding.md](references/coding.md) |
@@ -50,8 +50,8 @@ flowchart TD
     C -. "发现问题→回到2修复→重新审查" .-> B
     C --> D["4. spec-human-review 👤<br/>人确认需求"]
     D --> E["5. design-shared<br/>共享技术方案"]
-    E --> F["6. design-platforms ⚡<br/>各端方案(并行)"]
-    F --> G["7. design-review 🔄<br/>方案审查(只审查不修改)"]
+    E --> F["6. design-platforms ⚡<br/>各端方案(主 agent)"]
+    F --> G["7. design-review 🔄<br/>方案审查(subagent 审查)"]
     G -. "发现问题→回到5/6修复→重新审查" .-> E
     G --> H["8. design-human-review 👤<br/>人确认方案"]
     H --> I["9. plan-platforms ⚡<br/>各端实现计划(并行)"]
@@ -72,7 +72,7 @@ flowchart TD
 |------|------|
 | 🔄 | 含 review 循环（执行→审查→修复→再审查，上限 3 轮后上报人工） |
 | 👤 | 需要人工确认（驳回后回到对应撰写阶段，而非 review 阶段） |
-| ⚡ | 各端可并行执行 |
+| ⚡ | 涉及多端（plan 和 coding 阶段可并行派发 subagent，design 阶段主 agent 顺序撰写） |
 
 ## 阶段说明
 
@@ -124,7 +124,8 @@ flowchart TD
 
 ### 阶段 6：design-platforms ⚡
 
-- **执行者**：subagent（各端并行）
+- **执行者**：主 agent（按平台顺序撰写，无 subagent）
+- **前置条件**：design-shared 完成
 - **前置条件**：design-shared 完成
 - **执行规范**：详见 [references/design-writing.md](references/design-writing.md)「design-platforms」节
 - **产物**：`design-backend.md`, `design-ios.md`, `design-android.md`, `design-web.md`（按需）
@@ -287,8 +288,8 @@ python3 scripts/workflow.py init add-playback-speed
 
 **阶段 5-8 — design + review**
 - 撰写 design.md（API: `POST /api/player/speed`）
-- 并行派发 iOS/Android/Backend design subagent，web 标记 skipped
-- Review 循环修复
+- 主 agent 逐平台撰写 design-backend.md、design-ios.md、design-android.md，web 标记 skipped
+- design-review subagent 审查全部方案，Review 循环修复
 
 **阶段 9-11 — plan + coding + review**
 - 各端 plan 并行
@@ -318,7 +319,7 @@ python3 scripts/workflow.py init add-playback-speed
 | [references/worktree.md](references/worktree.md) | worktree 创建/合并/清理规范 | — |
 | [references/spec-writing.md](references/spec-writing.md) | 需求撰写流程和注意事项 | — |
 | [references/spec-review.md](references/spec-review.md) | 需求 review 流程 | ✅ |
-| [references/design-writing.md](references/design-writing.md) | 技术方案设计流程和 subagent 定义 | ✅ |
+| [references/design-writing.md](references/design-writing.md) | 技术方案设计流程（shared + platforms，主 agent 执行） | — |
 | [references/design-review.md](references/design-review.md) | 技术方案 review 流程 | ✅ |
 | [references/plan-writing.md](references/plan-writing.md) | 轻量 TDD plan 撰写规范 | ✅ |
 | [references/coding.md](references/coding.md) | coding subagent 派发规范（code review 在内部创建，prompt 见 code-review.md） | ✅ |
