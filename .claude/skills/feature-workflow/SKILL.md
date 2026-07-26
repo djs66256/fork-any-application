@@ -126,7 +126,6 @@ flowchart TD
 
 - **执行者**：主 agent（按平台顺序撰写，无 subagent）
 - **前置条件**：design-shared 完成
-- **前置条件**：design-shared 完成
 - **执行规范**：详见 [references/design-writing.md](references/design-writing.md)「design-platforms」节
 - **产物**：`design-backend.md`, `design-ios.md`, `design-android.md`, `design-web.md`（按需）
 - **推进命令**：各平台完成后 `mark-platform design-platforms <platform> --status completed`，全部完成后 `workflow.py advance`
@@ -320,6 +319,10 @@ python3 scripts/workflow.py init add-playback-speed
 | [references/spec-writing.md](references/spec-writing.md) | 需求撰写流程和注意事项 | — |
 | [references/spec-review.md](references/spec-review.md) | 需求 review 流程 | ✅ |
 | [references/design-writing.md](references/design-writing.md) | 技术方案设计流程（shared + platforms，主 agent 执行） | — |
+| [references/backend-design/service-design.md](references/backend-design/service-design.md) | Backend 端设计参考指南（路由、中间件、服务层、migration、队列、测试） | — |
+| [references/ios-design/arch-design.md](references/ios-design/arch-design.md) | iOS 端设计参考指南（组件、ViewModel、导航、网络、持久化、测试） | — |
+| [references/android-design/arch-design.md](references/android-design/arch-design.md) | Android 端设计参考指南（组件、ViewModel、导航、网络、持久化、测试） | — |
+| [references/web-design/frontend-design.md](references/web-design/frontend-design.md) | Web 端设计参考指南（组件、状态管理、路由、API 层、SSR/CSR、性能、测试） | — |
 | [references/design-review.md](references/design-review.md) | 技术方案 review 流程 | ✅ |
 | [references/plan-writing.md](references/plan-writing.md) | 轻量 TDD plan 撰写规范 | ✅ |
 | [references/coding.md](references/coding.md) | coding subagent 派发规范（code review 在内部创建，prompt 见 code-review.md） | ✅ |

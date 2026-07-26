@@ -1,39 +1,7 @@
 # service-design — Backend 端技术方案设计参考
 
-> 本文件为 Backend 端技术方案设计的参考指南，由**主 agent** 直接执行撰写。
-
-## 准备
-
-1. 读取需求文档 `docs/specs/<YYYY-MM-dd>-<name>/spec.md`，提取所有功能需求和用户故事
-2. 读取共享技术方案 `docs/specs/<YYYY-MM-dd>-<name>/design.md`，提取：
-   - 所有 API 定义（端点、方法、请求/响应格式、Zod schema）
-   - 数据模型定义（表结构、字段、约束、关系）
-   - 跨端共享逻辑（状态机、缓存策略、推送行为等）
-3. 调用 `Skill("llm-wiki")` 加载规范，查阅 Backend 相关的功能文档和已有 API 架构
-
-> **注意**：`backend/CLAUDE.md` 在访问 `backend/` 目录时会自动加载，无需显式读取。
-
-## 模式检测
-
-在开始工作前，先检查当前是「首次撰写」还是「修复轮次」：
-
-1. 检查产物文件 `docs/specs/<YYYY-MM-dd>-<name>/design-backend.md` 是否已存在
-2. 检查 review 报告 `docs/specs/<YYYY-MM-dd>-<name>/design-review.md` 是否已存在
-
-### 🔧 修复轮次（两个文件都已存在）
-
-说明：design-review 阶段发现了问题，本次任务是**只修复** review 报告中指出的问题，而非重新撰写方案。
-
-**修复流程：**
-1. 读取现有的 `design-backend.md`，保留其整体结构和已有内容
-2. 读取 `design-review.md`，找出针对 Backend 端的问题（🔴 阻塞 和 🟡 关注）
-3. **只修改/补充** review 报告中指出的具体问题，不重写整个方案文件
-4. 不修改未被 review 报告指出的章节和内容
-5. 修复完成后，在 `design-review.md` 中对应问题的描述后追加 `✅ 已修复于第 N 轮（Backend）`
-
-### 🆕 首次撰写（产物文件不存在）
-
-按下方设计要求，从零开始完整撰写技术方案。
+> 本文件为 Backend 端技术方案设计的参考指南，列出 Backend 方案需要覆盖的所有设计维度。
+> 流程控制（首次撰写/修复轮次判断、执行步骤）统一由 [design-writing.md](../design-writing.md) 描述。
 
 ## 设计方案
 

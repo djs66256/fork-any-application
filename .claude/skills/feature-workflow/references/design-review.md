@@ -200,8 +200,8 @@ Subagent 完成后，主 agent 读取 `design-review.md`，判断：
 
 1. **无问题** → 告知用户 review 完成，调用 `workflow.py advance` 推进到 design-human-review
 2. **有问题（🔴 阻塞 / 🟡 关注）** → 调用 `workflow.py review-loop design-review --increment`，按以下策略修复：
-   - **design.md 问题（Shared 层）** → 主 agent 直接修改 design.md（靶向修复）
-   - **design-{platform}.md 问题** → 主 agent 直接修改对应平台方案文件（靶向修复），不再派发 subagent
+   - **design.md 问题（Shared 层）** → 回到阶段 5（design-shared），主 agent 直接修改 design.md（靶向修复）
+   - **design-{platform}.md 问题** → 回到阶段 6（design-platforms），主 agent 直接修改对应平台方案文件（靶向修复），不再派发 subagent
    - **修复完成后更新修复状态**：在 `design-review.md` 的「发现的问题」中，将每个已修复问题的「修复状态」更新为 `✅ 已修复` 或 `🔄 已修复，待验证`，并填写「修复说明」字段
    - 修复完毕重新派发 design-review subagent
 3. **仅 🟢 建议** → 告知用户，调用 `workflow.py advance` 推进（不阻塞）
