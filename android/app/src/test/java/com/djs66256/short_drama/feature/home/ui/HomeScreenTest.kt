@@ -9,6 +9,11 @@ import org.junit.Test
 class HomeScreenTest {
 
     @Test
+    fun `T-02 menu entry icon content description is stable`() {
+        assertEquals("打开菜单", HOME_MENU_ENTRY_CONTENT_DESCRIPTION)
+    }
+
+    @Test
     fun `T-07 search entry icon content description is stable`() {
         assertEquals("打开搜索", HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION)
     }

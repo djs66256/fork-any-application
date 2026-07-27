@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RECENTLY_VIEWED_LIMIT } from '@/lib/player';
 
 const SeriesStatusSchema = z.enum(['completed', 'ongoing']);
 
@@ -272,6 +273,27 @@ export const PlayerStopResponseSchema = z.object({
 });
 
 export type PlayerStopResponse = z.infer<typeof PlayerStopResponseSchema>;
+
+export const RecentlyViewedItemSchema = z.object({
+  drama_id: z.string().uuid(),
+  title: z.string().min(1),
+  cover_url: z.string().url().nullable().default(null),
+  episode_number: z.number().int().min(1),
+  progress: z.number().min(0),
+  updated_at: z.string().datetime(),
+});
+
+export type RecentlyViewedItem = z.infer<typeof RecentlyViewedItemSchema>;
+
+export const RecentlyViewedResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    items: z.array(RecentlyViewedItemSchema).max(RECENTLY_VIEWED_LIMIT),
+  }),
+  message: z.string(),
+});
+
+export type RecentlyViewedResponse = z.infer<typeof RecentlyViewedResponseSchema>;
 
 export const UserProfileSchema = z.object({
   id: z.string().uuid(),

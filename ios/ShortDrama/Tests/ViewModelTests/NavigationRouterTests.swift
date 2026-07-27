@@ -50,6 +50,14 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.mall]?.isEmpty == true)
         #expect(router.pendingRoute == nil)
         #expect(router.containerReady == false)
+        #expect(router.menuPanelState == .closed)
+        #expect(router.pendingMenuNavigation == nil)
+    }
+
+    @Test("menu placeholder routes belong to home tab and keep public naming")
+    func testMenuPlaceholderRoutesBelongToHomeTab() {
+        #expect(AppRoute.menuPlaceholder(kind: .login).owningTab == .home)
+        #expect(AppRoute.menuPlaceholder(kind: .messages).publicRouteName == "menu/placeholder")
     }
 
     @Test("search discovery routes belong to home tab")
@@ -209,6 +217,7 @@ struct NavigationRouterTests {
         #expect(router.selectedTab == .mall)
         #expect(router.pathsByTab[.home]?.count == 1)
         #expect(router.pathsByTab[.mall]?.isEmpty == true)
+        #expect(router.menuPanelState == .closed)
     }
 
     @Test("markContainerReady consumes pending search route")
@@ -222,6 +231,80 @@ struct NavigationRouterTests {
         #expect(router.pendingRoute == nil)
         #expect(router.selectedTab == .home)
         #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("menu panel opens only on home tab")
+    func testOpenMenuPanelOnHomeTab() {
+        let router = NavigationRouter()
+
+        router.openMenuPanel()
+        #expect(router.menuPanelState == .open)
+        #expect(router.isMenuPanelVisible == true)
+
+        router.select(tab: .mall)
+        router.openMenuPanel()
+        #expect(router.menuPanelState == .closed)
+        #expect(router.isMenuPanelVisible == false)
+    }
+
+    @Test("menu panel close transitions to closing and closed")
+    func testCloseMenuPanelAndMarkDidClose() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanel()
+        #expect(router.menuPanelState == .closing)
+        #expect(router.isMenuPanelVisible == true)
+
+        router.markMenuPanelDidClose()
+        #expect(router.menuPanelState == .closed)
+        #expect(router.isMenuPanelVisible == false)
+    }
+
+    @Test("placeholder navigation waits until panel close completes")
+    func testCloseMenuPanelThenNavigateToPlaceholder() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .login))
+
+        #expect(router.menuPanelState == .closing)
+        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .login))
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
+
+        router.markMenuPanelDidClose()
+
+        #expect(router.pendingMenuNavigation == nil)
+        #expect(router.menuPanelState == .closed)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("player navigation waits until panel close completes")
+    func testCloseMenuPanelThenNavigateToPlayer() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanelThenNavigate(to: .player(videoId: "drama-001"))
+        router.markMenuPanelDidClose()
+
+        #expect(router.pathsByTab[.home]?.count == 1)
+        #expect(router.menuPanelState == .closed)
+    }
+
+    @Test("closing ignores duplicate navigation requests")
+    func testClosingIgnoresDuplicateNavigationRequests() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .messages))
+        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .downloads))
+
+        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .messages))
+
+        router.markMenuPanelDidClose()
+
+        #expect(router.pathsByTab[.home]?.count == 1)
+        #expect(router.pendingMenuNavigation == nil)
     }
 
     @Test("dismiss on empty path is safe")

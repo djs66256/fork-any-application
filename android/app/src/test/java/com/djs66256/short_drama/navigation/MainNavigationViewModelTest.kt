@@ -54,4 +54,104 @@ class MainNavigationViewModelTest {
             assertEquals(NavigationErrorCode.INVALID_ROUTE_PARAMS, state.lastRejectedReason)
         }
     }
+
+    @Test
+    fun `T-01 menu state transitions from closed to opening to open`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MenuPanelPresentationState.CLOSED, awaitItem().menuPanelState)
+
+            viewModel.openMenu()
+            assertEquals(MenuPanelPresentationState.OPENING, awaitItem().menuPanelState)
+
+            viewModel.onMenuOpened()
+            assertEquals(MenuPanelPresentationState.OPEN, awaitItem().menuPanelState)
+        }
+    }
+
+    @Test
+    fun `T-01 closeMenuThenNavigate closes first and publishes route after animation finished`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MenuPanelPresentationState.CLOSED, awaitItem().menuPanelState)
+
+            viewModel.openMenu()
+            assertEquals(MenuPanelPresentationState.OPENING, awaitItem().menuPanelState)
+
+            viewModel.onMenuOpened()
+            assertEquals(MenuPanelPresentationState.OPEN, awaitItem().menuPanelState)
+
+            viewModel.closeMenuThenNavigate(PendingRoute.MenuLogin)
+            val closingState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSING, closingState.menuPanelState)
+            assertEquals(PendingRoute.MenuLogin, closingState.pendingMenuRoute)
+            assertEquals(null, closingState.pendingRoute)
+
+            viewModel.onMenuClosedAnimationFinished()
+            val closedState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSED, closedState.menuPanelState)
+            assertEquals(null, closedState.pendingMenuRoute)
+            assertEquals(PendingRoute.MenuLogin, closedState.pendingRoute)
+        }
+    }
+
+    @Test
+    fun `T-01 closing ignores later menu navigation requests and keeps first target`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MenuPanelPresentationState.CLOSED, awaitItem().menuPanelState)
+
+            viewModel.openMenu()
+            assertEquals(MenuPanelPresentationState.OPENING, awaitItem().menuPanelState)
+
+            viewModel.onMenuOpened()
+            assertEquals(MenuPanelPresentationState.OPEN, awaitItem().menuPanelState)
+
+            viewModel.closeMenuThenNavigate(PendingRoute.MenuLogin)
+            val firstClosingState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSING, firstClosingState.menuPanelState)
+            assertEquals(PendingRoute.MenuLogin, firstClosingState.pendingMenuRoute)
+
+            viewModel.closeMenuThenNavigate(PendingRoute.MenuMessages)
+            expectNoEvents()
+
+            viewModel.openMenu()
+            expectNoEvents()
+
+            viewModel.onMenuClosedAnimationFinished()
+            val finalState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSED, finalState.menuPanelState)
+            assertEquals(PendingRoute.MenuLogin, finalState.pendingRoute)
+            assertEquals(null, finalState.pendingMenuRoute)
+        }
+    }
+
+    @Test
+    fun `T-01 closeMenu without target only returns to closed state`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MenuPanelPresentationState.CLOSED, awaitItem().menuPanelState)
+
+            viewModel.openMenu()
+            assertEquals(MenuPanelPresentationState.OPENING, awaitItem().menuPanelState)
+
+            viewModel.onMenuOpened()
+            assertEquals(MenuPanelPresentationState.OPEN, awaitItem().menuPanelState)
+
+            viewModel.closeMenu()
+            val closingState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSING, closingState.menuPanelState)
+            assertEquals(null, closingState.pendingMenuRoute)
+
+            viewModel.onMenuClosedAnimationFinished()
+            val finalState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSED, finalState.menuPanelState)
+            assertEquals(null, finalState.pendingMenuRoute)
+            assertEquals(null, finalState.pendingRoute)
+        }
+    }
 }

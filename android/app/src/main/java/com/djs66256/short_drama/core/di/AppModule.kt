@@ -2,9 +2,9 @@ package com.djs66256.short_drama.core.di
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.djs66256.short_drama.core.config.AppConfig
 import com.djs66256.short_drama.core.config.BuildConfigAppConfig
 import com.djs66256.short_drama.core.storage.DataStorePlaybackSessionStore
@@ -14,6 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 
@@ -37,6 +38,7 @@ object AppModule {
 
     @Provides
     @Singleton
+    @Named("searchHistory")
     fun providePreferencesDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
@@ -51,6 +53,7 @@ object AppModule {
 
     @Provides
     @Singleton
+    @Named("playbackSession")
     fun providePlaybackSessionPreferencesDataStore(
         @ApplicationContext context: Context,
     ): DataStore<Preferences> {

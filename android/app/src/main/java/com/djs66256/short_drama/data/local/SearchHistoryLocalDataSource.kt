@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.djs66256.short_drama.domain.model.SearchHistoryItem
 import com.djs66256.short_drama.domain.model.normalizeSearchQueryOrNull
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -18,7 +19,7 @@ import kotlinx.serialization.json.Json
 
 @Singleton
 class SearchHistoryLocalDataSource @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
+    @Named("searchHistory") private val dataStore: DataStore<Preferences>,
     private val json: Json,
 ) {
     val history: Flow<List<SearchHistoryItem>> = dataStore.data

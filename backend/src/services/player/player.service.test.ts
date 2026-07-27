@@ -73,6 +73,103 @@ describe('PlayerService', () => {
     expect(result.data.playback_session_id).toBe(PLAYBACK_SESSION_ID);
   });
 
+  it('should return recently viewed empty response when no history exists', async () => {
+    const result = await service.getRecentlyViewed(PLAYBACK_SESSION_ID);
+
+    expect(result).toEqual({
+      code: 0,
+      data: { items: [] },
+      message: 'ok',
+    });
+  });
+
+  it('should filter invalid histories and return up to three valid recently viewed items', async () => {
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+      episode_id: '660e8400-e29b-41d4-a716-446655440001',
+      progress: 120,
+      duration: 180,
+      updated_at: '2026-07-27T15:20:00.000Z',
+    });
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440002',
+      episode_id: '660e8400-e29b-41d4-a716-446655440011',
+      progress: 80,
+      duration: 180,
+      updated_at: '2026-07-27T15:19:00.000Z',
+    });
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440003',
+      episode_id: '660e8400-e29b-41d4-a716-446655440099',
+      progress: 60,
+      duration: 180,
+      updated_at: '2026-07-27T15:18:00.000Z',
+    });
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440004',
+      episode_id: '660e8400-e29b-41d4-a716-446655440021',
+      progress: 40,
+      duration: 180,
+      updated_at: '2026-07-27T15:17:00.000Z',
+    });
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440005',
+      episode_id: '660e8400-e29b-41d4-a716-446655440022',
+      progress: 20,
+      duration: 180,
+      updated_at: '2026-07-27T15:16:00.000Z',
+    });
+
+    episodeRepository.addSeed({
+      id: '660e8400-e29b-41d4-a716-446655440021',
+      drama_id: '550e8400-e29b-41d4-a716-446655440004',
+      title: '第 1 集',
+      episode_number: 1,
+      duration: 200,
+      video_url: 'https://example.com/dramas/004/episode-1.mp4',
+      thumbnail_url: 'https://example.com/dramas/004/episode-1.jpg',
+      description: '第一集简介',
+      created_at: '2026-07-27T14:00:00.000Z',
+      updated_at: '2026-07-27T14:00:00.000Z',
+    });
+    episodeRepository.addSeed({
+      id: '660e8400-e29b-41d4-a716-446655440022',
+      drama_id: '550e8400-e29b-41d4-a716-446655440005',
+      title: '第 1 集',
+      episode_number: 1,
+      duration: 200,
+      video_url: 'https://example.com/dramas/005/episode-1.mp4',
+      thumbnail_url: 'https://example.com/dramas/005/episode-1.jpg',
+      description: '第一集简介',
+      created_at: '2026-07-27T14:00:00.000Z',
+      updated_at: '2026-07-27T14:00:00.000Z',
+    });
+
+    const result = await service.getRecentlyViewed(PLAYBACK_SESSION_ID);
+
+    expect(result.data.items).toHaveLength(3);
+    expect(result.data.items.map((item) => item.drama_id)).toEqual([
+      '550e8400-e29b-41d4-a716-446655440001',
+      '550e8400-e29b-41d4-a716-446655440002',
+      '550e8400-e29b-41d4-a716-446655440004',
+    ]);
+    expect(result.data.items[0]).toMatchObject({
+      title: '逆袭归来后我成了豪门团宠',
+      episode_number: 1,
+      progress: 120,
+    });
+    expect(result.data.items[1]).toMatchObject({
+      title: '离婚后前夫跪求复合',
+      episode_number: 1,
+      progress: 80,
+    });
+  });
+
   it('should throw EPISODE_NOT_FOUND when episode does not belong to drama', async () => {
     await expect(
       service.startPlayback(
@@ -108,6 +205,22 @@ describe('PlayerService', () => {
 
     const saved = await historyRepository.findLatest(PLAYBACK_SESSION_ID, DRAMA_ID);
     expect(saved?.progress).toBe(80);
+  });
+
+  it('should throw INTERNAL_ERROR when recently viewed response mapping fails', async () => {
+    await historyRepository.upsert({
+      playback_session_id: PLAYBACK_SESSION_ID,
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+      episode_id: '660e8400-e29b-41d4-a716-446655440001',
+      progress: 120,
+      duration: 180,
+      updated_at: 'not-an-iso-timestamp',
+    });
+
+    await expect(service.getRecentlyViewed(PLAYBACK_SESSION_ID)).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
+      message: 'Failed to map recently viewed response',
+    });
   });
 
   it('should throw DRAMA_NOT_FOUND when drama does not exist', async () => {

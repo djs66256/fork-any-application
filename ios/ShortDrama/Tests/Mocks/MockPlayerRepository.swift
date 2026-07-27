@@ -1,12 +1,13 @@
 import Foundation
 @testable import ShortDrama
 
-final class MockPlayerRepository: PlayerRepositoryProtocol, @unchecked Sendable {
+final class MockPlayerRepository: PlayerRepositoryProtocol, MenuPanelRepositoryProtocol, @unchecked Sendable {
     enum Call: Equatable {
         case fetchProgress(dramaId: String, playbackSessionId: String)
         case fetchEpisodes(dramaId: String)
         case start(request: StartPlaybackRequest, playbackSessionId: String)
         case stop(request: StopPlaybackRequest, playbackSessionId: String)
+        case fetchRecentlyViewed(playbackSessionId: String)
     }
 
     var progressResult: Result<PlayerProgress, Error> = .success(
@@ -33,6 +34,7 @@ final class MockPlayerRepository: PlayerRepositoryProtocol, @unchecked Sendable 
             updatedAt: "2026-07-26T00:00:00Z"
         )
     )
+    var recentlyViewedResult: Result<[RecentlyViewedItem], Error> = .success([])
 
     private(set) var calls: [Call] = []
 
@@ -60,5 +62,10 @@ final class MockPlayerRepository: PlayerRepositoryProtocol, @unchecked Sendable 
     ) async throws -> PlaybackStopReceipt {
         calls.append(.stop(request: request, playbackSessionId: playbackSessionId))
         return try stopResult.get()
+    }
+
+    func fetchRecentlyViewed(playbackSessionId: String) async throws -> [RecentlyViewedItem] {
+        calls.append(.fetchRecentlyViewed(playbackSessionId: playbackSessionId))
+        return try recentlyViewedResult.get()
     }
 }

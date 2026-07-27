@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
 
 struct PlayerRemoteDataSourceTests {
     private func makeSession(handler: @escaping URLProtocolMock.RequestHandler) -> URLSession {
@@ -31,12 +31,15 @@ struct PlayerRemoteDataSourceTests {
             #expect(request.url?.path == "/api/player/progress")
             #expect(request.url?.query == "dramaId=drama-001")
             #expect(request.value(forHTTPHeaderField: "X-Playback-Session-Id") == "session-001")
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let requestURL = try #require(request.url)
+            let response = try #require(
+                HTTPURLResponse(
+                    url: requestURL,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
             return (response, Data(responseBody.utf8))
         }
 
@@ -80,12 +83,15 @@ struct PlayerRemoteDataSourceTests {
             #expect(request.httpMethod == "GET")
             #expect(request.url?.path == "/api/dramas/drama-001/episodes")
             #expect(request.value(forHTTPHeaderField: "X-Playback-Session-Id") == nil)
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let requestURL = try #require(request.url)
+            let response = try #require(
+                HTTPURLResponse(
+                    url: requestURL,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
             return (response, Data(responseBody.utf8))
         }
 
@@ -96,6 +102,52 @@ struct PlayerRemoteDataSourceTests {
         #expect(response.data.seriesStatus == .completed)
         #expect(response.data.items.count == 1)
         #expect(response.data.items[0].description == "第一集简介")
+    }
+
+    @Test("T-05: recently viewed request decodes payload and injects playback session header")
+    func testFetchRecentlyViewed() async throws {
+        let responseBody = """
+        {
+          "code": 0,
+          "data": {
+            "items": [
+              {
+                "drama_id": "drama-001",
+                "title": "逆袭归来后我成了豪门团宠",
+                "cover_url": "https://example.com/cover.jpg",
+                "episode_number": 12,
+                "progress": 128.5,
+                "updated_at": "2026-07-27T15:20:00.000Z"
+              }
+            ]
+          },
+          "message": "ok"
+        }
+        """
+
+        let session = makeSession { request in
+            #expect(request.httpMethod == "GET")
+            #expect(request.url?.path == "/api/player/recently-viewed")
+            #expect(request.value(forHTTPHeaderField: "X-Playback-Session-Id") == "session-001")
+            let requestURL = try #require(request.url)
+            let response = try #require(
+                HTTPURLResponse(
+                    url: requestURL,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
+            return (response, Data(responseBody.utf8))
+        }
+
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let response = try await dataSource.fetchRecentlyViewed(playbackSessionId: "session-001")
+
+        #expect(response.data.items.count == 1)
+        #expect(response.data.items[0].dramaId == "drama-001")
+        #expect(response.data.items[0].coverUrl == "https://example.com/cover.jpg")
+        #expect(response.data.items[0].episodeNumber == 12)
     }
 
     @Test("T-03: start request sends body and header")
@@ -125,12 +177,15 @@ struct PlayerRemoteDataSourceTests {
             #expect(decoded.dramaId == "drama-001")
             #expect(decoded.episodeId == "episode-001")
             #expect(decoded.progress == 120)
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let requestURL = try #require(request.url)
+            let response = try #require(
+                HTTPURLResponse(
+                    url: requestURL,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
             return (response, Data(responseBody.utf8))
         }
 
@@ -172,12 +227,15 @@ struct PlayerRemoteDataSourceTests {
             #expect(decoded.episodeId == "episode-001")
             #expect(decoded.progress == 150)
             #expect(decoded.duration == 180)
-            let response = HTTPURLResponse(
-                url: request.url!,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let requestURL = try #require(request.url)
+            let response = try #require(
+                HTTPURLResponse(
+                    url: requestURL,
+                    statusCode: 200,
+                    httpVersion: nil,
+                    headerFields: nil
+                )
+            )
             return (response, Data(responseBody.utf8))
         }
 

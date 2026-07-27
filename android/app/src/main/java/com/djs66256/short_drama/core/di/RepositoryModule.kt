@@ -4,17 +4,20 @@ import com.djs66256.short_drama.core.storage.DataStorePlaybackSessionStore
 import com.djs66256.short_drama.core.storage.PlaybackSessionStore
 import com.djs66256.short_drama.data.datasource.ClassificationRemoteDataSource
 import com.djs66256.short_drama.data.datasource.DramaRemoteDataSource
+import com.djs66256.short_drama.data.datasource.MenuPanelRemoteDataSource
 import com.djs66256.short_drama.data.datasource.PlayerRemoteDataSource
 import com.djs66256.short_drama.data.datasource.RankingRemoteDataSource
 import com.djs66256.short_drama.data.datasource.SearchRemoteDataSource
 import com.djs66256.short_drama.data.local.SearchHistoryLocalDataSource
 import com.djs66256.short_drama.data.repository.ClassificationRepositoryImpl
 import com.djs66256.short_drama.data.repository.DramaRepositoryImpl
+import com.djs66256.short_drama.data.repository.MenuPanelRepositoryImpl
 import com.djs66256.short_drama.data.repository.PlayerRepositoryImpl
 import com.djs66256.short_drama.data.repository.RankingRepositoryImpl
 import com.djs66256.short_drama.data.repository.SearchRepositoryImpl
 import com.djs66256.short_drama.domain.repository.ClassificationRepository
 import com.djs66256.short_drama.domain.repository.DramaRepository
+import com.djs66256.short_drama.domain.repository.MenuPanelRepository
 import com.djs66256.short_drama.domain.repository.PlayerRepository
 import com.djs66256.short_drama.domain.repository.RankingRepository
 import com.djs66256.short_drama.domain.repository.SearchRepository
@@ -68,4 +71,10 @@ object RepositoryModule {
         remoteDataSource: PlayerRemoteDataSource,
         playbackSessionStore: PlaybackSessionStore,
     ): PlayerRepository = PlayerRepositoryImpl(remoteDataSource, playbackSessionStore)
+
+    @Provides
+    @Singleton
+    fun provideMenuPanelRepository(
+        remoteDataSource: MenuPanelRemoteDataSource,
+    ): MenuPanelRepository = MenuPanelRepositoryImpl(remoteDataSource)
 }

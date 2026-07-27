@@ -8,7 +8,7 @@ final class PlayerRemoteDataSource: @unchecked Sendable {
     }
 
     func fetchProgress(dramaId: String, playbackSessionId: String) async throws -> PlayerProgressResponseDTO {
-        let endpoint = PlayerEndpoints.GetProgress(
+        let endpoint = PlayerGetProgressEndpoint(
             dramaId: dramaId,
             playbackSessionId: playbackSessionId
         )
@@ -16,7 +16,12 @@ final class PlayerRemoteDataSource: @unchecked Sendable {
     }
 
     func fetchEpisodes(dramaId: String) async throws -> EpisodeListResponseDTO {
-        let endpoint = PlayerEndpoints.GetDramaEpisodes(dramaId: dramaId)
+        let endpoint = PlayerGetDramaEpisodesEndpoint(dramaId: dramaId)
+        return try await client.request(endpoint)
+    }
+
+    func fetchRecentlyViewed(playbackSessionId: String) async throws -> RecentlyViewedResponseDTO {
+        let endpoint = PlayerGetRecentlyViewedEndpoint(playbackSessionId: playbackSessionId)
         return try await client.request(endpoint)
     }
 
@@ -24,7 +29,7 @@ final class PlayerRemoteDataSource: @unchecked Sendable {
         request: StartPlaybackRequest,
         playbackSessionId: String
     ) async throws -> PlayerStartResponseDTO {
-        let endpoint = PlayerEndpoints.StartPlayback(
+        let endpoint = PlayerStartPlaybackEndpoint(
             request: PlayerStartRequestDTO(
                 dramaId: request.dramaId,
                 episodeId: request.episodeId,
@@ -39,7 +44,7 @@ final class PlayerRemoteDataSource: @unchecked Sendable {
         request: StopPlaybackRequest,
         playbackSessionId: String
     ) async throws -> PlayerStopResponseDTO {
-        let endpoint = PlayerEndpoints.StopPlayback(
+        let endpoint = PlayerStopPlaybackEndpoint(
             request: PlayerStopRequestDTO(
                 dramaId: request.dramaId,
                 episodeId: request.episodeId,
@@ -52,57 +57,67 @@ final class PlayerRemoteDataSource: @unchecked Sendable {
     }
 }
 
-enum PlayerEndpoints {
-    struct GetProgress: APIEndpoint {
-        typealias Response = PlayerProgressResponseDTO
+private struct PlayerGetProgressEndpoint: APIEndpoint {
+    typealias Response = PlayerProgressResponseDTO
 
-        let dramaId: String
-        let playbackSessionId: String
+    let dramaId: String
+    let playbackSessionId: String
 
-        var path: String { "/api/player/progress" }
-        var method: HTTPMethod { .get }
-        var queryItems: [URLQueryItem]? {
-            [URLQueryItem(name: "dramaId", value: dramaId)]
-        }
-        var headers: [String: String] {
-            ["X-Playback-Session-Id": playbackSessionId]
-        }
+    var path: String { "/api/player/progress" }
+    var method: HTTPMethod { .get }
+    var queryItems: [URLQueryItem]? {
+        [URLQueryItem(name: "dramaId", value: dramaId)]
     }
-
-    struct GetDramaEpisodes: APIEndpoint {
-        typealias Response = EpisodeListResponseDTO
-
-        let dramaId: String
-
-        var path: String { "/api/dramas/\(dramaId)/episodes" }
-        var method: HTTPMethod { .get }
+    var headers: [String: String] {
+        ["X-Playback-Session-Id": playbackSessionId]
     }
+}
 
-    struct StartPlayback: APIEndpoint {
-        typealias Response = PlayerStartResponseDTO
+private struct PlayerGetDramaEpisodesEndpoint: APIEndpoint {
+    typealias Response = EpisodeListResponseDTO
 
-        let request: PlayerStartRequestDTO
-        let playbackSessionId: String
+    let dramaId: String
 
-        var path: String { "/api/player/start" }
-        var method: HTTPMethod { .post }
-        var headers: [String: String] {
-            ["X-Playback-Session-Id": playbackSessionId]
-        }
-        var body: Encodable? { request }
+    var path: String { "/api/dramas/\(dramaId)/episodes" }
+    var method: HTTPMethod { .get }
+}
+
+private struct PlayerGetRecentlyViewedEndpoint: APIEndpoint {
+    typealias Response = RecentlyViewedResponseDTO
+
+    let playbackSessionId: String
+
+    var path: String { "/api/player/recently-viewed" }
+    var method: HTTPMethod { .get }
+    var headers: [String: String] {
+        ["X-Playback-Session-Id": playbackSessionId]
     }
+}
 
-    struct StopPlayback: APIEndpoint {
-        typealias Response = PlayerStopResponseDTO
+private struct PlayerStartPlaybackEndpoint: APIEndpoint {
+    typealias Response = PlayerStartResponseDTO
 
-        let request: PlayerStopRequestDTO
-        let playbackSessionId: String
+    let request: PlayerStartRequestDTO
+    let playbackSessionId: String
 
-        var path: String { "/api/player/stop" }
-        var method: HTTPMethod { .post }
-        var headers: [String: String] {
-            ["X-Playback-Session-Id": playbackSessionId]
-        }
-        var body: Encodable? { request }
+    var path: String { "/api/player/start" }
+    var method: HTTPMethod { .post }
+    var headers: [String: String] {
+        ["X-Playback-Session-Id": playbackSessionId]
     }
+    var body: Encodable? { request }
+}
+
+private struct PlayerStopPlaybackEndpoint: APIEndpoint {
+    typealias Response = PlayerStopResponseDTO
+
+    let request: PlayerStopRequestDTO
+    let playbackSessionId: String
+
+    var path: String { "/api/player/stop" }
+    var method: HTTPMethod { .post }
+    var headers: [String: String] {
+        ["X-Playback-Session-Id": playbackSessionId]
+    }
+    var body: Encodable? { request }
 }

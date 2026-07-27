@@ -38,6 +38,38 @@ export class PlaybackHistorySupabaseRepository implements PlaybackHistoryReposit
     return mapRowToPlaybackHistory(data);
   }
 
+  async listRecentBySession(playbackSessionId: string, limit: number): Promise<PlaybackHistory[]> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('playback_history')
+      .select(PLAYBACK_HISTORY_SELECT_COLUMNS)
+      .eq('playback_session_id', playbackSessionId)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      const message = error.message.toLowerCase();
+      const code = typeof error.code === 'string' ? error.code.toLowerCase() : '';
+      const isAvailabilityError = message.includes('failed to fetch')
+        || message.includes('network')
+        || message.includes('timeout')
+        || message.includes('unavailable')
+        || message.includes('connection')
+        || code === '08000'
+        || code === '08003'
+        || code === '08006'
+        || code === '57p01';
+
+      if (isAvailabilityError) {
+        throw Errors.serviceUnavailable('playback_history');
+      }
+
+      throw Errors.internal(`Failed to fetch recent playback history: ${error.message}`);
+    }
+
+    return (data ?? []).map(mapRowToPlaybackHistory);
+  }
+
   async upsert(input: UpsertPlaybackHistoryInput): Promise<PlaybackHistory> {
     const payload = {
       ...input,
