@@ -13,4 +13,10 @@ protocol DramaRepositoryProtocol: Sendable {
 
     /// Fetches hot search items.
     func fetchHotSearches() async throws -> [HotSearchItem]
+
+    /// Fetches ranking data for the given query.
+    func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama>
+
+    /// Books a drama for the current user.
+    func bookDrama(id: String) async throws -> BookDramaResult
 }

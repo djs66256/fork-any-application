@@ -1,7 +1,25 @@
-import { Drama, DramaSchema, HotSearchListResponse, HotSearchListResponseSchema } from '@/lib/schemas';
-import { DramaRepositoryInterface, PaginationParams, PaginatedResult, SearchDramasParams } from '@/repositories/interfaces/drama.repository.interface';
+import {
+  BookDramaResponse,
+  BookDramaResponseSchema,
+  Drama,
+  DramaSchema,
+  HotSearchListResponse,
+  HotSearchListResponseSchema,
+  RankingDrama,
+  RankingDramaSchema,
+} from '@/lib/schemas';
+import {
+  AuthContext,
+  BookDramaParams,
+  DramaRepositoryInterface,
+  PaginatedResult,
+  PaginationParams,
+  RankingParams,
+  SearchDramasParams,
+} from '@/repositories/interfaces/drama.repository.interface';
+import { Errors } from '@/lib/errors';
 
-const HOMEPAGE_DRAMAS: Drama[] = [
+const HOMEPAGE_RANKING_DRAMAS: RankingDrama[] = [
   {
     id: '550e8400-e29b-41d4-a716-446655440001',
     title: '逆袭归来后我成了豪门团宠',
@@ -13,6 +31,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.9,
     created_at: '2026-07-25T00:00:00Z',
     updated_at: '2026-07-25T00:00:00Z',
+    content_type: 'live_action',
+    play_count: 98210,
+    booking_count: 820,
+    recommendation_score: 58930.6,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440002',
@@ -25,6 +48,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.4,
     created_at: '2026-07-24T23:00:00Z',
     updated_at: '2026-07-24T23:00:00Z',
+    content_type: 'live_action',
+    play_count: 93450,
+    booking_count: 760,
+    recommendation_score: 56410,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440003',
@@ -37,6 +65,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.7,
     created_at: '2026-07-24T22:00:00Z',
     updated_at: '2026-07-24T22:00:00Z',
+    content_type: 'ai',
+    play_count: 91500,
+    booking_count: 1200,
+    recommendation_score: 61123.4,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440004',
@@ -49,6 +82,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.2,
     created_at: '2026-07-24T21:00:00Z',
     updated_at: '2026-07-24T21:00:00Z',
+    content_type: 'live_action',
+    play_count: 84210,
+    booking_count: 680,
+    recommendation_score: 52000.8,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440005',
@@ -61,6 +99,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 7.8,
     created_at: '2026-07-24T20:00:00Z',
     updated_at: '2026-07-24T20:00:00Z',
+    content_type: 'ai',
+    play_count: 80300,
+    booking_count: 980,
+    recommendation_score: 55210.2,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440006',
@@ -73,6 +116,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.1,
     created_at: '2026-07-24T19:00:00Z',
     updated_at: '2026-07-24T19:00:00Z',
+    content_type: 'live_action',
+    play_count: 76540,
+    booking_count: 450,
+    recommendation_score: 49876.9,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440007',
@@ -85,6 +133,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.6,
     created_at: '2026-07-24T18:00:00Z',
     updated_at: '2026-07-24T18:00:00Z',
+    content_type: 'live_action',
+    play_count: 72110,
+    booking_count: 390,
+    recommendation_score: 47011.1,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440008',
@@ -97,6 +150,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.8,
     created_at: '2026-07-24T17:00:00Z',
     updated_at: '2026-07-24T17:00:00Z',
+    content_type: 'ai',
+    play_count: 68900,
+    booking_count: 1110,
+    recommendation_score: 54000.5,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440009',
@@ -109,6 +167,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 7.9,
     created_at: '2026-07-24T16:00:00Z',
     updated_at: '2026-07-24T16:00:00Z',
+    content_type: 'ai',
+    play_count: 64320,
+    booking_count: 610,
+    recommendation_score: 45123.9,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440010',
@@ -121,6 +184,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: null,
     created_at: '2026-07-24T15:00:00Z',
     updated_at: '2026-07-24T15:00:00Z',
+    content_type: 'live_action',
+    play_count: 61880,
+    booking_count: 880,
+    recommendation_score: 46600.4,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440011',
@@ -133,6 +201,11 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8.3,
     created_at: '2026-07-24T14:00:00Z',
     updated_at: '2026-07-24T14:00:00Z',
+    content_type: 'live_action',
+    play_count: 58770,
+    booking_count: 300,
+    recommendation_score: 42010,
+    is_booked: false,
   },
   {
     id: '550e8400-e29b-41d4-a716-446655440012',
@@ -145,8 +218,13 @@ const HOMEPAGE_DRAMAS: Drama[] = [
     rating: 8,
     created_at: '2026-07-24T13:00:00Z',
     updated_at: '2026-07-24T13:00:00Z',
+    content_type: 'ai',
+    play_count: 55200,
+    booking_count: 1300,
+    recommendation_score: 51000,
+    is_booked: false,
   },
-].map((drama) => DramaSchema.parse(drama));
+].map((drama) => RankingDramaSchema.parse(drama));
 
 const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.parse({
   data: [
@@ -170,6 +248,28 @@ function cloneDrama(drama: Drama): Drama {
   };
 }
 
+function cloneRankingDrama(drama: RankingDrama): RankingDrama {
+  return {
+    ...drama,
+    tags: [...drama.tags],
+  };
+}
+
+function toDrama(drama: RankingDrama): Drama {
+  return DramaSchema.parse({
+    id: drama.id,
+    title: drama.title,
+    description: drama.description,
+    cover_url: drama.cover_url,
+    category: drama.category,
+    episode_count: drama.episode_count,
+    tags: drama.tags,
+    rating: drama.rating,
+    created_at: drama.created_at,
+    updated_at: drama.updated_at,
+  });
+}
+
 function normalizeSearchValue(value: string): string {
   return value.trim().toLocaleLowerCase();
 }
@@ -191,15 +291,39 @@ function paginate<T>(items: T[], params: PaginationParams): PaginatedResult<T> {
   };
 }
 
-export class DramaMockRepository implements DramaRepositoryInterface {
-  private data: Map<string, Drama>;
+function rankingValue(drama: RankingDrama, type: RankingParams['type']): number {
+  switch (type) {
+    case 'hot':
+      return drama.play_count;
+    case 'recommend':
+      return drama.recommendation_score;
+    case 'booking':
+      return drama.booking_count;
+  }
+}
 
-  constructor(initialData: Drama[] = HOMEPAGE_DRAMAS) {
-    this.data = new Map(initialData.map((drama) => [drama.id, cloneDrama(drama)]));
+function sortRankings(items: RankingDrama[], type: RankingParams['type']): RankingDrama[] {
+  return [...items].sort((left, right) => {
+    const difference = rankingValue(right, type) - rankingValue(left, type);
+    if (difference !== 0) {
+      return difference;
+    }
+
+    return right.created_at.localeCompare(left.created_at);
+  });
+}
+
+export class DramaMockRepository implements DramaRepositoryInterface {
+  private data: Map<string, RankingDrama>;
+  private bookings: Set<string>;
+
+  constructor(initialData: RankingDrama[] = HOMEPAGE_RANKING_DRAMAS) {
+    this.data = new Map(initialData.map((drama) => [drama.id, cloneRankingDrama(drama)]));
+    this.bookings = new Set();
   }
 
   async findMany(params: PaginationParams): Promise<PaginatedResult<Drama>> {
-    const all = Array.from(this.data.values()).map(cloneDrama);
+    const all = Array.from(this.data.values()).map((drama) => cloneDrama(toDrama(drama)));
     return paginate(all, params);
   }
 
@@ -211,9 +335,24 @@ export class DramaMockRepository implements DramaRepositoryInterface {
         const category = normalizeSearchValue(drama.category);
         return title.includes(normalizedQuery) || category.includes(normalizedQuery);
       })
-      .map(cloneDrama);
+      .map((drama) => cloneDrama(toDrama(drama)));
 
     return paginate(matched, params);
+  }
+
+  async listRankings(
+    params: RankingParams,
+    authContext?: AuthContext,
+  ): Promise<PaginatedResult<RankingDrama>> {
+    const filtered = Array.from(this.data.values())
+      .filter((drama) => params.contentType === 'all' || drama.content_type === params.contentType)
+      .map((drama) => {
+        const cloned = cloneRankingDrama(drama);
+        cloned.is_booked = authContext ? this.bookings.has(`${authContext.userId}:${cloned.id}`) : false;
+        return cloned;
+      });
+
+    return paginate(sortRankings(filtered, params.type), params);
   }
 
   async listHotSearches(): Promise<HotSearchListResponse> {
@@ -222,23 +361,61 @@ export class DramaMockRepository implements DramaRepositoryInterface {
     };
   }
 
+  async bookDrama(params: BookDramaParams): Promise<BookDramaResponse> {
+    const existing = this.data.get(params.dramaId);
+    if (!existing) {
+      throw Errors.notFound('Drama', params.dramaId);
+    }
+
+    const bookingKey = `${params.userId}:${params.dramaId}`;
+    if (this.bookings.has(bookingKey)) {
+      return BookDramaResponseSchema.parse({
+        drama_id: params.dramaId,
+        booked: true,
+        booking_count: existing.booking_count,
+      });
+    }
+
+    this.bookings.add(bookingKey);
+
+    const updated = RankingDramaSchema.parse({
+      ...existing,
+      booking_count: existing.booking_count + 1,
+      updated_at: new Date().toISOString(),
+      is_booked: true,
+    });
+
+    this.data.set(updated.id, updated);
+
+    return BookDramaResponseSchema.parse({
+      drama_id: updated.id,
+      booked: true,
+      booking_count: updated.booking_count,
+    });
+  }
+
   async findById(id: string): Promise<Drama | null> {
     const drama = this.data.get(id);
-    return drama ? cloneDrama(drama) : null;
+    return drama ? cloneDrama(toDrama(drama)) : null;
   }
 
   async create(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): Promise<Drama> {
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
-    const drama = DramaSchema.parse({
+    const drama = RankingDramaSchema.parse({
       ...data,
       id,
       created_at: now,
       updated_at: now,
+      content_type: 'live_action',
+      play_count: 0,
+      booking_count: 0,
+      recommendation_score: 0,
+      is_booked: false,
     });
 
     this.data.set(id, drama);
-    return cloneDrama(drama);
+    return cloneDrama(toDrama(drama));
   }
 
   async update(
@@ -248,17 +425,23 @@ export class DramaMockRepository implements DramaRepositoryInterface {
     const existing = this.data.get(id);
     if (!existing) return null;
 
-    const updated = DramaSchema.parse({
+    const updated = RankingDramaSchema.parse({
       ...existing,
       ...data,
       updated_at: new Date().toISOString(),
     });
 
     this.data.set(id, updated);
-    return cloneDrama(updated);
+    return cloneDrama(toDrama(updated));
   }
 
   async delete(id: string): Promise<boolean> {
+    for (const bookingKey of this.bookings) {
+      if (bookingKey.endsWith(`:${id}`)) {
+        this.bookings.delete(bookingKey);
+      }
+    }
+
     return this.data.delete(id);
   }
 }

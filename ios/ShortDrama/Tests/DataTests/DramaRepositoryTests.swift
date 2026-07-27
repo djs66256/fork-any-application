@@ -69,6 +69,48 @@ struct DramaRepositoryTests {
         """
     }
 
+    private func makeRankingPayload() -> String {
+        """
+        {
+          "data": [
+            {
+              "id": "ranking-001",
+              "title": "逆袭归来后我成了豪门团宠",
+              "description": "排行榜结果",
+              "cover_url": "https://example.com/ranking.jpg",
+              "category": "都市",
+              "episode_count": 68,
+              "tags": ["逆袭", "豪门"],
+              "rating": 8.9,
+              "created_at": "2026-07-25T00:00:00Z",
+              "updated_at": "2026-07-25T00:00:00Z",
+              "content_type": "live_action",
+              "play_count": 98210,
+              "booking_count": 820,
+              "recommendation_score": 58930.6,
+              "is_booked": false
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 12,
+            "total_pages": 2
+          }
+        }
+        """
+    }
+
+    private func makeBookingPayload() -> String {
+        """
+        {
+          "drama_id": "ranking-001",
+          "booked": true,
+          "booking_count": 821
+        }
+        """
+    }
+
     private func makeSession(handler: @escaping URLProtocolMock.RequestHandler) -> URLSession {
         URLProtocolMock.handler = handler
         let config = URLSessionConfiguration.ephemeral
@@ -157,6 +199,57 @@ struct DramaRepositoryTests {
         #expect(items[0].score == 9821)
     }
 
+    @Test("ranking repository maps ranking response to entities")
+    func testFetchRankingsMapsCanonicalResponse() async throws {
+        let url = URL(string: "https://api.example.com/api/dramas/rankings?type=hot&contentType=all&page=1&pageSize=10")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/rankings")
+            #expect(request.url?.query?.contains("type=hot") == true)
+            #expect(request.url?.query?.contains("contentType=all") == true)
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(self.makeRankingPayload().utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let dataSource = DramaRemoteDataSource(client: client)
+        let repository = DramaRepository(dataSource: dataSource)
+
+        let result = try await repository.fetchRankings(
+            query: RankingQuery(type: .hot, contentType: .all, page: 1, pageSize: 10)
+        )
+
+        #expect(result.items.count == 1)
+        #expect(result.page == 1)
+        #expect(result.totalPages == 2)
+        #expect(result.items[0].id == "ranking-001")
+        #expect(result.items[0].contentType == .liveAction)
+        #expect(result.items[0].playCount == 98210)
+        #expect(result.items[0].recommendationScore == 58930.6)
+    }
+
+    @Test("booking repository maps booking response to entity")
+    func testBookDramaMapsCanonicalResponse() async throws {
+        let url = URL(string: "https://api.example.com/api/dramas/ranking-001/book")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/ranking-001/book")
+            #expect(request.httpMethod == "POST")
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(self.makeBookingPayload().utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let dataSource = DramaRemoteDataSource(client: client)
+        let repository = DramaRepository(dataSource: dataSource)
+
+        let result = try await repository.bookDrama(id: "ranking-001")
+
+        #expect(result.dramaID == "ranking-001")
+        #expect(result.booked == true)
+        #expect(result.bookingCount == 821)
+    }
+
     @Test("T-25: MockDramaRepository returns empty array on empty response")
     func testMockFetchDramasEmptySuccess() async throws {
         let mock = MockDramaRepository()
@@ -226,6 +319,59 @@ struct DramaRepositoryTests {
         #expect(items.count == 1)
         #expect(items[0].keyword == "逆袭")
         #expect(mock.fetchHotSearchesCallCount == 1)
+    }
+
+    @Test("mock ranking repository tracks query arguments")
+    func testMockRankingTracksArguments() async throws {
+        let mock = MockDramaRepository()
+        let result = PagedResult(
+            items: [
+                RankingDrama(
+                    id: "ranking-1",
+                    title: "排行短剧",
+                    description: "描述",
+                    coverUrl: "https://example.com/cover.jpg",
+                    category: "都市",
+                    episodeCount: 8,
+                    tags: nil,
+                    rating: nil,
+                    createdAt: "2026-01-01T00:00:00Z",
+                    updatedAt: "2026-01-01T00:00:00Z",
+                    contentType: .all,
+                    playCount: 1,
+                    bookingCount: 2,
+                    recommendationScore: 3,
+                    isBooked: false
+                )
+            ],
+            page: 1,
+            pageSize: 10,
+            total: 1,
+            totalPages: 1
+        )
+        mock.rankingBehavior = .success(result)
+
+        let query = RankingQuery(type: .recommend, contentType: .ai, page: 2, pageSize: 10)
+        let fetched = try await mock.fetchRankings(query: query)
+
+        #expect(fetched == result)
+        #expect(mock.fetchRankingsCallCount == 1)
+        #expect(mock.lastRankingQuery == query)
+    }
+
+    @Test("mock booking repository tracks drama id")
+    func testMockBookingTracksArguments() async throws {
+        let mock = MockDramaRepository()
+        mock.bookingBehavior = .success(
+            BookDramaResult(dramaID: "ranking-1", booked: true, bookingCount: 9)
+        )
+
+        let result = try await mock.bookDrama(id: "ranking-1")
+
+        #expect(result.dramaID == "ranking-1")
+        #expect(result.bookingCount == 9)
+        #expect(mock.bookDramaCallCount == 1)
+        #expect(mock.lastBookedDramaID == "ranking-1")
     }
 
     @Test("T-26: MockDramaRepository propagates notImplemented errors")

@@ -32,6 +32,7 @@ import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
+import com.djs66256.short_drama.feature.ranking.ui.RankingScreen
 import com.djs66256.short_drama.feature.search.ui.SearchHomeScreen
 import com.djs66256.short_drama.feature.search.ui.SearchResultScreen
 
@@ -183,10 +184,27 @@ fun NavGraph(
                         onOpenDetail = { dramaId -> navController.navigate(AppDestination.detail(dramaId)) },
                     )
                 }
-                composable(route = AppDestination.Route.RANKING) {
-                    PlaceholderScreen(
-                        title = "排行",
-                        description = "排行功能建设中，后续 PRD 将在此接入真实页面。",
+                composable(
+                    route = AppDestination.Route.RANKING,
+                    arguments = listOf(
+                        navArgument(AppDestination.Arg.CONTENT_TYPE) {
+                            type = NavType.StringType
+                            defaultValue = "all"
+                        },
+                        navArgument(AppDestination.Arg.TYPE) {
+                            type = NavType.StringType
+                            defaultValue = "hot"
+                        },
+                    ),
+                ) {
+                    RankingScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPlay = { videoId ->
+                            navController.navigate(AppDestination.play(videoId))
+                        },
+                        onRequireLogin = { _ ->
+                            // Login flow is not implemented in this PRD yet.
+                        },
                     )
                 }
                 composable(route = AppDestination.Route.CLASSIFICATION) {

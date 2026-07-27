@@ -62,6 +62,32 @@ struct GetHotSearchesEndpoint: APIEndpoint {
     var method: HTTPMethod { .get }
 }
 
+struct GetRankingsEndpoint: APIEndpoint {
+    typealias Response = RankingListResponseDTO
+
+    let query: RankingQuery
+
+    var path: String { "/api/dramas/rankings" }
+    var method: HTTPMethod { .get }
+    var queryItems: [URLQueryItem]? {
+        [
+            URLQueryItem(name: "type", value: query.type.rawValue),
+            URLQueryItem(name: "contentType", value: query.contentType.requestValue),
+            URLQueryItem(name: "page", value: String(query.page)),
+            URLQueryItem(name: "pageSize", value: String(query.pageSize))
+        ]
+    }
+}
+
+struct BookDramaEndpoint: APIEndpoint {
+    typealias Response = BookDramaResponseDTO
+
+    let dramaID: String
+
+    var path: String { "/api/dramas/\(dramaID)/book" }
+    var method: HTTPMethod { .post }
+}
+
 /// API endpoint definitions for drama resources.
 enum DramaEndpoints {
     static func getDramas(page: Int, pageSize: Int) -> GetDramasEndpoint {
@@ -78,6 +104,14 @@ enum DramaEndpoints {
 
     static func getHotSearches() -> GetHotSearchesEndpoint {
         GetHotSearchesEndpoint()
+    }
+
+    static func getRankings(query: RankingQuery) -> GetRankingsEndpoint {
+        GetRankingsEndpoint(query: query)
+    }
+
+    static func bookDrama(id: String) -> BookDramaEndpoint {
+        BookDramaEndpoint(dramaID: id)
     }
 }
 
@@ -116,5 +150,17 @@ final class DramaRemoteDataSource: @unchecked Sendable {
         let endpoint = DramaEndpoints.getHotSearches()
         let response: HotSearchListResponseDTO = try await client.request(endpoint)
         return response.data
+    }
+
+    /// Fetches rankings for the given query.
+    func fetchRankings(query: RankingQuery) async throws -> RankingListResponseDTO {
+        let endpoint = DramaEndpoints.getRankings(query: query)
+        return try await client.request(endpoint)
+    }
+
+    /// Books a drama.
+    func bookDrama(id: String) async throws -> BookDramaResponseDTO {
+        let endpoint = DramaEndpoints.bookDrama(id: id)
+        return try await client.request(endpoint)
     }
 }

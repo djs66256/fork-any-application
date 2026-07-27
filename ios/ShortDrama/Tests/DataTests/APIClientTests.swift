@@ -145,6 +145,28 @@ struct APIClientTests {
         #expect(endpoint.queryItems == nil)
     }
 
+    @Test("ranking endpoint uses canonical path and query")
+    func testRankingEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.getRankings(
+            query: RankingQuery(type: .hot, contentType: .all, page: 1, pageSize: 10)
+        )
+
+        #expect(endpoint.path == "/api/dramas/rankings")
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "type", value: "hot")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "contentType", value: "all")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page", value: "1")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "pageSize", value: "10")) == true)
+    }
+
+    @Test("booking endpoint uses canonical path and post method")
+    func testBookingEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.bookDrama(id: "drama-001")
+
+        #expect(endpoint.path == "/api/dramas/drama-001/book")
+        #expect(endpoint.method == .post)
+        #expect(endpoint.queryItems == nil)
+    }
+
     @Test("T-02: Drama list response decodes canonical payload")
     func testDramaListResponseDecoding() async throws {
         let json = """
@@ -265,6 +287,86 @@ struct APIClientTests {
         #expect(response.data.first?.rank == 1)
         #expect(response.data.first?.keyword == "逆袭")
         #expect(response.data.first?.score == 9821)
+    }
+
+    @Test("ranking response decodes canonical payload")
+    func testRankingResponseDecoding() async throws {
+        let json = """
+        {
+          "data": [
+            {
+              "id": "ranking-001",
+              "title": "逆袭归来后我成了豪门团宠",
+              "description": "排行榜结果",
+              "cover_url": "https://example.com/ranking.jpg",
+              "category": "都市",
+              "episode_count": 68,
+              "tags": ["逆袭", "豪门"],
+              "rating": 8.9,
+              "created_at": "2026-07-25T00:00:00Z",
+              "updated_at": "2026-07-25T00:00:00Z",
+              "content_type": "live_action",
+              "play_count": 98210,
+              "booking_count": 820,
+              "recommendation_score": 58930.6,
+              "is_booked": false
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 12,
+            "total_pages": 2
+          }
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/rankings?type=hot&contentType=all&page=1&pageSize=10")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/rankings")
+            #expect(request.url?.query?.contains("type=hot") == true)
+            #expect(request.url?.query?.contains("contentType=all") == true)
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.getRankings(
+            query: RankingQuery(type: .hot, contentType: .all, page: 1, pageSize: 10)
+        )
+        let response: RankingListResponseDTO = try await client.request(endpoint)
+
+        #expect(response.data.count == 1)
+        #expect(response.data.first?.id == "ranking-001")
+        #expect(response.data.first?.contentType == .liveAction)
+        #expect(response.pagination.totalPages == 2)
+    }
+
+    @Test("booking response decodes canonical payload")
+    func testBookingResponseDecoding() async throws {
+        let json = """
+        {
+          "drama_id": "ranking-001",
+          "booked": true,
+          "booking_count": 821
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/ranking-001/book")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/ranking-001/book")
+            #expect(request.httpMethod == "POST")
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.bookDrama(id: "ranking-001")
+        let response: BookDramaResponseDTO = try await client.request(endpoint)
+
+        #expect(response.dramaID == "ranking-001")
+        #expect(response.booked == true)
+        #expect(response.bookingCount == 821)
     }
 
     @Test("APIClient throws server error on 400 response")

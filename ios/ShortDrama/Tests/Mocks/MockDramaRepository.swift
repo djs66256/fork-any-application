@@ -4,7 +4,7 @@ import Foundation
 /// Mock implementation of DramaRepositoryProtocol for testing.
 final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
 
-    enum MockBehavior {
+    enum DramaBehavior {
         case success([Drama])
         case failure(APIError)
         case delayed([Drama], TimeInterval)
@@ -16,14 +16,36 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         case delayed([HotSearchItem], TimeInterval)
     }
 
-    var behavior: MockBehavior = .success([])
-    var queuedBehaviors: [MockBehavior] = []
+    enum RankingBehavior {
+        case success(PagedResult<RankingDrama>)
+        case failure(APIError)
+        case delayed(PagedResult<RankingDrama>, TimeInterval)
+    }
 
-    var searchBehavior: MockBehavior = .success([])
-    var queuedSearchBehaviors: [MockBehavior] = []
+    enum BookingBehavior {
+        case success(BookDramaResult)
+        case failure(APIError)
+        case delayed(BookDramaResult, TimeInterval)
+    }
+
+    var behavior: DramaBehavior = .success([])
+    var queuedBehaviors: [DramaBehavior] = []
+
+    var searchBehavior: DramaBehavior = .success([])
+    var queuedSearchBehaviors: [DramaBehavior] = []
 
     var hotSearchBehavior: HotSearchBehavior = .success([])
     var queuedHotSearchBehaviors: [HotSearchBehavior] = []
+
+    var rankingBehavior: RankingBehavior = .success(
+        PagedResult(items: [], page: 1, pageSize: 10, total: 0, totalPages: 1)
+    )
+    var queuedRankingBehaviors: [RankingBehavior] = []
+
+    var bookingBehavior: BookingBehavior = .success(
+        BookDramaResult(dramaID: "", booked: true, bookingCount: 0)
+    )
+    var queuedBookingBehaviors: [BookingBehavior] = []
 
     private(set) var fetchDramasCallCount = 0
     private(set) var lastRequestedPage: Int?
@@ -35,6 +57,12 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     private(set) var lastSearchPageSize: Int?
 
     private(set) var fetchHotSearchesCallCount = 0
+
+    private(set) var fetchRankingsCallCount = 0
+    private(set) var lastRankingQuery: RankingQuery?
+
+    private(set) var bookDramaCallCount = 0
+    private(set) var lastBookedDramaID: String?
 
     func fetchDramas(page: Int, pageSize: Int) async throws -> [Drama] {
         fetchDramasCallCount += 1
@@ -89,7 +117,45 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         }
     }
 
-    private func resolveDramaBehavior(_ behavior: MockBehavior) async throws -> [Drama] {
+    func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama> {
+        fetchRankingsCallCount += 1
+        lastRankingQuery = query
+
+        let currentBehavior = queuedRankingBehaviors.isEmpty
+            ? rankingBehavior
+            : queuedRankingBehaviors.removeFirst()
+
+        switch currentBehavior {
+        case .success(let result):
+            return result
+        case .failure(let error):
+            throw error
+        case .delayed(let result, let delay):
+            try await Task.sleep(for: .seconds(delay))
+            return result
+        }
+    }
+
+    func bookDrama(id: String) async throws -> BookDramaResult {
+        bookDramaCallCount += 1
+        lastBookedDramaID = id
+
+        let currentBehavior = queuedBookingBehaviors.isEmpty
+            ? bookingBehavior
+            : queuedBookingBehaviors.removeFirst()
+
+        switch currentBehavior {
+        case .success(let result):
+            return result
+        case .failure(let error):
+            throw error
+        case .delayed(let result, let delay):
+            try await Task.sleep(for: .seconds(delay))
+            return result
+        }
+    }
+
+    private func resolveDramaBehavior(_ behavior: DramaBehavior) async throws -> [Drama] {
         switch behavior {
         case .success(let dramas):
             return dramas

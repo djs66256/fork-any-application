@@ -3,6 +3,8 @@ package com.djs66256.short_drama.core.network
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 class ApiServiceTest {
@@ -39,6 +41,27 @@ class ApiServiceTest {
         val getAnnotation = method.getAnnotation(GET::class.java)
 
         assertEquals("dramas/hot-search", getAnnotation.value)
+    }
+
+    @Test
+    fun `T-10 getDramaRankings uses canonical path and query names`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "getDramaRankings" }
+        val getAnnotation = method.getAnnotation(GET::class.java)
+
+        assertEquals("dramas/rankings", getAnnotation.value)
+        assertEquals("type", method.parameterAnnotations[0].filterIsInstance<Query>().single().value)
+        assertEquals("contentType", method.parameterAnnotations[1].filterIsInstance<Query>().single().value)
+        assertEquals("page", method.parameterAnnotations[2].filterIsInstance<Query>().single().value)
+        assertEquals("pageSize", method.parameterAnnotations[3].filterIsInstance<Query>().single().value)
+    }
+
+    @Test
+    fun `T-10 bookDrama uses canonical path parameter`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "bookDrama" }
+        val postAnnotation = method.getAnnotation(POST::class.java)
+
+        assertEquals("dramas/{id}/book", postAnnotation.value)
+        assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
     }
 
     @Test

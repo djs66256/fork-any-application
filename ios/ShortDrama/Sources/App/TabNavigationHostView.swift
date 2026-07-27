@@ -17,7 +17,7 @@ struct TabNavigationHostView: View {
                     case .searchResult(let query):
                         SearchResultView(query: query)
                     case .rankingHome:
-                        DiscoveryPlaceholderView(kind: .ranking)
+                        RankingHomeView()
                     case .classificationHome:
                         DiscoveryPlaceholderView(kind: .classification)
                     case .newReleases:
