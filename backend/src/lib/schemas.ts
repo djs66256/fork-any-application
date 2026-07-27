@@ -27,6 +27,22 @@ export const DramaSchema = z.object({
 
 export type Drama = z.infer<typeof DramaSchema>;
 
+export const RankingTypeSchema = z.enum(['hot', 'recommend', 'booking']);
+export type RankingType = z.infer<typeof RankingTypeSchema>;
+
+export const RankingContentTypeSchema = z.enum(['all', 'live_action', 'ai']);
+export type RankingContentType = z.infer<typeof RankingContentTypeSchema>;
+
+export const RankingDramaSchema = DramaSchema.extend({
+  content_type: z.enum(['live_action', 'ai']),
+  play_count: z.number().int().min(0),
+  booking_count: z.number().int().min(0),
+  recommendation_score: z.number().min(0),
+  is_booked: z.boolean().default(false),
+});
+
+export type RankingDrama = z.infer<typeof RankingDramaSchema>;
+
 export const EpisodeSchema = z.object({
   id: z.string().uuid(),
   drama_id: z.string().uuid(),
@@ -42,17 +58,26 @@ export const EpisodeSchema = z.object({
 
 export type Episode = z.infer<typeof EpisodeSchema>;
 
+export const PaginationSchema = z.object({
+  page: z.number().int().min(1),
+  page_size: z.number().int().min(1),
+  total: z.number().int().min(0),
+  total_pages: z.number().int().min(0),
+});
+
 export const DramaListResponseSchema = z.object({
   data: z.array(DramaSchema),
-  pagination: z.object({
-    page: z.number().int().min(1),
-    page_size: z.number().int().min(1),
-    total: z.number().int().min(0),
-    total_pages: z.number().int().min(0),
-  }),
+  pagination: PaginationSchema,
 });
 
 export type DramaListResponse = z.infer<typeof DramaListResponseSchema>;
+
+export const RankingListResponseSchema = z.object({
+  data: z.array(RankingDramaSchema),
+  pagination: PaginationSchema,
+});
+
+export type RankingListResponse = z.infer<typeof RankingListResponseSchema>;
 
 export const SearchDramaQuerySchema = z.object({
   q: z.string().trim().min(1).max(50),
@@ -61,6 +86,23 @@ export const SearchDramaQuerySchema = z.object({
 });
 
 export type SearchDramaQuery = z.infer<typeof SearchDramaQuerySchema>;
+
+export const RankingQuerySchema = z.object({
+  type: RankingTypeSchema.default('hot'),
+  contentType: RankingContentTypeSchema.default('all'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(10),
+});
+
+export type RankingQuery = z.infer<typeof RankingQuerySchema>;
+
+export const BookDramaResponseSchema = z.object({
+  drama_id: z.string().uuid(),
+  booked: z.literal(true),
+  booking_count: z.number().int().min(0),
+});
+
+export type BookDramaResponse = z.infer<typeof BookDramaResponseSchema>;
 
 export const HotSearchItemSchema = z.object({
   rank: z.number().int().min(1),

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.djs66256.short_drama.core.config.AppConfig
 import com.djs66256.short_drama.core.config.BuildConfigAppConfig
+import com.djs66256.short_drama.domain.repository.AuthSessionProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,4 +41,10 @@ object AppModule {
     ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
         produceFile = { context.preferencesDataStoreFile("short_drama.preferences_pb") },
     )
+
+    @Provides
+    @Singleton
+    fun provideAuthSessionProvider(): AuthSessionProvider = object : AuthSessionProvider {
+        override fun isLoggedIn(): Boolean = false
+    }
 }

@@ -1,5 +1,7 @@
 package com.djs66256.short_drama.navigation
 
+import com.djs66256.short_drama.domain.model.RankingContentType
+import com.djs66256.short_drama.domain.model.RankingType
 import com.djs66256.short_drama.domain.model.normalizeSearchQuery
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -29,6 +31,8 @@ object Arg {
     const val VIDEO_ID = "videoId"
     const val DRAMA_ID = "dramaId"
     const val QUERY = "query"
+    const val CONTENT_TYPE = "contentType"
+    const val TYPE = "type"
 }
 
 object Route {
@@ -43,7 +47,7 @@ object Route {
     const val DRAMA_DETAIL_ALIAS = "dramaDetail/{dramaId}"
     const val SEARCH = "search"
     const val SEARCH_RESULT = "search/result?query={query}"
-    const val RANKING = "ranking"
+    const val RANKING = "ranking?contentType={contentType}&type={type}"
     const val CLASSIFICATION = "classification"
     const val NEW_RELEASES = "new-releases"
     const val ACTORS = "actors"
@@ -81,6 +85,8 @@ object AppDestination {
         const val VIDEO_ID = com.djs66256.short_drama.navigation.Arg.VIDEO_ID
         const val DRAMA_ID = com.djs66256.short_drama.navigation.Arg.DRAMA_ID
         const val QUERY = com.djs66256.short_drama.navigation.Arg.QUERY
+        const val CONTENT_TYPE = com.djs66256.short_drama.navigation.Arg.CONTENT_TYPE
+        const val TYPE = com.djs66256.short_drama.navigation.Arg.TYPE
     }
 
     val topLevelTabs = TopLevelTab.entries
@@ -97,7 +103,10 @@ object AppDestination {
 
     fun searchResult(query: String): String = "search/result?query=${encodeRouteParam(normalizeSearchQuery(query))}"
 
-    fun ranking(): String = Route.RANKING
+    fun ranking(
+        contentType: RankingContentType = RankingContentType.ALL,
+        type: RankingType = RankingType.HOT,
+    ): String = "ranking?contentType=${contentType.apiValue}&type=${type.apiValue}"
 
     fun classification(): String = Route.CLASSIFICATION
 

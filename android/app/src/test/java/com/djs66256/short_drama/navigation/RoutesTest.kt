@@ -1,5 +1,7 @@
 package com.djs66256.short_drama.navigation
 
+import com.djs66256.short_drama.domain.model.RankingContentType
+import com.djs66256.short_drama.domain.model.RankingType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -40,10 +42,32 @@ class RoutesTest {
 
     @Test
     fun `T-01 quick entry routes are canonical`() {
-        assertEquals("ranking", AppDestination.ranking())
+        assertEquals("ranking?contentType=all&type=hot", AppDestination.ranking())
         assertEquals("classification", AppDestination.classification())
         assertEquals("new-releases", AppDestination.newReleases())
         assertEquals("actors", AppDestination.actors())
+    }
+
+    @Test
+    fun `T-10 ranking route uses canonical default query args`() {
+        assertEquals(
+            "ranking?contentType=all&type=hot",
+            AppDestination.ranking(
+                contentType = RankingContentType.ALL,
+                type = RankingType.HOT,
+            ),
+        )
+    }
+
+    @Test
+    fun `T-10 ranking route encodes selected tabs in query args`() {
+        assertEquals(
+            "ranking?contentType=ai&type=booking",
+            AppDestination.ranking(
+                contentType = RankingContentType.AI,
+                type = RankingType.BOOKING,
+            ),
+        )
     }
 
     @Test

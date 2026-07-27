@@ -29,4 +29,14 @@ struct DramaRepository: DramaRepositoryProtocol, Sendable {
         let dtos = try await dataSource.fetchHotSearches()
         return dtos.map { $0.toEntity() }
     }
+
+    func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama> {
+        let response = try await dataSource.fetchRankings(query: query)
+        return response.toEntity()
+    }
+
+    func bookDrama(id: String) async throws -> BookDramaResult {
+        let response = try await dataSource.bookDrama(id: id)
+        return response.toEntity()
+    }
 }

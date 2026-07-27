@@ -55,11 +55,11 @@ describe('DramaMockRepository', () => {
     const created = await emptyRepo.create(makeDrama({ title: 'Found Me' }));
     const found = await emptyRepo.findById(created.id);
     expect(found).not.toBeNull();
-    expect(found!.title).toBe('Found Me');
+    expect(found?.title).toBe('Found Me');
   });
 
   it('should return null for non-existent id', async () => {
-    const found = await repo.findById('non-existent-id');
+    const found = await repo.findById('123e4567-e89b-12d3-a456-426614174999');
     expect(found).toBeNull();
   });
 
@@ -68,15 +68,15 @@ describe('DramaMockRepository', () => {
     const created = await emptyRepo.create(makeDrama({ title: 'Original' }));
     const updated = await emptyRepo.update(created.id, { title: 'Updated', tags: ['已更新'] });
     expect(updated).not.toBeNull();
-    expect(updated!.title).toBe('Updated');
-    expect(updated!.tags).toEqual(['已更新']);
-    expect(new Date(updated!.updated_at).getTime()).toBeGreaterThanOrEqual(
+    expect(updated?.title).toBe('Updated');
+    expect(updated?.tags).toEqual(['已更新']);
+    expect(new Date(updated?.updated_at ?? 0).getTime()).toBeGreaterThanOrEqual(
       new Date(created.updated_at).getTime(),
     );
   });
 
   it('should return null when updating non-existent drama', async () => {
-    const result = await repo.update('nonexistent', { title: 'Nope' });
+    const result = await repo.update('123e4567-e89b-12d3-a456-426614174999', { title: 'Nope' });
     expect(result).toBeNull();
   });
 
@@ -90,7 +90,7 @@ describe('DramaMockRepository', () => {
   });
 
   it('should return false when deleting non-existent drama', async () => {
-    const result = await repo.delete('nonexistent');
+    const result = await repo.delete('123e4567-e89b-12d3-a456-426614174999');
     expect(result).toBe(false);
   });
 
@@ -104,7 +104,7 @@ describe('DramaMockRepository', () => {
     expect(page2.pagination.page).toBe(2);
     expect(page2.pagination.total).toBe(12);
     expect(page2.pagination.total_pages).toBe(2);
-    expect(page2.data[0].id).toBe('550e8400-e29b-41d4-a716-446655440011');
+    expect(page2.data[0]?.id).toBe('550e8400-e29b-41d4-a716-446655440011');
 
     expect(page999.data).toEqual([]);
     expect(page999.pagination.total).toBe(12);
@@ -156,5 +156,98 @@ describe('DramaMockRepository', () => {
       score: 9821,
     });
     expect(result.data.every((item, index) => item.rank === index + 1)).toBe(true);
+  });
+
+  it('should filter live action dramas and sort hot rankings by play_count desc', async () => {
+    const result = await repo.listRankings({
+      contentType: 'live_action',
+      type: 'hot',
+      page: 1,
+      pageSize: 10,
+    });
+
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data.every((item) => item.content_type === 'live_action')).toBe(true);
+    expect(result.data[0]?.play_count).toBeGreaterThanOrEqual(result.data[1]?.play_count ?? 0);
+  });
+
+  it('should support recommendation and booking rankings with oversized pages', async () => {
+    const recommendResult = await repo.listRankings({
+      contentType: 'all',
+      type: 'recommend',
+      page: 1,
+      pageSize: 10,
+    });
+    const bookingResult = await repo.listRankings({
+      contentType: 'all',
+      type: 'booking',
+      page: 1,
+      pageSize: 10,
+    });
+    const oversized = await repo.listRankings({
+      contentType: 'all',
+      type: 'booking',
+      page: 999,
+      pageSize: 10,
+    });
+
+    expect(recommendResult.data[0]?.recommendation_score).toBeGreaterThanOrEqual(
+      recommendResult.data[1]?.recommendation_score ?? 0,
+    );
+    expect(bookingResult.data[0]?.booking_count).toBeGreaterThanOrEqual(
+      bookingResult.data[1]?.booking_count ?? 0,
+    );
+    expect(oversized.data).toEqual([]);
+    expect(oversized.pagination.total).toBe(12);
+  });
+
+  it('should expose is_booked only for the requesting user context', async () => {
+    const firstDramaId = '550e8400-e29b-41d4-a716-446655440001';
+    await repo.bookDrama({ dramaId: firstDramaId, userId: 'user-1' });
+
+    const anonymous = await repo.listRankings({
+      contentType: 'all',
+      type: 'booking',
+      page: 1,
+      pageSize: 10,
+    });
+    const userOne = await repo.listRankings(
+      { contentType: 'all', type: 'booking', page: 1, pageSize: 10 },
+      { userId: 'user-1' },
+    );
+    const userTwo = await repo.listRankings(
+      { contentType: 'all', type: 'booking', page: 1, pageSize: 10 },
+      { userId: 'user-2' },
+    );
+
+    expect(anonymous.data.find((item) => item.id === firstDramaId)?.is_booked).toBe(false);
+    expect(userOne.data.find((item) => item.id === firstDramaId)?.is_booked).toBe(true);
+    expect(userTwo.data.find((item) => item.id === firstDramaId)?.is_booked).toBe(false);
+  });
+
+  it('should book a drama idempotently and increment booking_count only once', async () => {
+    const dramaId = '550e8400-e29b-41d4-a716-446655440001';
+
+    const before = await repo.listRankings({ contentType: 'all', type: 'booking', page: 1, pageSize: 20 });
+    const originalCount = before.data.find((item) => item.id === dramaId)?.booking_count ?? 0;
+
+    const first = await repo.bookDrama({ dramaId, userId: 'user-1' });
+    const second = await repo.bookDrama({ dramaId, userId: 'user-1' });
+
+    expect(first.booked).toBe(true);
+    expect(second.booked).toBe(true);
+    expect(first.booking_count).toBe(originalCount + 1);
+    expect(second.booking_count).toBe(originalCount + 1);
+  });
+
+  it('should throw not found when booking a missing drama', async () => {
+    await expect(
+      repo.bookDrama({
+        dramaId: '123e4567-e89b-12d3-a456-426614174999',
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 });

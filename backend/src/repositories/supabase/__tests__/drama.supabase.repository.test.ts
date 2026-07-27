@@ -162,6 +162,79 @@ describe('DramaSupabaseRepository', () => {
     });
   });
 
+  it('listRankings should map ranking fields and booking state', async () => {
+    const rankingRows = [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        title: 'Drama 1',
+        description: null,
+        cover_url: null,
+        category: '都市',
+        total_episodes: 12,
+        rating: 8.1,
+        created_at: '2026-07-25T00:00:00Z',
+        updated_at: '2026-07-25T00:00:00Z',
+        content_type: 'ai',
+        play_count: 200,
+        booking_count: 20,
+        recommendation_score: '88.4',
+      },
+    ];
+
+    const bookingRows = [{ drama_id: '550e8400-e29b-41d4-a716-446655440001' }];
+
+    const rankingBuilderAfterOrderOne = {
+      order: vi.fn().mockResolvedValue({ data: rankingRows, error: null, count: 1 }),
+    };
+    const rankingBuilderAfterRange = {
+      order: vi.fn().mockReturnValue(rankingBuilderAfterOrderOne),
+    };
+    const rankingBuilderAfterEq = {
+      range: vi.fn().mockReturnValue(rankingBuilderAfterRange),
+    };
+    const rankingBuilderAfterSelect = {
+      eq: vi.fn().mockReturnValue(rankingBuilderAfterEq),
+      range: vi.fn().mockReturnValue(rankingBuilderAfterRange),
+    };
+    const rankingBuilder = {
+      select: vi.fn().mockReturnValue(rankingBuilderAfterSelect),
+    };
+
+    const bookingsBuilderAfterEq = {
+      in: vi.fn().mockResolvedValue({ data: bookingRows, error: null }),
+    };
+    const bookingsBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue(bookingsBuilderAfterEq),
+      }),
+    };
+
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table === 'dramas') return rankingBuilder;
+      if (table === 'bookings') return bookingsBuilder;
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listRankings(
+      { contentType: 'ai', type: 'recommend', page: 1, pageSize: 10 },
+      { userId: 'user-1' },
+    );
+
+    expect(rankingBuilder.select).toHaveBeenCalledWith(
+      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at,content_type,play_count,booking_count,recommendation_score',
+      { count: 'exact', head: false },
+    );
+    expect(rankingBuilderAfterSelect.eq).toHaveBeenCalledWith('content_type', 'ai');
+    expect(result.data[0]).toMatchObject({
+      content_type: 'ai',
+      play_count: 200,
+      booking_count: 20,
+      recommendation_score: 88.4,
+      is_booked: true,
+    });
+  });
+
   it('listHotSearches should return stable static items', async () => {
     const repo = new DramaSupabaseRepository();
     const result = await repo.listHotSearches();
@@ -277,6 +350,10 @@ describe('DramaSupabaseRepository', () => {
       category: '都市',
       total_episodes: 12,
       rating: null,
+      content_type: undefined,
+      play_count: undefined,
+      booking_count: undefined,
+      recommendation_score: undefined,
     });
     expect(result).toMatchObject({
       id: insertedRow.id,
@@ -334,6 +411,110 @@ describe('DramaSupabaseRepository', () => {
         rating: null,
       }),
     ).rejects.toThrow();
+  });
+
+  it('bookDrama should create booking and increment count', async () => {
+    const bookingReadChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { id: '550e8400-e29b-41d4-a716-446655440001', booking_count: 20 },
+        error: null,
+      }),
+      update: vi.fn().mockReturnThis(),
+    };
+    const bookingsInsertChain = {
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    };
+    const dramasUpdateChain = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockResolvedValue({ error: null }),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { id: '550e8400-e29b-41d4-a716-446655440001', booking_count: 20 },
+        error: null,
+      }),
+    };
+
+    let dramaCallCount = 0;
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table === 'dramas') {
+        dramaCallCount += 1;
+        return dramaCallCount === 1 ? bookingReadChain : dramasUpdateChain;
+      }
+      if (table === 'bookings') {
+        return bookingsInsertChain;
+      }
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.bookDrama({
+      dramaId: '550e8400-e29b-41d4-a716-446655440001',
+      userId: 'user-1',
+    });
+
+    expect(bookingsInsertChain.insert).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+    });
+    expect(dramasUpdateChain.update).toHaveBeenCalledWith({ booking_count: 21 });
+    expect(result).toEqual({
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+      booked: true,
+      booking_count: 21,
+    });
+  });
+
+  it('bookDrama should stay idempotent on duplicate booking', async () => {
+    const bookingReadChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: { id: '550e8400-e29b-41d4-a716-446655440001', booking_count: 20 },
+        error: null,
+      }),
+    };
+    const bookingsInsertChain = {
+      insert: vi.fn().mockResolvedValue({ error: { code: '23505', message: 'duplicate key' } }),
+    };
+
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table === 'dramas') return bookingReadChain;
+      if (table === 'bookings') return bookingsInsertChain;
+      throw new Error(`Unexpected table ${table}`);
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.bookDrama({
+      dramaId: '550e8400-e29b-41d4-a716-446655440001',
+      userId: 'user-1',
+    });
+
+    expect(result.booking_count).toBe(20);
+    expect(result.booked).toBe(true);
+  });
+
+  it('bookDrama should surface missing drama as not found', async () => {
+    const bookingReadChain = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: { code: 'PGRST116', message: 'No rows returned' },
+      }),
+    };
+    getSupabaseAdmin().from.mockImplementation(() => bookingReadChain);
+
+    const repo = new DramaSupabaseRepository();
+    await expect(
+      repo.bookDrama({
+        dramaId: '550e8400-e29b-41d4-a716-446655440001',
+        userId: 'user-1',
+      }),
+    ).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 
   it('delete should return true on success', async () => {
