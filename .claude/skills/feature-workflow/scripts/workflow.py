@@ -161,11 +161,20 @@ def cmd_init(args):
     """初始化一个新的 feature workflow。
 
     应在 worktree 创建完成后执行，这样 workflow.json 在 worktree 中可用。
+
+    如用户输入的名称带日期前缀（如 2025-07-27-add-login），自动剥离日期，
+    以去除日期后的部分作为 feature name。
     """
     from datetime import date
+    import re
 
-    name = args.name
+    raw_name = args.name
     today = date.today().isoformat()
+
+    # 剥离用户可能输入的日期前缀：YYYY-MM-dd- 或 YYYY-MM-dd
+    stripped = re.sub(r'^\d{4}-\d{2}-\d{2}-?', '', raw_name)
+    name = stripped if stripped else raw_name
+
     spec_dir = f"docs/specs/{today}-{name}"
     branch = args.branch or f"feature/{today}-{name}"
     worktree_path = args.worktree_path or f".worktree/{today}-{name}"

@@ -6,8 +6,8 @@ feature-workflow 使用 Claude 内置的 `EnterWorktree` / `ExitWorktree` 工具
 
 - **全部使用 `EnterWorktree` / `ExitWorktree` 内置工具**，不直接使用原生 `git worktree` 命令
 - worktree 由 `EnterWorktree` 工具自动在 `.claude/worktrees/` 下创建和管理
-- **分支命名**：`feature/<YYYY-MM-dd>-<name>`（与 spec 目录名一致）
-- 创建 worktree 时，`EnterWorktree` 的 `name` 参数传入 `YYYY-MM-dd-<name>` 即可
+- **分支命名**：`feature/<YYYY-MM-dd>-<name>`（与 spec 目录名一致。`<name>` 为用户输入的 feature 名，如用户输入中带日期前缀则自动剥离，以去除日期后的部分作为 name）
+- 创建 worktree 时，`EnterWorktree` 的 `name` 参数传入 `YYYY-MM-dd-<name>` 即可（日期 + 剥离后的 name）
 
 ## 创建 worktree
 

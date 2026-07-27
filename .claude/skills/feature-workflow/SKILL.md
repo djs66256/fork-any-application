@@ -97,7 +97,7 @@ flowchart TD
 - **执行规范**：详见 [references/worktree.md](references/worktree.md)「创建 worktree」节
 - **强制前提**：必须通过 `EnterWorktree` 工具进入 worktree 后才能执行后续操作。不进入 worktree 不得开始任何后续阶段
 - **产物**：worktree 就绪，`docs/specs/<YYYY-MM-dd>-<name>/workflow.json`
-- **推进命令**：`python3 scripts/workflow.py init <name>`（在 worktree 中执行，init 后阶段 1 自动完成）
+- **推进命令**：`python3 scripts/workflow.py init <name>`（在 worktree 中执行。如用户输入的 name 带日期前缀如 `2025-07-27-add-login`，init 会自动剥离日期，使用 `add-login` 作为 feature name，产出的 spec 目录仍以当天日期 + 剥离后的 name 命名：`docs/specs/<YYYY-MM-dd>-<name>/`。init 后阶段 1 自动完成）
 - **下一阶段提示**：「worktree 已就绪。是否开始需求撰写？」
 
 ### 阶段 2：spec-writing
