@@ -1,6 +1,6 @@
 # 项目进展
 
-> 最后更新：2026-07-25
+> 最后更新：2026-07-27
 
 ---
 
@@ -8,7 +8,7 @@
 
 | 状态 | 数量 |
 |------|------|
-| 🔵 规划中 (planned) | 14 |
+| 🔵 规划中 (planned) | 15 |
 | 🚧 构建中 (building) | 0 |
 | 🟢 已完成 (done) | 1 |
 
@@ -40,6 +40,7 @@ _当前无进行中的迭代_
 | 剧场频道 | 竞品分析（红果） | P1 | Backend/iOS/Android | Sprint 5 |
 | 商城 | 竞品分析（红果） | P1 | Backend/iOS/Android | Sprint 5 |
 | 赚钱中心 | 竞品分析（红果） | P2 | Backend/iOS/Android | Sprint 5 |
+| 管理平台 | 基础设施 | P1 | Backend/Web | Admin Panel |
 
 ### 🟢 已完成
 
@@ -67,6 +68,7 @@ _当前无进行中的迭代_
 | PRD-12 | 剧场频道 | [prd.md](prd/2026-07-25-theater-channel/prd.md) | [subtasks.md](prd/2026-07-25-theater-channel/subtasks.md) | 5 |
 | PRD-13 | 商城 | [prd.md](prd/2026-07-25-mall/prd.md) | [subtasks.md](prd/2026-07-25-mall/subtasks.md) | 5 |
 | PRD-14 | 赚钱中心 | [prd.md](prd/2026-07-25-earn-center/prd.md) | [subtasks.md](prd/2026-07-25-earn-center/subtasks.md) | 5 |
+| PRD-15 | 管理平台 | [prd.md](prd/2026-07-27-admin-panel/prd.md) | [subtasks.md](prd/2026-07-27-admin-panel/subtasks.md) | Admin |
 
 ---
 
@@ -79,7 +81,8 @@ _当前无进行中的迭代_
 | Sprint 3 | 1 | 9.5 | 1.5 | 4 | 4 | — |
 | Sprint 4 | 4 | 28 | 9 | 9.5 | 9.5 | — |
 | Sprint 5 | 3 | 34.5 | 6.5 | 14 | 14 | — |
-| **合计** | **14** | **135.5** | **31** | **52** | **52** | **0.5** |
+| Admin | 1 | 18.5 | 5 | — | — | 13.5 |
+| **合计** | **15** | **154** | **36** | **52** | **52** | **14** |
 
 ---
 
