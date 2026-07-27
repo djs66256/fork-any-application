@@ -444,4 +444,8 @@ export class DramaMockRepository implements DramaRepositoryInterface {
 
     return this.data.delete(id);
   }
+
+  async count(): Promise<number> {
+    return this.data.size;
+  }
 }

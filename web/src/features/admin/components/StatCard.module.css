@@ -1,0 +1,44 @@
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  flex: 1;
+  min-width: 180px;
+}
+
+.label {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.skeleton {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: var(--spacing-lg);
+  flex: 1;
+  min-width: 180px;
+}
+
+.skeletonLabel {
+  width: 60px;
+  height: 14px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.skeletonValue {
+  width: 80px;
+  height: 28px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+}

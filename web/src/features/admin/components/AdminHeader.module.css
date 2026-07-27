@@ -1,0 +1,51 @@
+.header {
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-lg);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: #2563EB;
+}
+
+.userSection {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.userEmail {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.roleBadge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #dbeafe;
+  color: #2563EB;
+  font-weight: 500;
+}
+
+.logoutButton {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+.logoutButton:hover {
+  color: var(--color-error);
+  background-color: #fef2f2;
+}

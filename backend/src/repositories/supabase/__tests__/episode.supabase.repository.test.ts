@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 vi.mock('@/infrastructure/supabase', () => ({
-  getSupabaseClient: vi.fn(),
+  getSupabaseAdmin: vi.fn(),
 }));
 
 describe('EpisodeSupabaseRepository', () => {
   let EpisodeSupabaseRepository: typeof import('../../../repositories/supabase/episode.supabase.repository').EpisodeSupabaseRepository;
-  let getSupabaseClient: ReturnType<typeof vi.fn>;
+  let getSupabaseAdmin: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -14,10 +14,10 @@ describe('EpisodeSupabaseRepository', () => {
     const mockClient = {
       from: vi.fn(),
     };
-    getSupabaseClient = vi.fn().mockReturnValue(mockClient);
+    getSupabaseAdmin = vi.fn().mockReturnValue(mockClient);
 
     vi.doMock('@/infrastructure/supabase', () => ({
-      getSupabaseClient,
+      getSupabaseAdmin,
     }));
 
     const mod = await import('../episode.supabase.repository');
@@ -38,7 +38,7 @@ describe('EpisodeSupabaseRepository', () => {
         error: null,
       }),
     };
-    getSupabaseClient().from.mockReturnValue(mockChain);
+    getSupabaseAdmin().from.mockReturnValue(mockChain);
 
     const repo = new EpisodeSupabaseRepository();
     const result = await repo.findByDramaId('drama-1');
@@ -58,7 +58,7 @@ describe('EpisodeSupabaseRepository', () => {
         error: null,
       }),
     };
-    getSupabaseClient().from.mockReturnValue(mockChain);
+    getSupabaseAdmin().from.mockReturnValue(mockChain);
 
     const repo = new EpisodeSupabaseRepository();
     const result = await repo.findById('ep-1');
@@ -75,7 +75,7 @@ describe('EpisodeSupabaseRepository', () => {
         error: { code: 'PGRST116', message: 'No rows' },
       }),
     };
-    getSupabaseClient().from.mockReturnValue(mockChain);
+    getSupabaseAdmin().from.mockReturnValue(mockChain);
 
     const repo = new EpisodeSupabaseRepository();
     const result = await repo.findById('non-existent');

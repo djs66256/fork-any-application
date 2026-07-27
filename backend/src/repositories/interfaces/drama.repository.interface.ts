@@ -52,4 +52,5 @@ export interface DramaRepositoryInterface {
   create(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): Promise<Drama>;
   update(id: string, data: Partial<Omit<Drama, 'id' | 'created_at' | 'updated_at'>>): Promise<Drama | null>;
   delete(id: string): Promise<boolean>;
+  count(): Promise<number>;
 }
