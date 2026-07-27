@@ -1,12 +1,15 @@
 package com.djs66256.short_drama.core.network
 
+import com.djs66256.short_drama.data.dto.BookDramaResponseDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.EpisodeListResponseDto
+import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
 import com.djs66256.short_drama.data.dto.PlayerProgressResponseDto
 import com.djs66256.short_drama.data.dto.PlayerStartRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStartResponseDto
 import com.djs66256.short_drama.data.dto.PlayerStopRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStopResponseDto
+import com.djs66256.short_drama.data.dto.RankingListResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -29,6 +32,27 @@ interface ApiService {
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 10,
     ): DramaListResponseDto
+
+    @GET("dramas/search")
+    suspend fun searchDramas(
+        @Query("q") query: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 10,
+    ): DramaListResponseDto
+
+    @GET("dramas/hot-search")
+    suspend fun getHotSearches(): HotSearchListResponseDto
+
+    @GET("dramas/rankings")
+    suspend fun getDramaRankings(
+        @Query("type") type: String,
+        @Query("contentType") contentType: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 10,
+    ): RankingListResponseDto
+
+    @POST("dramas/{id}/book")
+    suspend fun bookDrama(@Path("id") id: String): BookDramaResponseDto
 
     @POST("dramas")
     suspend fun createDrama(@Body body: Map<String, String>): Unit

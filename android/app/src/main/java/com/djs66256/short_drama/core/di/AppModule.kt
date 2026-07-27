@@ -8,12 +8,14 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import com.djs66256.short_drama.core.config.AppConfig
 import com.djs66256.short_drama.core.config.BuildConfigAppConfig
 import com.djs66256.short_drama.core.storage.DataStorePlaybackSessionStore
+import com.djs66256.short_drama.domain.repository.AuthSessionProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
 /**
  * Hilt module for application-level bindings.
@@ -25,6 +27,27 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppConfig(): AppConfig = BuildConfigAppConfig()
+
+    @Provides
+    @Singleton
+    fun provideJson(): Json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
+    @Provides
+    @Singleton
+    fun providePreferencesDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> = PreferenceDataStoreFactory.create(
+        produceFile = { context.preferencesDataStoreFile("short_drama.preferences_pb") },
+    )
+
+    @Provides
+    @Singleton
+    fun provideAuthSessionProvider(): AuthSessionProvider = object : AuthSessionProvider {
+        override fun isLoggedIn(): Boolean = false
+    }
 
     @Provides
     @Singleton

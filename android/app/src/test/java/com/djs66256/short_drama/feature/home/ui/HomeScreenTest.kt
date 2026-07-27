@@ -9,6 +9,11 @@ import org.junit.Test
 class HomeScreenTest {
 
     @Test
+    fun `T-07 search entry icon content description is stable`() {
+        assertEquals("打开搜索", HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION)
+    }
+
+    @Test
     fun `T-05 feed actions only enable navigation for non-blank drama id`() {
         assertTrue(hasNavigableDramaId("drama-001"))
         assertFalse(hasNavigableDramaId(""))
@@ -32,4 +37,5 @@ class HomeScreenTest {
 
         assertEquals("都市 · 逆袭 / 甜宠 · 12 集 · 评分 8.6", buildDramaMeta(drama))
     }
+
 }

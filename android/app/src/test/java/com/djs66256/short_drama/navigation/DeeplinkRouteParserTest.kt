@@ -31,6 +31,32 @@ class DeeplinkRouteParserTest {
     }
 
     @Test
+    fun `T-01 search deeplink maps to search home`() {
+        val route = DeeplinkRouteParser.parse("djsdrama://search")
+        assertEquals(PendingRoute.SearchHome, route)
+    }
+
+    @Test
+    fun `T-01 search result deeplink decodes query`() {
+        val route = DeeplinkRouteParser.parse("djsdrama://search/result/%E9%80%86%E8%A2%AD")
+        assertEquals(PendingRoute.SearchResult("逆袭"), route)
+    }
+
+    @Test
+    fun `T-01 blank search result deeplink is ignored`() {
+        val route = DeeplinkRouteParser.parse("djsdrama://search/result/%20%20")
+        assertNull(route)
+    }
+
+    @Test
+    fun `T-01 quick entry deeplinks map to pending routes`() {
+        assertEquals(PendingRoute.Ranking, DeeplinkRouteParser.parse("djsdrama://ranking"))
+        assertEquals(PendingRoute.Classification, DeeplinkRouteParser.parse("djsdrama://classification"))
+        assertEquals(PendingRoute.NewReleases, DeeplinkRouteParser.parse("djsdrama://new-releases"))
+        assertEquals(PendingRoute.Actors, DeeplinkRouteParser.parse("djsdrama://actors"))
+    }
+
+    @Test
     fun `unknown host returns null`() {
         val route = DeeplinkRouteParser.parse("djsdrama://unknown")
         assertNull(route)

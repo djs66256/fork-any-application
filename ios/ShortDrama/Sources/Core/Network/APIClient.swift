@@ -99,33 +99,33 @@ final class APIClient: @unchecked Sendable {
 }
 
 private struct ErrorResponse: Decodable {
-    let message: String
-
     private struct NestedError: Decodable {
         let code: String?
         let message: String?
     }
 
-    enum CodingKeys: String, CodingKey {
-        case message
-        case error
+    private struct FlatError: Decodable {
+        let message: String?
     }
 
+    let message: String
+
     init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let directMessage = try container.decodeIfPresent(String.self, forKey: .message),
-           !directMessage.isEmpty {
-            message = directMessage
+        if let container = try? decoder.container(keyedBy: CodingKeys.self),
+           let nested = try? container.decode(NestedError.self, forKey: .error) {
+            message = nested.message ?? "未知错误"
             return
         }
 
-        if let nestedError = try container.decodeIfPresent(NestedError.self, forKey: .error),
-           let nestedMessage = nestedError.message,
-           !nestedMessage.isEmpty {
-            message = nestedMessage
+        if let flat = try? FlatError(from: decoder) {
+            message = flat.message ?? "未知错误"
             return
         }
 
         message = "未知错误"
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case error
     }
 }

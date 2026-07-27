@@ -12,6 +12,18 @@ struct TabNavigationHostView: View {
                     switch route {
                     case .home:
                         HomeView()
+                    case .searchHome:
+                        SearchHomeView()
+                    case .searchResult(let query):
+                        SearchResultView(query: query)
+                    case .rankingHome:
+                        RankingHomeView()
+                    case .classificationHome:
+                        DiscoveryPlaceholderView(kind: .classification)
+                    case .newReleases:
+                        DiscoveryPlaceholderView(kind: .newReleases)
+                    case .actorHub:
+                        DiscoveryPlaceholderView(kind: .actorHub)
                     case .player(let videoId):
                         PlayerView(viewModel: makePlayerViewModel(videoId: videoId))
                     case .dramaDetail(let dramaId):

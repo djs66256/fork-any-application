@@ -20,23 +20,75 @@ enum DeeplinkHandler {
             .split(separator: "/")
             .map(String.init)
 
-        switch components.host {
+        return route(forHost: components.host, pathComponents: pathComponents)
+    }
+
+    private static func route(forHost host: String?, pathComponents: [String]) -> AppRoute? {
+        switch host {
         case "open":
             return .home
+        case "search":
+            return handleSearchRoute(pathComponents: pathComponents)
+        case "ranking":
+            return .rankingHome
+        case "classification":
+            return .classificationHome
+        case "new-releases":
+            return .newReleases
+        case "actors":
+            return .actorHub
         case "play":
-            guard let videoId = pathComponents.first?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !videoId.isEmpty else {
-                return nil
-            }
-            return .player(videoId: videoId)
+            return playerRoute(pathComponents: pathComponents)
         case "drama":
-            guard let dramaId = pathComponents.first?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !dramaId.isEmpty else {
-                return nil
-            }
-            return .dramaDetail(dramaId: dramaId)
+            return dramaDetailRoute(pathComponents: pathComponents)
         default:
             return nil
         }
+    }
+
+    private static func playerRoute(pathComponents: [String]) -> AppRoute? {
+        guard let videoId = normalizedPathComponent(pathComponents.first) else {
+            return nil
+        }
+
+        return .player(videoId: videoId)
+    }
+
+    private static func dramaDetailRoute(pathComponents: [String]) -> AppRoute? {
+        guard let dramaId = normalizedPathComponent(pathComponents.first) else {
+            return nil
+        }
+
+        return .dramaDetail(dramaId: dramaId)
+    }
+
+    private static func handleSearchRoute(pathComponents: [String]) -> AppRoute? {
+        guard !pathComponents.isEmpty else {
+            return .searchHome
+        }
+
+        guard pathComponents.first == "result",
+              let rawQuery = pathComponents.dropFirst().first,
+              let query = normalizedPathComponent(rawQuery) else {
+            return nil
+        }
+
+        return .searchResult(query: query)
+    }
+
+    private static func normalizedPathComponent(_ component: String?) -> String? {
+        guard let component else {
+            return nil
+        }
+
+        let normalized = component
+            .removingPercentEncoding?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let normalized, !normalized.isEmpty else {
+            return nil
+        }
+
+        return normalized
     }
 }

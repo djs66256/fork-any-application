@@ -1,7 +1,10 @@
 package com.djs66256.short_drama.navigation
 
 import android.net.Uri
+import com.djs66256.short_drama.domain.model.normalizeSearchQueryOrNull
 import java.net.URI
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 object DeeplinkRouteParser {
     private const val EXPECTED_SCHEME = "djsdrama"
@@ -19,29 +22,44 @@ object DeeplinkRouteParser {
             return null
         }
 
-        val segment = uri.path
+        val host = uri.host?.trim().orEmpty()
+        val segments = uri.path
             ?.trim('/')
-            ?.substringBefore('/')
-            ?.trim()
+            ?.split('/')
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
             .orEmpty()
 
-        return when (uri.host) {
+        return when (host) {
             "open" -> PendingRoute.Home
-            "play", "player" -> {
-                if (segment.isEmpty()) {
-                    null
-                } else {
-                    PendingRoute.Play(segment)
-                }
-            }
-            "drama" -> {
-                if (segment.isEmpty()) {
-                    null
-                } else {
-                    PendingRoute.Detail(segment)
-                }
-            }
+            "play", "player" -> segments.firstOrNull()?.takeIf { it.isNotEmpty() }?.let(PendingRoute::Play)
+            "drama" -> segments.firstOrNull()?.takeIf { it.isNotEmpty() }?.let(PendingRoute::Detail)
+            "search" -> parseSearchRoute(uri, segments)
+            "ranking" -> PendingRoute.Ranking
+            "classification" -> PendingRoute.Classification
+            "new-releases" -> PendingRoute.NewReleases
+            "actors" -> PendingRoute.Actors
             else -> null
         }
+    }
+
+    private fun parseSearchRoute(uri: URI, segments: List<String>): PendingRoute? {
+        if (segments.isEmpty()) {
+            return PendingRoute.SearchHome
+        }
+
+        return if (segments.first() == "result") {
+            val rawQuery = segments.drop(1).joinToString("/")
+            decodeAndNormalize(rawQuery)?.let(PendingRoute::SearchResult)
+        } else {
+            null
+        }
+    }
+
+    private fun decodeAndNormalize(rawQuery: String): String? {
+        val decoded = runCatching {
+            URLDecoder.decode(rawQuery, StandardCharsets.UTF_8.toString())
+        }.getOrElse { rawQuery }
+        return normalizeSearchQueryOrNull(decoded)
     }
 }

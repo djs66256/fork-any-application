@@ -15,10 +15,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -39,6 +42,7 @@ import com.djs66256.short_drama.feature.home.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
+    onOpenSearch: () -> Unit,
     onOpenPlay: (String) -> Unit,
     onOpenDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -52,30 +56,57 @@ fun HomeScreen(
 
     val errorMessage = uiState.errorMessage
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        when {
-            uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
-            errorMessage != null -> HomeFeedErrorState(
-                message = errorMessage,
-                onRetry = viewModel::retry,
-            )
-            uiState.items.isEmpty() -> HomeFeedEmptyState()
-            else -> LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(items = uiState.items, key = { it.id }) { drama ->
-                    HomeDramaCard(
-                        drama = drama,
-                        onPlay = { onOpenPlay(drama.id) },
-                        onDetail = { onOpenDetail(drama.id) },
-                    )
+        HomeTopBar(onOpenSearch = onOpenSearch)
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            when {
+                uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
+                errorMessage != null -> HomeFeedErrorState(
+                    message = errorMessage,
+                    onRetry = viewModel::retry,
+                )
+                uiState.items.isEmpty() -> HomeFeedEmptyState()
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    items(items = uiState.items, key = { it.id }) { drama ->
+                        HomeDramaCard(
+                            drama = drama,
+                            onPlay = { onOpenPlay(drama.id) },
+                            onDetail = { onOpenDetail(drama.id) },
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeTopBar(onOpenSearch: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "首页",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold,
+        )
+        IconButton(onClick = onOpenSearch) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION,
+            )
         }
     }
 }
@@ -245,7 +276,7 @@ private fun DramaCoverPlaceholder(drama: Drama) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(16.dp),
         ) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = Icons.Filled.PlayCircle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -267,7 +298,9 @@ private fun DramaCoverPlaceholder(drama: Drama) {
     }
 }
 
-internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.isNotBlank()
+internal const val HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION = "打开搜索"
+
+internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.trim().isNotEmpty()
 
 internal fun buildDramaMeta(drama: Drama): String {
     val parts = buildList {

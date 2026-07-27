@@ -26,7 +26,7 @@ android {
         if (localPropertiesFile.exists()) {
             localProperties.load(localPropertiesFile.inputStream())
         }
-        val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/v1")
+        val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/")
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "APP_NAME", "\"ShortDrama\"")

@@ -1,15 +1,15 @@
 # 系统总览 架构文档
 
-> 最后更新：2026-07-26
+> 最后更新：2026-07-27
 
 ## 概述
 
-项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口；PRD-03 则进一步把 Backend / Android / iOS 的播放器主路径打通：Backend 已提供 `GET /api/player/progress`、`GET /api/dramas/:id/episodes`、`POST /api/player/start`、`POST /api/player/stop`，移动端播放页也从“只展示 `videoId` 的占位页”演进为具备 bootstrap、倍速、切集、续播与退出上报语义的真实播放器页面。Web 端播放页仍保持路由占位，商城（mall）与赚钱（earn）继续由 H5 承载，不属于本期 Native 播放器范围（`backend/src/app/api/player/progress/route.ts:1-45`, `backend/src/app/api/dramas/[id]/episodes/route.ts:1-20`, `backend/src/app/api/player/start/route.ts:1-47`, `backend/src/app/api/player/stop/route.ts:1-48`, `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:26-385`, `ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift:4-303`, `web/src/features/player/PlayerScreen.tsx:7-24`, `PRODUCT.md:22-25`).
+项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 进一步把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口作为首页首屏数据源；PRD-05 则继续在首页频道下落地搜索发现与排行浏览链路：Android / iOS 现在都能从搜索发现“排行”入口进入真实 Native 排行页，并通过 Backend `GET /api/dramas/rankings` / `POST /api/dramas/:id/book` 完成榜单浏览与预约交互。Web 端继续保持路由骨架与首页壳，不在本期实现真实排行页；商城（mall）与赚钱（earn）继续由 H5 承载，不属于 Native 排行范围（`PRODUCT.md:22-25`）。
 
 - **产品信息来源**：`PRODUCT.md`
 - **仓库结构**：monorepo，按 `web/`、`android/`、`ios/`、`backend/` 分目录维护
 - **技术标识**：Android/iOS 继续使用 `com.djs66256.short_drama`，移动端 deeplink scheme 为 `djsdrama://`（`android/app/src/main/AndroidManifest.xml:18-27`，iOS scheme 来自 `project.yml`）
-- **当前版本**：各端骨架版本仍为 `0.1.0`，但移动端首页与播放器主路径均已具备首版内容消费承载能力
+- **当前版本**：各端骨架版本仍为 `0.1.0`，但移动端首页已具备 Feed 与排行浏览承载能力
 
 ## 架构设计
 
@@ -22,118 +22,116 @@
 │   Web 前端   │        Android App          │            iOS App              │
 │ Next.js 16   │ Kotlin + Compose            │ SwiftUI                         │
 │ App Router   │ Navigation Compose          │ TabView + NavigationStack       │
-│ 首页/播放仍壳 │ 首页 Native Feed + 播放器状态机 │ 首页 Native Feed + AVPlayer 播放器 │
+│ 首页/榜单为壳 │ 首页Feed + 搜索 + 排行 Native │ 首页Feed + 搜索 + 排行 Native   │
 └──────┬───────┴───────────────┬─────────────┴──────────────┬──────────────────┘
        │                       │                            │
-       │   H5 范围 / Web 壳     │ 播放器 bootstrap / alias 兼容 │ 播放器 bootstrap / AVKit 承载
+       │ 页面语义 / H5 边界      │ 首页与排行数据契约 / 路由语义 │ 首页与排行数据契约 / 路由语义
        ▼                       ▼                            ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                            Backend API 服务层                                 │
 │  Next.js App Router Route Handlers                                           │
-│  ├── /api/health                        已实现                                 │
-│  ├── /api/dramas                        已实现：首页 Feed 列表接口               │
-│  ├── /api/dramas/:id/episodes          已实现：播放器剧集列表子资源             │
-│  └── /api/player/progress|start|stop   已实现：播放器续播 / 启播 / 停播          │
+│  ├── /api/health                           已实现                              │
+│  ├── /api/dramas                           已实现：首页 Feed 列表接口            │
+│  ├── /api/dramas/rankings                  已实现：排行列表接口                 │
+│  ├── /api/dramas/:id/book                  已实现：预约接口                     │
+│  └── /api/player/start|stop                501 占位                            │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 当前首页与播放器承载结构
+### 当前首页与排行承载结构
 
-| 端 | 一级容器 | 首页承载 | 播放器承载 | 当前状态 |
-|----|---------|---------|-----------|---------|
-| Web | Next.js App Router 页面树 | 应用信息首页壳 | `/play/[id]` 占位页 | Web 不实现完整播放器 |
-| Android | `Scaffold` + `NavigationBar` + nested `NavHost` | `HomeScreen` Feed 状态机 | `PlayerScreen` + `PlayerViewModel` + placeholder player host | 已实现 bootstrap / 选集 / 倍速 / stop 上报；未引入 `androidx.media3` |
-| iOS | `TabView` + per-tab `NavigationStack` | `HomeView` Feed 状态机 | `PlayerView` + `PlayerViewModel` + `AVPlayer` | 已实现 bootstrap / 选集 / 倍速 / stop 上报 / 实际视频播放 |
-| Backend | Route Handlers | `GET /api/dramas` | `GET /api/player/progress` + `GET /api/dramas/:id/episodes` + `POST /api/player/start|stop` | 已提供 mock 数据与首版播放记录语义 |
+| 端 | 一级容器 | 首页 / 排行承载 | 数据来源 / 入口 | 当前状态 |
+|----|---------|----------------|----------------|---------|
+| Web | Next.js App Router 页面树 | 应用信息首页壳 + `/rankings` 占位页 | 本地静态 UI + 代表性链接 | 首页和榜单都不实现真实数据 |
+| Android | `Scaffold` + `NavigationBar` + nested `NavHost` | `HomeScreen` Feed + 搜索发现 + `RankingScreen` | `GET /api/dramas` + `GET /api/dramas/rankings` + `RankingViewModel` | 已实现首页状态机、榜单双层 Tab、分页与预约拦截 |
+| iOS | `TabView` + per-tab `NavigationStack` | `HomeView` Feed + 搜索发现 + `RankingHomeView` | `GET /api/dramas` + `GET /api/dramas/rankings` + `RankingViewModel` | 已实现首页状态机、榜单双层 Tab、分页与预约拦截 |
+| Backend | Route Handlers | 首页 Feed + 排行 + 预约接口 | `DramaService -> DramaMockRepository` | 已提供 12 条 mock 榜单数据和幂等预约行为 |
 
 ### 核心流程调用栈
 
-#### 流程：移动端从首页进入播放器并完成 bootstrap
+#### 流程：移动端从搜索发现进入排行页并浏览榜单
 
 ```text
 Android
-1. 首页卡片 navigate(play/{dramaId}) 或 deeplink 命中 play/player
-2. PlayerViewModel 读取 route 参数并取得 playbackSessionId
-3. GET /api/player/progress?dramaId=...   (带 X-Playback-Session-Id)
-4. GET /api/dramas/:id/episodes           (不带 X-Playback-Session-Id)
-5. 本地解析目标 episode（续播 or 第一条可播集）
-6. POST /api/player/start                 (带 X-Playback-Session-Id)
-7. PlayerScreen 渲染顶部栏 / 互动栏 / 选集栏 / 倍速面板
-8. 切后台 / 离开页面 / 切集 -> best-effort POST /api/player/stop
+1. Home/Search 入口触发 AppDestination.ranking(contentType, type)
+2. NavGraph 渲染 RankingScreen
+3. RankingViewModel 从 SavedStateHandle 读取 contentType/type
+4. GetDramaRankingsUseCase(query: all + hot + page=1 + pageSize=10)
+5. ApiService.getDramaRankings(type, contentType, page, pageSize)
+6. Backend GET /api/dramas/rankings -> DramaService -> DramaMockRepository
+7. RankingScreen 渲染双层 Tab、列表、空态/错误态/分页 footer
+8. 点击排行项 -> navigate(play/{id})；点击预约 -> 预校验登录 -> POST /api/dramas/{id}/book
 
 iOS
-1. 首页卡片或 deeplink 命中 AppRoute.player(videoId:)
-2. PlayerViewModel 读取 videoId 并映射为 dramaId，取得 Keychain playbackSessionId
-3. GET /api/player/progress?dramaId=...   (带 X-Playback-Session-Id)
-4. GET /api/dramas/:id/episodes           (不带 X-Playback-Session-Id)
-5. 本地解析目标 episode（续播 or 第一条可播集）
-6. POST /api/player/start                 (带 X-Playback-Session-Id)
-7. NativeVideoPlayerView(AVPlayer) 播放目标资源
-8. 返回 / disappear / background -> best-effort POST /api/player/stop
+1. SearchHomeViewModel.route(for: .ranking) -> .rankingHome
+2. TabNavigationHostView 渲染 RankingHomeView
+3. RankingViewModel loadIfNeeded() -> FetchRankingsUseCase.execute(query: all + hot + page=1 + pageSize=10)
+4. DramaRemoteDataSource.fetchRankings(query)
+5. Backend GET /api/dramas/rankings -> DramaService -> DramaMockRepository
+6. RankingHomeView 渲染双层 Tab、列表、空态/错误态/分页 footer
+7. 点击排行项 -> navigate(.player(videoId:id))；点击预约 -> 登录拦截或 POST /api/dramas/{id}/book
 ```
 
 | 调用层级 | 平台 | 文件 | 职责 |
 |---------|------|------|------|
-| 入口 | Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:123-157` | 注册 canonical `play` 路由与 `player` alias 转发 |
-| 1 | Android | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:188-297` | 执行 `progress -> episodes -> start` bootstrap，解析续播目标 |
-| 2 | Android | `android/app/src/main/java/com/djs66256/short_drama/data/repository/PlayerRepositoryImpl.kt:24-85` | 统一注入 playbackSessionId，并转发到 RemoteDataSource |
-| 3 | Android | `android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt:39-63` | 定义 progress / episodes / start / stop 接口与 header 范围 |
-| UI | Android | `android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/PlayerScreen.kt:46-196` | 渲染 loading / error / no-resource / content 与底部 sheet |
-| 入口 | iOS | `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:9-45` | 在 home tab 注册播放器子路由并注入 PlayerRepository |
-| 1 | iOS | `ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift:157-296` | 执行 bootstrap、续播、切集、best-effort stop |
-| 2 | iOS | `ios/ShortDrama/Sources/Data/DataSources/PlayerRemoteDataSource.swift:10-108` | 定义 progress / episodes / start / stop endpoint，控制 header 透传范围 |
-| 3 | iOS | `ios/ShortDrama/Sources/Features/Player/Views/Components/NativeVideoPlayerView.swift:4-55` | 用 `AVPlayer` 承载实际播放、进度观察与倍速变更 |
-| Backend | Backend | `backend/src/app/api/player/progress/route.ts:1-45` | 校验 query + playback header 并返回续播信息 |
-| Backend | Backend | `backend/src/app/api/dramas/[id]/episodes/route.ts:1-20` | 返回当前 drama 的剧集列表与 `series_status` |
-| Backend | Backend | `backend/src/app/api/player/start/route.ts:1-47`, `backend/src/app/api/player/stop/route.ts:1-48` | 校验 body + header 并处理启播 / 停播 |
-| Service | Backend | `backend/src/services/player/player.service.ts:25-127`, `backend/src/services/episode/episode.service.ts:10-35` | 实现续播恢复、播放校验、stop clamp 与剧集排序 |
+| 入口 | Android | `android/app/src/main/java/com/djs66256/short_drama/feature/search/model/SearchQuickEntry.kt:18-39` | 提供搜索发现“排行”快捷入口 |
+| 1 | Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:187-209` | 注册排行页并把卡片点击映射到播放路由 |
+| 2 | Android | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:51-421` | 维护榜单状态机、分页、旧请求防抖和预约拦截 |
+| 3 | Android | `android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt:39-48` | 发起 `/api/dramas/rankings` 与 `/api/dramas/{id}/book` 请求 |
+| 入口 | iOS | `ios/ShortDrama/Sources/Features/Search/ViewModels/SearchHomeViewModel.swift:76-87` | 提供搜索发现“排行”快捷入口 |
+| 1 | iOS | `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:11-31` | 在 home Tab 注册 `RankingHomeView` |
+| 2 | iOS | `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:5-224` | 维护榜单状态机、分页、预约与登录拦截 |
+| 3 | iOS | `ios/ShortDrama/Sources/Data/DataSources/DramaRemoteDataSource.swift:65-89,155-165` | 发起 `/api/dramas/rankings` 与 `/api/dramas/{id}/book` 请求并解码响应 |
+| Backend | Backend | `backend/src/app/api/dramas/rankings/route.ts:8-24`, `backend/src/app/api/dramas/[id]/book/route.ts:16-28` | 校验 query/path/header 并返回排行与预约响应 |
+| Repository | Backend | `backend/src/repositories/mock/drama.mock.repository.ts:294-395` | 提供内容类型过滤、榜单排序、分页与幂等预约 |
 
 ### 设计决策
 
 | 决策 | 原因 | 影响 |
 |------|------|------|
-| 路由语义统一使用 `play` | 沿用 PRD-01 / PRD-02 已稳定的播放入口语义，避免播放器阶段再引入新命名 | iOS / Web 只保留 `play`；Android 保留 `player` alias 做兼容 |
-| `X-Playback-Session-Id` 仅用于 `progress/start/stop` | 续播身份只影响历史查询与进度写入，不影响通用剧集列表 | `GET /api/dramas/:id/episodes` 保持通用子资源语义，不携带该 header |
-| bootstrap 职责在客户端完成 | `progress` 只负责返回历史，`episodes` 只负责提供列表，`start` 只负责在目标集已知后启动播放 | 目标集选择逻辑统一在 Android / iOS ViewModel 实现，便于端侧控制 fallback |
-| Android 不引入 `androidx.media3` | 当前仓库未获新增依赖授权，需尊重现有实现事实 | Android 文档只记录当前已落地的页面壳、状态机与 placeholder host，不假设 media3 |
-| iOS 直接采用 AVKit | SwiftUI/AVPlayer 已可满足首版真实播放、倍速和进度观察需求 | iOS 首版可以在不新增第三方依赖的前提下落地真实视频播放 |
-| Web 仍保持播放器占位 | 本期目标是 Native 完整观看主路径，不扩展到 Web 播放体验 | wiki 需明确 Web player 不在 PRD-03 范围 |
-| `mall` / `earn` 继续由 H5 承载 | 这是产品层既有页面承载策略，和播放器主链路无直接关系 | 架构边界继续保持 Native 主业务 + H5 mall/earn 的分工 |
+| 移动端统一采用 5 个一级频道 | 为首页、剧场、商城、赚钱、我的提供稳定承载入口 | 后续功能 PRD 默认挂载到既有频道容器，而不是新增顶级入口 |
+| 搜索发现与排行继续挂在首页频道内 | 排行是内容发现链路的延伸，而非新的一级频道 | `ranking` 成为首页 Tab 下的子路由，而不是新增 bottom tab |
+| PRD-05 仅让 Android/iOS 接入真实排行页 | `mall` / `earn` 明确由 H5 承载，其他业务页当前按 Native 实现 | Web 继续保持 `/rankings` 占位页，移动端优先落地榜单体验 |
+| 排行接口统一为 `GET /api/dramas/rankings` | 保持 RESTful 简洁契约，并统一 Android/iOS query 命名 | `type/contentType/page/pageSize` 成为跨端 canonical query |
+| 排行项继续复用 `play` 路由语义 | 避免为排行榜单再发明一套播放器命名 | 首页 Feed 与排行页共享 `drama.id -> play/:id` 主路径 |
+| 预约接口使用 `POST /api/dramas/:id/book` | 将预约建模为对 Dramas 资源的附属动作，避免另起资源树 | 当前只支持单向幂等预约成功语义，不支持取消 |
+| Backend 继续采用 mock repository 提供稳定榜单数据 | 在缺少真实内容后台与登录体系前，先保障排行浏览、分页与预约交互可验证 | 当前所有排行数据与预约状态均为本地进程内 mock，不含真实推荐算法 |
 
 ## 跨端涉及
 
 | 端 | 相关模块/文件 | 说明 |
 |----|-------------|------|
-| Web | `web/src/app/play/[id]/page.tsx`, `web/src/features/player/PlayerScreen.tsx` | 播放页仍为占位路由，不消费播放器 API |
-| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`, `navigation/NavGraph.kt`, `feature/player/viewmodel/PlayerViewModel.kt`, `feature/player/ui/PlayerScreen.kt`, `data/repository/PlayerRepositoryImpl.kt`, `core/storage/PlaybackSessionStore.kt` | 已接入播放器状态机、会话持久化、选集 / 倍速 / stop 上报与 `play/player` 路由兼容 |
-| iOS | `ios/ShortDrama/Sources/App/TabNavigationHostView.swift`, `Features/Player/ViewModels/PlayerViewModel.swift`, `Features/Player/Views/PlayerView.swift`, `Features/Player/Views/Components/NativeVideoPlayerView.swift`, `Core/Storage/PlaybackSessionStore.swift` | 已接入播放器状态机、Keychain 会话持久化与 AVPlayer 播放 |
-| Backend | `backend/src/app/api/player/progress/route.ts`, `app/api/dramas/[id]/episodes/route.ts`, `app/api/player/start/route.ts`, `app/api/player/stop/route.ts`, `services/player/player.service.ts`, `services/episode/episode.service.ts`, `repositories/mock/episode.mock.repository.ts` | 提供首版播放器接口、剧集列表、续播记录语义与 mock 资源 |
+| Web | `web/src/app/layout.tsx`, `web/src/app/page.tsx`, `web/src/features/home/HomeScreen.tsx`, `web/src/app/rankings/page.tsx`, `web/src/app/play/[id]/page.tsx` | 首页与榜单都仍为壳，仅保留 canonical 页面语义 |
+| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`, `feature/search/model/SearchQuickEntry.kt`, `feature/ranking/viewmodel/RankingViewModel.kt`, `feature/ranking/ui/RankingScreen.kt`, `core/network/ApiService.kt` | 首页 Tab 已接入搜索发现、排行页状态机、分页与预约交互 |
+| iOS | `ios/ShortDrama/Sources/App/TabNavigationHostView.swift`, `Features/Search/ViewModels/SearchHomeViewModel.swift`, `Features/Ranking/ViewModels/RankingViewModel.swift`, `Features/Ranking/Views/RankingHomeView.swift`, `Data/DataSources/DramaRemoteDataSource.swift` | 首页 Tab 已接入搜索发现、排行页状态机、分页与预约交互 |
+| Backend | `backend/src/app/api/dramas/rankings/route.ts`, `backend/src/app/api/dramas/[id]/book/route.ts`, `backend/src/services/drama/drama.service.ts`, `backend/src/repositories/mock/drama.mock.repository.ts`, `backend/src/lib/schemas.ts` | 提供 canonical 排行 / 预约接口、字段约束与 mock 数据 |
 
 ## 技术栈总览
 
 | 层级 | Web | Backend | Android | iOS |
 |------|-----|---------|---------|-----|
 | 语言 | TypeScript | TypeScript | Kotlin 2.0.21 | Swift 6 |
-| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose | SwiftUI + TabView + NavigationStack + AVKit |
-| 状态管理 | 路由参数 + React 组件状态 | Route Handler 请求级状态 | `StateFlow<PlayerUiState>` + ViewModel | `ObservableObject` + `@Published` |
+| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose | SwiftUI + TabView + NavigationStack |
+| 状态管理 | 路由参数 + React 组件状态 | Route Handler 请求级状态 | `StateFlow` + `NavController` + 首页/排行双状态机 | `ObservableObject` + `@Published` + 首页/排行双状态机 |
 | 构建工具 | next build | next build | AGP 8.7.0 + Gradle | XcodeGen + Xcode 27 |
 | 测试 | Vitest + Testing Library | Vitest | JUnit4 + Turbine + Compose testing helpers | Swift Testing |
-| 播放器契约 | 占位路由 | `progress / episodes / start / stop` | Retrofit + DataStore playback session | URLSession + Keychain playback session + `AVPlayer` |
+| 首页 / 排行契约 | 首页壳 + 榜单占位页 | `GET /api/dramas` + `GET /api/dramas/rankings` + `POST /api/dramas/:id/book` | `page/pageSize` 与 `type/contentType/page/pageSize` query | `page/pageSize` 与 `type/contentType/page/pageSize` query |
 
 ## 已知限制
 
-- Web 端当前未实现完整观看播放器，只提供 `/play/[id]` 占位路由。
-- Android 已落地播放器页面壳、状态机和进度链路，但视频宿主仍是 placeholder；当前没有 `androidx.media3` 依赖，也未看到系统级状态栏 / 导航栏显式隐藏逻辑。
-- Android 与 iOS 的剧场、商城、赚钱、我的仍是占位频道；其中 mall / earn 的页面承载策略继续是 H5，不在本次播放器 PRD 范围内。
-- Backend 当前剧集与播放历史数据仍来自 mock repository，不代表真实内容与真实账户体系。
-- 评论 / 分享 / 收藏只实现了页面承载或本地反馈，未接入后端持久化。
-- 设备级黑盒验证未自动执行，当前跨端结论仍以代码和自动化测试为主（见 `docs/specs/2026-07-26-prd-03-full-player/qa-test.md:14-39,56-249`）。
+- Web 端当前未实现与移动端对等的首页 Feed、搜索发现或真实排行页，只提供页面骨架和 canonical route。
+- Android 与 iOS 的剧场、商城、赚钱、我的仍是占位页，真实业务会在后续 PRD 接入。
+- 商城（mall）与赚钱（earn）按产品策略应由 H5 承载，但当前移动端代码仍未接入真实 H5 容器。
+- 播放页与详情页跨端都还是占位实现，仅展示路由参数，不包含真实业务数据。
+- Backend 当前首页 / 排行数据与预约状态都来自 `DramaMockRepository`，不是线上内容服务或持久化存储。
+- 预约认证仍是 skeleton auth：`x-user-id` 或 `Bearer <user-id>` 被当作 userId 使用，尚未接入真实 JWT / Supabase 校验（`backend/src/middleware/auth.ts:5-32`）。
+- 设备级黑盒验证未自动执行，当前跨端结论主要来自代码、自动化测试与 QA 文档；移动端真实点击、翻页与预约拦截表现仍待补测（见 `docs/specs/2026-07-27-prd-05-ranking/qa-test.md:14-24,59-79`）。
 
 ## 修订历史
 
 | 日期 | 变更摘要 |
 |------|---------|
-| 2026-07-26 | 更新：系统总览同步 PRD-03 完整观看播放器落地结果，补充 Backend `progress / episodes / start / stop`、移动端播放器 bootstrap / 续播 / 倍速 / stop 上报链路，并明确 Web 与 H5 边界、Android 当前仍未引入 `androidx.media3` |
+| 2026-07-27 | 更新：系统总览同步 PRD-05 排行体系落地结果，补充搜索发现到排行页的移动端链路、Backend 排行/预约接口与 Native / Web / H5 的范围边界 |
 | 2026-07-26 | 更新：系统总览同步 PRD-02 首页信息流落地结果，补充 Backend `GET /api/dramas`、移动端首页状态机、首页卡片到播放/详情页主路径，以及 Web / H5 的范围边界 |
 | 2026-07-25 | 更新：系统总览同步 PRD-01 导航骨架落地结果，修正移动端从单页骨架到 5 Tab 容器的架构描述，并补充 Web 路由骨架与 Backend 不变更说明 |
 | 2026-07-22 | 从各端代码提取信息，初始创建 |

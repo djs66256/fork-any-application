@@ -1,5 +1,7 @@
 package com.djs66256.short_drama.navigation
 
+import com.djs66256.short_drama.domain.model.RankingContentType
+import com.djs66256.short_drama.domain.model.RankingType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -23,6 +25,49 @@ class RoutesTest {
     @Test
     fun `detail route generates correct path`() {
         assertEquals("detail/xyz456", AppDestination.detail("xyz456"))
+    }
+
+    @Test
+    fun `T-01 search route generates canonical destination`() {
+        assertEquals("search", AppDestination.search())
+    }
+
+    @Test
+    fun `T-01 search result route encodes query parameter`() {
+        assertEquals(
+            "search/result?query=%E9%80%86%E8%A2%AD%20%E5%BD%92%E6%9D%A5",
+            AppDestination.searchResult(" 逆袭 归来 "),
+        )
+    }
+
+    @Test
+    fun `T-01 quick entry routes are canonical`() {
+        assertEquals("ranking?contentType=all&type=hot", AppDestination.ranking())
+        assertEquals("classification", AppDestination.classification())
+        assertEquals("new-releases", AppDestination.newReleases())
+        assertEquals("actors", AppDestination.actors())
+    }
+
+    @Test
+    fun `T-10 ranking route uses canonical default query args`() {
+        assertEquals(
+            "ranking?contentType=all&type=hot",
+            AppDestination.ranking(
+                contentType = RankingContentType.ALL,
+                type = RankingType.HOT,
+            ),
+        )
+    }
+
+    @Test
+    fun `T-10 ranking route encodes selected tabs in query args`() {
+        assertEquals(
+            "ranking?contentType=ai&type=booking",
+            AppDestination.ranking(
+                contentType = RankingContentType.AI,
+                type = RankingType.BOOKING,
+            ),
+        )
     }
 
     @Test

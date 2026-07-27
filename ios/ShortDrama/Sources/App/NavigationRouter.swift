@@ -29,7 +29,14 @@ final class NavigationRouter: ObservableObject {
         switch route {
         case .home:
             popToRoot(of: .home)
-        case .player, .dramaDetail:
+        case .searchHome,
+             .searchResult,
+             .rankingHome,
+             .classificationHome,
+             .newReleases,
+             .actorHub,
+             .player,
+             .dramaDetail:
             var path = pathsByTab[tab] ?? NavigationPath()
             path.append(route)
             pathsByTab[tab] = path

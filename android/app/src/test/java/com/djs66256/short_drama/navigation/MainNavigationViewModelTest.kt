@@ -19,6 +19,17 @@ class MainNavigationViewModelTest {
     }
 
     @Test
+    fun `T-01 search pending routes are published`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(null, awaitItem().pendingRoute)
+            viewModel.enqueuePendingRoute(PendingRoute.SearchResult("逆袭"))
+            assertEquals(PendingRoute.SearchResult("逆袭"), awaitItem().pendingRoute)
+        }
+    }
+
+    @Test
     fun `consumePendingRoute clears pending route`() = runTest {
         val viewModel = MainNavigationViewModel()
         viewModel.enqueuePendingRoute(PendingRoute.Play("123"))
