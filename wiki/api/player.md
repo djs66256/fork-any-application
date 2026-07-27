@@ -1,6 +1,6 @@
 # 播放器 API 文档
 
-> 最后更新：2026-07-26
+> 最后更新：2026-07-28
 
 ---
 
@@ -216,6 +216,71 @@
 
 ---
 
+## GET /api/player/recently-viewed
+
+### 功能简介
+
+查询当前匿名播放会话下的最近在看列表，供 Android / iOS 首页菜单面板复用。接口只依赖 `X-Playback-Session-Id`，先从历史仓库取固定候选窗口，再过滤失效 drama / episode 或错配数据，最终最多返回 3 条；如果过滤后不足 3 条，会直接按实际条数返回，不承诺继续向更老 offset 补足（`backend/src/app/api/player/recently-viewed/route.ts:11-20`, `backend/src/services/player/player.service.ts:100-142`, `backend/src/lib/player.ts:1-2`）。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/player/recently-viewed/route.ts:1-21`
+- Header 解析：`backend/src/app/api/player/parse-playback-session-id.ts:1-17`
+- Service：`backend/src/services/player/player.service.ts:100-142`
+- 常量：`backend/src/lib/player.ts:1-2`
+- Schema：`backend/src/lib/schemas.ts:185-296`
+- 测试：`backend/src/app/api/__tests__/player.recently-viewed.test.ts:15-180`, `backend/src/services/player/player.service.test.ts:76-224`
+
+### path / method
+
+`GET /api/player/recently-viewed`
+
+### Request
+
+#### Headers
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `X-Playback-Session-Id` | string (UUID) | 是 | 匿名播放会话 ID；与 `progress/start/stop` 统一复用 |
+
+### Success Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "items": [
+      {
+        "drama_id": "550e8400-e29b-41d4-a716-446655440001",
+        "title": "逆袭归来后我成了豪门团宠",
+        "cover_url": "https://example.com/dramas/001.jpg",
+        "episode_number": 1,
+        "progress": 120,
+        "updated_at": "2026-07-27T15:20:00.000Z"
+      }
+    ]
+  },
+  "message": "ok"
+}
+```
+
+### 当前行为说明
+
+- 路由层会复用 `parsePlaybackSessionId()` 校验 header；header 缺失或非法 UUID 时统一返回 `INVALID_PLAYBACK_SESSION`（`backend/src/app/api/player/parse-playback-session-id.ts:5-16`, `backend/src/app/api/__tests__/player.recently-viewed.test.ts:135-155`）。
+- Service 先调用 `listRecentBySession(playbackSessionId, 10)` 取最近候选窗口，再逐条补查 drama / episode；任何缺 drama、缺 episode、或 `episode.drama_id !== history.drama_id` 的脏数据都会被过滤（`backend/src/services/player/player.service.ts:101-115`, `backend/src/lib/player.ts:1-2`）。
+- 返回项按历史仓库提供的最近顺序截取前 3 条合法数据；如果候选窗口里只有 0-2 条合法记录，接口会直接返回实际条数（`backend/src/services/player/player.service.ts:106-129`, `backend/src/services/player/player.service.test.ts:86-171`）。
+- 响应结构由 `RecentlyViewedResponseSchema` 校验，单条记录要求 `drama_id` 为 UUID、`updated_at` 为 ISO datetime；如果映射结果不满足 schema，会返回 500 `INTERNAL_ERROR`（`backend/src/lib/schemas.ts:277-296`, `backend/src/services/player/player.service.ts:131-139`, `backend/src/app/api/__tests__/player.recently-viewed.test.ts:157-180`）。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 成功，`items` 可能为空数组 |
+| 400 | `INVALID_PLAYBACK_SESSION` | header 缺失或不是合法 UUID |
+| 500 | `INTERNAL_ERROR` | 响应映射失败等服务内部错误 |
+
+---
+
 ## POST /api/player/stop
 
 ### 功能简介
@@ -299,6 +364,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 新增 `GET /api/player/recently-viewed` 收录；明确其与 `progress/start/stop` 统一复用 `X-Playback-Session-Id`，并记录固定候选窗口、过滤脏数据、最多 3 条且允许不足 3 条的返回语义 |
 | 2026-07-26 | 新增 `GET /api/player/progress` 与 `GET /api/dramas/:id/episodes` 收录；`start/stop` 从 501 占位更新为可用接口；明确 `X-Playback-Session-Id` 仅用于 `progress/start/stop`，不用于 `episodes` |
 | 2026-07-25 | 移除未被代码实现的请求体字段说明，改为按真实 501 占位行为记录接口现状 |
 
@@ -308,6 +374,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：新增 `GET /api/player/recently-viewed` 文档，记录 `X-Playback-Session-Id` 复用、固定候选窗口、脏数据过滤、最多 3 条且允许不足 3 条的当前返回行为 |
 | 2026-07-26 | 更新：按 PRD-03 实际代码补齐 `GET /api/player/progress`、`GET /api/dramas/:id/episodes`、`POST /api/player/start`、`POST /api/player/stop` 的首版可用契约，并明确 header 透传范围与主要错误码 |
 | 2026-07-25 | 更新：按真实代码将播放器 API 文档修正为“仅返回 501 的占位接口”，移除未落地的 body 参数定义 |
 | 2026-07-24 | 更新：请求 body 参数对齐实际 Zod Schema（drama_id / episode_id / progress），新增 Valid PlayerStartRequestSchema / PlayerStopRequestSchema 定义 |
