@@ -19,7 +19,7 @@ struct TabNavigationHostView: View {
                     case .rankingHome:
                         RankingHomeView()
                     case .classificationHome:
-                        DiscoveryPlaceholderView(kind: .classification)
+                        ClassificationHomeView()
                     case .newReleases:
                         DiscoveryPlaceholderView(kind: .newReleases)
                     case .actorHub:

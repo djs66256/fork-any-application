@@ -1,5 +1,7 @@
 import {
   BookDramaResponse,
+  ClassificationDimension,
+  ClassificationGender,
   Drama,
   HotSearchListResponse,
   RankingContentType,
@@ -19,6 +21,15 @@ export interface SearchDramasParams extends PaginationParams {
 export interface RankingParams extends PaginationParams {
   type: RankingType;
   contentType: RankingContentType;
+}
+
+export interface ClassificationTagsQuery {
+  gender: ClassificationGender;
+}
+
+export interface ClassificationTagsResult {
+  gender: ClassificationGender;
+  dimensions: ClassificationDimension[];
 }
 
 export interface AuthContext {
@@ -45,6 +56,7 @@ export interface PaginatedResult<T> {
 export interface DramaRepositoryInterface {
   findMany(params: PaginationParams): Promise<PaginatedResult<Drama>>;
   search(params: SearchDramasParams): Promise<PaginatedResult<Drama>>;
+  listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult>;
   listRankings(params: RankingParams, authContext?: AuthContext): Promise<PaginatedResult<RankingDrama>>;
   listHotSearches(): Promise<HotSearchListResponse>;
   bookDrama(params: BookDramaParams): Promise<BookDramaResult>;

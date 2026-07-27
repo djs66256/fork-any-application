@@ -163,6 +163,7 @@ struct SearchHomeViewModelTests {
         #expect(viewModel.route(for: rankingEntry) == .rankingHome)
         #expect(viewModel.route(for: newReleasesEntry) == .newReleases)
         #expect(viewModel.route(for: classificationEntry) == .classificationHome)
+        #expect(viewModel.route(for: classificationEntry).publicRouteName == "classification")
         #expect(viewModel.route(for: actorHubEntry) == .actorHub)
     }
 

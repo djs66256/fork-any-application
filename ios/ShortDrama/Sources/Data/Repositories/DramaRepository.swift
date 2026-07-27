@@ -30,6 +30,12 @@ struct DramaRepository: DramaRepositoryProtocol, Sendable {
         return dtos.map { $0.toEntity() }
     }
 
+    func fetchClassificationTags(gender: ClassificationGender) async throws -> ClassificationTagsPayload {
+        let response = try await dataSource.fetchClassificationTags(gender: gender)
+        let payload = response.toEntity()
+        return ClassificationTagsPayload(gender: payload.gender, dimensions: payload.dimensions)
+    }
+
     func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama> {
         let response = try await dataSource.fetchRankings(query: query)
         return response.toEntity()

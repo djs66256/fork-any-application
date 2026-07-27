@@ -49,6 +49,14 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-08 classification tags still reuse canonical search result route`() {
+        assertEquals(
+            "search/result?query=%E8%90%8C%E5%AE%9D",
+            AppDestination.searchResult("萌宝"),
+        )
+    }
+
+    @Test
     fun `T-10 ranking route uses canonical default query args`() {
         assertEquals(
             "ranking?contentType=all&type=hot",

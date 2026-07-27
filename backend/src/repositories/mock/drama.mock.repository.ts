@@ -1,6 +1,9 @@
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  ClassificationDimension,
+  CLASSIFICATION_DIMENSION_KEYS,
+  ClassificationGender,
   Drama,
   DramaSchema,
   HotSearchListResponse,
@@ -11,6 +14,8 @@ import {
 import {
   AuthContext,
   BookDramaParams,
+  ClassificationTagsQuery,
+  ClassificationTagsResult,
   DramaRepositoryInterface,
   PaginatedResult,
   PaginationParams,
@@ -241,10 +246,60 @@ const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.pars
   ],
 });
 
+const CLASSIFICATION_DIMENSION_NAMES: Record<(typeof CLASSIFICATION_DIMENSION_KEYS)[number], string> = {
+  era_background: '时代背景',
+  theme_plot: '主题情节',
+  character_setting: '角色设定',
+};
+
+const CLASSIFICATION_TAG_SEEDS: Record<Exclude<ClassificationGender, 'all'>, ClassificationDimension[]> = {
+  male: [
+    {
+      key: 'era_background',
+      name: CLASSIFICATION_DIMENSION_NAMES.era_background,
+      tags: ['都市', '古风', '年代'],
+    },
+    {
+      key: 'theme_plot',
+      name: CLASSIFICATION_DIMENSION_NAMES.theme_plot,
+      tags: ['逆袭', '系统', '复仇'],
+    },
+    {
+      key: 'character_setting',
+      name: CLASSIFICATION_DIMENSION_NAMES.character_setting,
+      tags: ['总裁', '萌宝'],
+    },
+  ],
+  female: [
+    {
+      key: 'era_background',
+      name: CLASSIFICATION_DIMENSION_NAMES.era_background,
+      tags: ['都市', '校园', '豪门'],
+    },
+    {
+      key: 'theme_plot',
+      name: CLASSIFICATION_DIMENSION_NAMES.theme_plot,
+      tags: ['甜宠', '穿书', '重生'],
+    },
+    {
+      key: 'character_setting',
+      name: CLASSIFICATION_DIMENSION_NAMES.character_setting,
+      tags: [],
+    },
+  ],
+};
+
 function cloneDrama(drama: Drama): Drama {
   return {
     ...drama,
     tags: [...drama.tags],
+  };
+}
+
+function cloneDimension(dimension: ClassificationDimension): ClassificationDimension {
+  return {
+    ...dimension,
+    tags: [...dimension.tags],
   };
 }
 
@@ -313,6 +368,47 @@ function sortRankings(items: RankingDrama[], type: RankingParams['type']): Ranki
   });
 }
 
+function mergeUniqueTags(primary: string[], secondary: string[]): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+
+  for (const tag of [...primary, ...secondary]) {
+    if (seen.has(tag)) {
+      continue;
+    }
+
+    seen.add(tag);
+    merged.push(tag);
+  }
+
+  return merged;
+}
+
+function getClassificationDimensions(gender: ClassificationGender): ClassificationDimension[] {
+  if (gender === 'all') {
+    return CLASSIFICATION_DIMENSION_KEYS.map((key) => {
+      const maleDimension = CLASSIFICATION_TAG_SEEDS.male.find((dimension) => dimension.key === key);
+      const femaleDimension = CLASSIFICATION_TAG_SEEDS.female.find((dimension) => dimension.key === key);
+
+      return {
+        key,
+        name: CLASSIFICATION_DIMENSION_NAMES[key],
+        tags: mergeUniqueTags(maleDimension?.tags ?? [], femaleDimension?.tags ?? []),
+      };
+    });
+  }
+
+  return CLASSIFICATION_DIMENSION_KEYS.map((key) => {
+    const dimension = CLASSIFICATION_TAG_SEEDS[gender].find((item) => item.key === key);
+
+    return {
+      key,
+      name: CLASSIFICATION_DIMENSION_NAMES[key],
+      tags: [...(dimension?.tags ?? [])],
+    };
+  });
+}
+
 export class DramaMockRepository implements DramaRepositoryInterface {
   private data: Map<string, RankingDrama>;
   private bookings: Set<string>;
@@ -333,11 +429,21 @@ export class DramaMockRepository implements DramaRepositoryInterface {
       .filter((drama) => {
         const title = normalizeSearchValue(drama.title);
         const category = normalizeSearchValue(drama.category);
-        return title.includes(normalizedQuery) || category.includes(normalizedQuery);
+        const tags = drama.tags.map(normalizeSearchValue);
+        return title.includes(normalizedQuery)
+          || category.includes(normalizedQuery)
+          || tags.some((tag) => tag.includes(normalizedQuery));
       })
       .map((drama) => cloneDrama(toDrama(drama)));
 
     return paginate(matched, params);
+  }
+
+  async listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult> {
+    return {
+      gender: params.gender,
+      dimensions: getClassificationDimensions(params.gender).map(cloneDimension),
+    };
   }
 
   async listRankings(

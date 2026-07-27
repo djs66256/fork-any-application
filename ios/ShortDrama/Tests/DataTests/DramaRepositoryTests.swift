@@ -69,6 +69,28 @@ struct DramaRepositoryTests {
         """
     }
 
+    private func makeClassificationPayload() -> String {
+        """
+        {
+          "data": {
+            "gender": "female",
+            "dimensions": [
+              {
+                "key": "era_background",
+                "name": "时代背景",
+                "tags": ["古言", "都市"]
+              },
+              {
+                "key": "character_setting",
+                "name": "角色设定",
+                "tags": ["大女主"]
+              }
+            ]
+          }
+        }
+        """
+    }
+
     private func makeRankingPayload() -> String {
         """
         {
@@ -197,6 +219,31 @@ struct DramaRepositoryTests {
         #expect(items[0].rank == 1)
         #expect(items[0].keyword == "逆袭")
         #expect(items[0].score == 9821)
+    }
+
+    @Test("classification repository keeps fixed order and empty dimensions")
+    func testFetchClassificationTagsMapsCanonicalResponse() async throws {
+        let url = URL(string: "https://api.example.com/api/dramas/tags?gender=female")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/tags")
+            #expect(request.url?.query?.contains("gender=female") == true)
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(self.makeClassificationPayload().utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let dataSource = DramaRemoteDataSource(client: client)
+        let repository = DramaRepository(dataSource: dataSource)
+
+        let payload = try await repository.fetchClassificationTags(gender: .female)
+
+        #expect(payload.gender == .female)
+        #expect(payload.dimensions.map(\.key) == ClassificationDimensionKey.allCases)
+        #expect(payload.dimensions[0].tags == ["古言", "都市"])
+        #expect(payload.dimensions[1].tags.isEmpty)
+        #expect(payload.dimensions[1].name == "主题情节")
+        #expect(payload.dimensions[2].tags == ["大女主"])
     }
 
     @Test("ranking repository maps ranking response to entities")

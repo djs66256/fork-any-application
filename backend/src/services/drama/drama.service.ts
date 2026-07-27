@@ -1,6 +1,8 @@
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  ClassificationTagsResponseSchema,
+  ClassificationTagsResult,
   Drama,
   DramaListResponseSchema,
   HotSearchListResponse,
@@ -11,6 +13,7 @@ import {
 import {
   AuthContext,
   BookDramaParams,
+  ClassificationTagsQuery,
   DramaRepositoryInterface,
   PaginatedResult,
   PaginationParams,
@@ -38,6 +41,18 @@ export class DramaService {
         throw error;
       }
       throw Errors.internal('Invalid drama search result');
+    }
+  }
+
+  async listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult> {
+    try {
+      const result = await this.dramaRepository.listClassificationTags(params);
+      return ClassificationTagsResponseSchema.parse({ data: result }).data;
+    } catch (error) {
+      if (isAppError(error)) {
+        throw error;
+      }
+      throw Errors.internal('Invalid classification tags result');
     }
   }
 

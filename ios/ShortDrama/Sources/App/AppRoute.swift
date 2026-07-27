@@ -8,9 +8,9 @@ enum AppRoute: Hashable {
     case searchHome
     /// Search result page for a query.
     case searchResult(query: String)
-    /// Ranking placeholder home.
+    /// Ranking home.
     case rankingHome
-    /// Classification placeholder home.
+    /// Classification home.
     case classificationHome
     /// New releases placeholder home.
     case newReleases

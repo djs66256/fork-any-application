@@ -58,6 +58,7 @@ struct DeeplinkHandlerTests {
         let url = URL(string: "djsdrama://classification")!
         let route = DeeplinkHandler.handleDeepLink(url)
         #expect(route == .classificationHome)
+        #expect(route?.publicRouteName == "classification")
     }
 
     @Test("new releases host maps to new releases")

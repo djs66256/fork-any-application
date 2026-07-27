@@ -72,6 +72,13 @@ struct NavigationRouterTests {
         #expect(AppRoute.actorHub.publicRouteName == "actors")
     }
 
+    @Test("classification keeps existing route semantics and search result reuse")
+    func testClassificationRouteSemanticsRemainStable() {
+        #expect(AppRoute.classificationHome.owningTab == .home)
+        #expect(AppRoute.classificationHome.publicRouteName == "classification")
+        #expect(AppRoute.searchResult(query: "萌宝") == .searchResult(query: "萌宝"))
+    }
+
     @Test("home route builder creates player route from drama id")
     func testHomeRouteBuilderPlayerRoute() {
         let route = HomeRouteBuilder.playerRoute(for: makeDrama(id: "play-001"))

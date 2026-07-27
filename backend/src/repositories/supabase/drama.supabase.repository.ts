@@ -2,6 +2,9 @@ import { z } from 'zod';
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  ClassificationDimension,
+  CLASSIFICATION_DIMENSION_KEYS,
+  ClassificationGender,
   Drama,
   DramaSchema,
   HotSearchListResponse,
@@ -12,6 +15,8 @@ import {
 import {
   AuthContext,
   BookDramaParams,
+  ClassificationTagsQuery,
+  ClassificationTagsResult,
   DramaRepositoryInterface,
   PaginatedResult,
   PaginationParams,
@@ -35,6 +40,7 @@ const SupabaseDramaRowSchema = z.object({
   play_count: z.number().int().min(0).nullable().optional(),
   booking_count: z.number().int().min(0).nullable().optional(),
   recommendation_score: z.union([z.number().min(0), z.string()]).nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
 });
 
 const BookingCountRowSchema = z.object({
@@ -44,7 +50,7 @@ const BookingCountRowSchema = z.object({
 
 type SupabaseDramaRow = z.infer<typeof SupabaseDramaRowSchema>;
 
-const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,episode_count,rating,created_at,updated_at';
+const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,episode_count,rating,created_at,updated_at,tags';
 const RANKING_SELECT_COLUMNS = `${DRAMA_SELECT_COLUMNS},content_type,play_count,booking_count,recommendation_score`;
 
 const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.parse({
@@ -62,6 +68,97 @@ const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.pars
   ],
 });
 
+const CLASSIFICATION_DIMENSION_NAMES: Record<(typeof CLASSIFICATION_DIMENSION_KEYS)[number], string> = {
+  era_background: '时代背景',
+  theme_plot: '主题情节',
+  character_setting: '角色设定',
+};
+
+const CLASSIFICATION_TAG_SEEDS: Record<Exclude<ClassificationGender, 'all'>, ClassificationDimension[]> = {
+  male: [
+    {
+      key: 'era_background',
+      name: CLASSIFICATION_DIMENSION_NAMES.era_background,
+      tags: ['都市', '古风', '年代'],
+    },
+    {
+      key: 'theme_plot',
+      name: CLASSIFICATION_DIMENSION_NAMES.theme_plot,
+      tags: ['逆袭', '系统', '复仇'],
+    },
+    {
+      key: 'character_setting',
+      name: CLASSIFICATION_DIMENSION_NAMES.character_setting,
+      tags: ['总裁', '萌宝'],
+    },
+  ],
+  female: [
+    {
+      key: 'era_background',
+      name: CLASSIFICATION_DIMENSION_NAMES.era_background,
+      tags: ['都市', '校园', '豪门'],
+    },
+    {
+      key: 'theme_plot',
+      name: CLASSIFICATION_DIMENSION_NAMES.theme_plot,
+      tags: ['甜宠', '穿书', '重生'],
+    },
+    {
+      key: 'character_setting',
+      name: CLASSIFICATION_DIMENSION_NAMES.character_setting,
+      tags: [],
+    },
+  ],
+};
+
+function cloneDimension(dimension: ClassificationDimension): ClassificationDimension {
+  return {
+    ...dimension,
+    tags: [...dimension.tags],
+  };
+}
+
+function mergeUniqueTags(primary: string[], secondary: string[]): string[] {
+  const seen = new Set<string>();
+  const merged: string[] = [];
+
+  for (const tag of [...primary, ...secondary]) {
+    if (seen.has(tag)) {
+      continue;
+    }
+
+    seen.add(tag);
+    merged.push(tag);
+  }
+
+  return merged;
+}
+
+function getClassificationDimensions(gender: ClassificationGender): ClassificationDimension[] {
+  if (gender === 'all') {
+    return CLASSIFICATION_DIMENSION_KEYS.map((key) => {
+      const maleDimension = CLASSIFICATION_TAG_SEEDS.male.find((dimension) => dimension.key === key);
+      const femaleDimension = CLASSIFICATION_TAG_SEEDS.female.find((dimension) => dimension.key === key);
+
+      return {
+        key,
+        name: CLASSIFICATION_DIMENSION_NAMES[key],
+        tags: mergeUniqueTags(maleDimension?.tags ?? [], femaleDimension?.tags ?? []),
+      };
+    });
+  }
+
+  return CLASSIFICATION_DIMENSION_KEYS.map((key) => {
+    const dimension = CLASSIFICATION_TAG_SEEDS[gender].find((item) => item.key === key);
+
+    return {
+      key,
+      name: CLASSIFICATION_DIMENSION_NAMES[key],
+      tags: [...(dimension?.tags ?? [])],
+    };
+  });
+}
+
 function mapRowToDrama(row: unknown): Drama {
   const parsed = SupabaseDramaRowSchema.safeParse(row);
   if (!parsed.success) {
@@ -75,7 +172,7 @@ function mapRowToDrama(row: unknown): Drama {
     cover_url: parsed.data.cover_url ?? null,
     category: parsed.data.category ?? '',
     episode_count: parsed.data.episode_count,
-    tags: [],
+    tags: parsed.data.tags ?? [],
     rating: parsed.data.rating ?? null,
     created_at: parsed.data.created_at,
     updated_at: parsed.data.updated_at,
@@ -106,7 +203,7 @@ function mapRowToRankingDrama(row: unknown, isBooked = false): RankingDrama {
     cover_url: parsed.data.cover_url ?? null,
     category: parsed.data.category ?? '',
     episode_count: parsed.data.episode_count,
-    tags: [],
+    tags: parsed.data.tags ?? [],
     rating: parsed.data.rating ?? null,
     created_at: parsed.data.created_at,
     updated_at: parsed.data.updated_at,
@@ -125,10 +222,6 @@ function mapRowToRankingDrama(row: unknown, isBooked = false): RankingDrama {
 }
 
 function mapDramaToRow(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): Omit<SupabaseDramaRow, 'id' | 'created_at' | 'updated_at'> {
-  if (data.tags.length > 0) {
-    throw Errors.validationError('Supabase drama storage does not support non-empty tags yet');
-  }
-
   return {
     title: data.title,
     description: data.description,
@@ -136,6 +229,7 @@ function mapDramaToRow(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): O
     category: data.category,
     episode_count: data.episode_count,
     rating: data.rating,
+    tags: data.tags,
     content_type: undefined,
     play_count: undefined,
     booking_count: undefined,
@@ -156,6 +250,14 @@ function rankingSortColumn(type: RankingParams['type']): 'play_count' | 'recomme
     case 'booking':
       return 'booking_count';
   }
+}
+
+function escapeIlikeQuery(value: string): string {
+  return value.trim().replace(/[%_]/g, (char) => `\\${char}`);
+}
+
+function buildSearchExpression(queryPattern: string): string {
+  return `title.ilike.${queryPattern},category.ilike.${queryPattern},tags.cs.{"${queryPattern.slice(1, -1)}"}`;
 }
 
 export class DramaSupabaseRepository implements DramaRepositoryInterface {
@@ -191,13 +293,13 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
     const supabase = getSupabaseAdmin();
     const from = (params.page - 1) * params.pageSize;
     const to = from + params.pageSize - 1;
-    const escapedQuery = params.q.trim().replace(/[%_]/g, (char) => `\\${char}`);
+    const escapedQuery = escapeIlikeQuery(params.q);
     const queryPattern = `%${escapedQuery}%`;
 
     const { data, error, count } = await supabase
       .from('dramas')
       .select(DRAMA_SELECT_COLUMNS, { count: 'exact', head: false })
-      .or(`title.ilike.${queryPattern},category.ilike.${queryPattern}`)
+      .or(buildSearchExpression(queryPattern))
       .range(from, to)
       .order('created_at', { ascending: false });
 
@@ -215,6 +317,13 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
         total,
         total_pages: computeTotalPages(total, params.pageSize),
       },
+    };
+  }
+
+  async listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult> {
+    return {
+      gender: params.gender,
+      dimensions: getClassificationDimensions(params.gender).map(cloneDimension),
     };
   }
 
@@ -394,16 +503,13 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
     const supabase = getSupabaseAdmin();
     const rowUpdate: Partial<Omit<SupabaseDramaRow, 'id' | 'created_at' | 'updated_at'>> = {};
 
-    if (data.tags !== undefined && data.tags.length > 0) {
-      throw Errors.validationError('Supabase drama storage does not support non-empty tags yet');
-    }
-
     if (data.title !== undefined) rowUpdate.title = data.title;
     if (data.description !== undefined) rowUpdate.description = data.description;
     if (data.cover_url !== undefined) rowUpdate.cover_url = data.cover_url;
     if (data.category !== undefined) rowUpdate.category = data.category;
     if (data.episode_count !== undefined) rowUpdate.episode_count = data.episode_count;
     if (data.rating !== undefined) rowUpdate.rating = data.rating;
+    if (data.tags !== undefined) rowUpdate.tags = data.tags;
 
     const { data: updated, error } = await supabase
       .from('dramas')

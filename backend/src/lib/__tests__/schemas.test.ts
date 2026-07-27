@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   BookDramaResponseSchema,
+  CLASSIFICATION_DIMENSION_KEYS,
+  ClassificationTagsQuerySchema,
+  ClassificationTagsResponseSchema,
   DramaIdPathSchema,
   DramaListResponseSchema,
   DramaSchema,
@@ -220,6 +223,65 @@ describe('RankingListResponseSchema', () => {
 
     expect(result.data).toHaveLength(1);
     expect(result.pagination.total_pages).toBe(1);
+  });
+});
+
+describe('ClassificationTagsQuerySchema', () => {
+  it('should default gender to all and parse valid values', () => {
+    expect(ClassificationTagsQuerySchema.parse({})).toEqual({ gender: 'all' });
+    expect(ClassificationTagsQuerySchema.parse({ gender: 'male' })).toEqual({ gender: 'male' });
+    expect(ClassificationTagsQuerySchema.parse({ gender: 'female' })).toEqual({ gender: 'female' });
+  });
+
+  it('should reject invalid gender values', () => {
+    expect(() => ClassificationTagsQuerySchema.parse({ gender: 'unknown' })).toThrow();
+    expect(() => ClassificationTagsQuerySchema.parse({ gender: 1 })).toThrow();
+  });
+});
+
+describe('ClassificationTagsResponseSchema', () => {
+  it('should parse canonical classification response with fixed dimensions', () => {
+    const result = ClassificationTagsResponseSchema.parse({
+      data: {
+        gender: 'all',
+        dimensions: [
+          { key: 'era_background', name: '时代背景', tags: ['都市'] },
+          { key: 'theme_plot', name: '主题情节', tags: ['逆袭'] },
+          { key: 'character_setting', name: '角色设定', tags: [] },
+        ],
+      },
+    });
+
+    expect(result.data.gender).toBe('all');
+    expect(result.data.dimensions).toHaveLength(3);
+    expect(result.data.dimensions.map((item) => item.key)).toEqual([...CLASSIFICATION_DIMENSION_KEYS]);
+  });
+
+  it('should reject missing dimensions or incorrect order', () => {
+    expect(() =>
+      ClassificationTagsResponseSchema.parse({
+        data: {
+          gender: 'male',
+          dimensions: [
+            { key: 'theme_plot', name: '主题情节', tags: [] },
+            { key: 'era_background', name: '时代背景', tags: [] },
+            { key: 'character_setting', name: '角色设定', tags: [] },
+          ],
+        },
+      }),
+    ).toThrow();
+
+    expect(() =>
+      ClassificationTagsResponseSchema.parse({
+        data: {
+          gender: 'female',
+          dimensions: [
+            { key: 'era_background', name: '时代背景', tags: [] },
+            { key: 'theme_plot', name: '主题情节', tags: [] },
+          ],
+        },
+      }),
+    ).toThrow();
   });
 });
 
