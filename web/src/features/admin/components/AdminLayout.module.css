@@ -1,0 +1,27 @@
+.layoutWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+.mainArea {
+  display: flex;
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}

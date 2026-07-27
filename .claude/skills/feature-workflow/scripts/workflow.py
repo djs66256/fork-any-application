@@ -17,6 +17,7 @@ Agent 不应直接读写 workflow.json，所有状态变更通过此脚本完成
 import argparse
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,32 +68,84 @@ MAX_REVIEW_LOOPS = 3
 # ============================================================
 
 def find_workflow_json() -> Optional[Path]:
-    """在 docs/specs/ 下查找 workflow.json 文件。
+    """在 docs/specs/ 下查找当前 feature 的 workflow.json 文件。
 
-    搜索策略：
-    1. 从当前目录（可能是 worktree）的 docs/specs/ 开始
-    2. 如找不到，尝试从 GIT_COMMON_DIR（主仓库）的 docs/specs/ 查找
+    搜索策略（优先级从高到低）：
+    1. 从 CWD 向上遍历，找到 docs/specs/ 目录
+    2. 如果 CWD 已在某个 spec 子目录中，直接使用该目录的 workflow.json
+    3. 否则用 git 分支名匹配对应的 spec 目录
+    4. 最后 fallback 到 git 主仓库的 docs/specs/ 按最新目录查找
     """
-    cwd = Path.cwd()
-    specs_dir = cwd / "docs" / "specs"
-    if specs_dir.exists():
+    cwd = Path.cwd().resolve()
+
+    # 向上遍历查找 docs/specs/ 目录
+    specs_dir: Optional[Path] = None
+    for parent in [cwd] + list(cwd.parents):
+        candidate = parent / "docs" / "specs"
+        if candidate.is_dir():
+            specs_dir = candidate
+            break
+
+    # 如果 CWD 已在某个 spec 子目录中，直接使用
+    if specs_dir:
+        for parent in cwd.parents:
+            if parent.parent == specs_dir:
+                wf = parent / "workflow.json"
+                if wf.exists():
+                    return wf
+
+    # 用 git 分支名匹配 spec 目录
+    if specs_dir:
+        try:
+            branch = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip()
+            # 分支名可能为 feature/2026-07-27-admin-panel 或 worktree-2026-07-27-admin-panel
+            # 取末段
+            branch_name = branch.split("/")[-1] if "/" in branch else branch
+            # 如果分支名以 worktree- 开头，剥离该前缀
+            if branch_name.startswith("worktree-"):
+                branch_name = branch_name[len("worktree-"):]
+
+            for spec_dir in specs_dir.iterdir():
+                if spec_dir.is_dir() and spec_dir.name == branch_name:
+                    wf = spec_dir / "workflow.json"
+                    if wf.exists():
+                        return wf
+            # 宽松匹配：子串包含
+            for spec_dir in specs_dir.iterdir():
+                if spec_dir.is_dir() and (branch_name in spec_dir.name or spec_dir.name in branch_name):
+                    wf = spec_dir / "workflow.json"
+                    if wf.exists():
+                        return wf
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
+
+    # fallback 1: 当前 docs/specs/ 下最新的 workflow.json
+    if specs_dir:
         for spec_dir in sorted(specs_dir.iterdir(), reverse=True):
             if spec_dir.is_dir():
                 wf = spec_dir / "workflow.json"
                 if wf.exists():
                     return wf
 
-    # fallback: 尝试从主仓库路径查找（当 worktree 中找不到时）
-    git_common = os.environ.get("GIT_COMMON_DIR")
-    if git_common:
-        main_repo = Path(git_common).parent
-        specs_dir = main_repo / "docs" / "specs"
+    # fallback 2: 通过 git rev-parse 获取主仓库路径
+    try:
+        repo_root = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        specs_dir = Path(repo_root) / "docs" / "specs"
         if specs_dir.exists():
             for spec_dir in sorted(specs_dir.iterdir(), reverse=True):
                 if spec_dir.is_dir():
                     wf = spec_dir / "workflow.json"
                     if wf.exists():
                         return wf
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
     return None
 
 

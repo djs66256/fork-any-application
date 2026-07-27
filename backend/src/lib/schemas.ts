@@ -145,3 +145,72 @@ export const UserProfileSchema = z.object({
 });
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+// ============================================================
+// Admin Panel Schemas
+// ============================================================
+
+export const AdminLoginRequestSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8).max(72),
+});
+
+export type AdminLoginRequest = z.infer<typeof AdminLoginRequestSchema>;
+
+export const AdminStatsResponseSchema = z.object({
+  total_dramas: z.number().int().min(0),
+  total_episodes: z.number().int().min(0),
+  total_users: z.number().int().min(0),
+});
+
+export type AdminStatsResponse = z.infer<typeof AdminStatsResponseSchema>;
+
+export const AdminDramaCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().default(''),
+  cover_url: z.string().url().nullable().default(null),
+  category: z.string().default(''),
+  episode_count: z.number().int().min(0).default(0),
+  tags: z.array(z.string()).default([]),
+  rating: z.number().min(0).max(10).nullable().default(null),
+});
+
+export type AdminDramaCreate = z.infer<typeof AdminDramaCreateSchema>;
+
+export const AdminDramaUpdateSchema = AdminDramaCreateSchema.partial();
+
+export type AdminDramaUpdate = z.infer<typeof AdminDramaUpdateSchema>;
+
+export const AdminEpisodeCreateSchema = z.object({
+  title: z.string().min(1).max(200),
+  episode_number: z.number().int().min(1),
+  duration: z.number().int().min(0).optional().nullable(),
+  video_url: z.string().url().optional().nullable(),
+  thumbnail_url: z.string().url().optional().nullable(),
+  description: z.string().optional().nullable(),
+});
+
+export type AdminEpisodeCreate = z.infer<typeof AdminEpisodeCreateSchema>;
+
+export const AdminEpisodeUpdateSchema = AdminEpisodeCreateSchema.partial();
+
+export type AdminEpisodeUpdate = z.infer<typeof AdminEpisodeUpdateSchema>;
+
+export const AdminRoleUpdateSchema = z.object({
+  role: z.enum(['admin', 'editor', 'viewer']),
+});
+
+export type AdminRoleUpdate = z.infer<typeof AdminRoleUpdateSchema>;
+
+export const AdminUserProfileSchema = UserProfileSchema.extend({
+  role: z.enum(['admin', 'editor', 'viewer']),
+});
+
+export type AdminUserProfile = z.infer<typeof AdminUserProfileSchema>;
+
+export const AdminUserListResponseSchema = z.object({
+  data: z.array(AdminUserProfileSchema),
+  pagination: PaginationSchema,
+});
+
+export type AdminUserListResponse = z.infer<typeof AdminUserListResponseSchema>;

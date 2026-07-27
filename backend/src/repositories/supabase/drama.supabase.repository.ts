@@ -27,7 +27,7 @@ const SupabaseDramaRowSchema = z.object({
   description: z.string().nullable().optional(),
   cover_url: z.string().url().nullable().optional(),
   category: z.string().nullable().optional(),
-  total_episodes: z.number().int().min(0),
+  episode_count: z.number().int().min(0),
   rating: z.number().min(0).max(10).nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
@@ -44,7 +44,7 @@ const BookingCountRowSchema = z.object({
 
 type SupabaseDramaRow = z.infer<typeof SupabaseDramaRowSchema>;
 
-const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at';
+const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,episode_count,rating,created_at,updated_at';
 const RANKING_SELECT_COLUMNS = `${DRAMA_SELECT_COLUMNS},content_type,play_count,booking_count,recommendation_score`;
 
 const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.parse({
@@ -74,7 +74,7 @@ function mapRowToDrama(row: unknown): Drama {
     description: parsed.data.description ?? '',
     cover_url: parsed.data.cover_url ?? null,
     category: parsed.data.category ?? '',
-    episode_count: parsed.data.total_episodes,
+    episode_count: parsed.data.episode_count,
     tags: [],
     rating: parsed.data.rating ?? null,
     created_at: parsed.data.created_at,
@@ -105,7 +105,7 @@ function mapRowToRankingDrama(row: unknown, isBooked = false): RankingDrama {
     description: parsed.data.description ?? '',
     cover_url: parsed.data.cover_url ?? null,
     category: parsed.data.category ?? '',
-    episode_count: parsed.data.total_episodes,
+    episode_count: parsed.data.episode_count,
     tags: [],
     rating: parsed.data.rating ?? null,
     created_at: parsed.data.created_at,
@@ -134,7 +134,7 @@ function mapDramaToRow(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): O
     description: data.description,
     cover_url: data.cover_url,
     category: data.category,
-    total_episodes: data.episode_count,
+    episode_count: data.episode_count,
     rating: data.rating,
     content_type: undefined,
     play_count: undefined,
@@ -402,7 +402,7 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
     if (data.description !== undefined) rowUpdate.description = data.description;
     if (data.cover_url !== undefined) rowUpdate.cover_url = data.cover_url;
     if (data.category !== undefined) rowUpdate.category = data.category;
-    if (data.episode_count !== undefined) rowUpdate.total_episodes = data.episode_count;
+    if (data.episode_count !== undefined) rowUpdate.episode_count = data.episode_count;
     if (data.rating !== undefined) rowUpdate.rating = data.rating;
 
     const { data: updated, error } = await supabase
@@ -434,5 +434,18 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
     }
 
     return true;
+  }
+
+  async count(): Promise<number> {
+    const supabase = getSupabaseAdmin();
+    const { count, error } = await supabase
+      .from('dramas')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      throw Errors.internal(`Failed to count dramas: ${error.message}`);
+    }
+
+    return count ?? 0;
   }
 }

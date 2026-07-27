@@ -8,6 +8,8 @@ export enum ErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  CANNOT_MODIFY_SELF = 'CANNOT_MODIFY_SELF',
 }
 
 const ErrorStatusCode: Record<ErrorCode, number> = {
@@ -20,6 +22,8 @@ const ErrorStatusCode: Record<ErrorCode, number> = {
   [ErrorCode.INTERNAL_ERROR]: 500,
   [ErrorCode.NOT_IMPLEMENTED]: 501,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
+  [ErrorCode.INVALID_CREDENTIALS]: 401,
+  [ErrorCode.CANNOT_MODIFY_SELF]: 400,
 };
 
 export class AppError extends Error {
@@ -63,6 +67,12 @@ export const Errors = {
 
   serviceUnavailable: (service: string) =>
     new AppError(ErrorCode.SERVICE_UNAVAILABLE, `Service unavailable: ${service}`),
+
+  invalidCredentials: (message = 'Invalid email or password') =>
+    new AppError(ErrorCode.INVALID_CREDENTIALS, message),
+
+  cannotModifySelf: (message = 'Cannot modify your own role') =>
+    new AppError(ErrorCode.CANNOT_MODIFY_SELF, message),
 };
 
 export interface ErrorResponseBody {
