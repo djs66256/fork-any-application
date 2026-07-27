@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { ToastProvider } from './Toast';
@@ -14,13 +14,22 @@ interface AdminLayoutClientProps {
 
 export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<{
     email: string;
     role: string;
   } | null>(null);
 
+  const isLoginPage = pathname === '/admin/login';
+
   useEffect(() => {
+    // Login page doesn't need auth check — render immediately
+    if (isLoginPage) {
+      setIsLoading(false);
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,13 +44,18 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
       setUser({ email, role });
       setIsLoading(false);
     });
-  }, [router]);
+  }, [router, isLoginPage]);
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient();
     await supabase.auth.signOut();
     router.push('/admin/login');
   };
+
+  // Login page: render children without the admin shell
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   if (isLoading || !user) {
     return (
