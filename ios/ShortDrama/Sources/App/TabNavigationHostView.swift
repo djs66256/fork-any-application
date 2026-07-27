@@ -28,6 +28,8 @@ struct TabNavigationHostView: View {
                         PlayerView(viewModel: makePlayerViewModel(videoId: videoId))
                     case .dramaDetail(let dramaId):
                         DramaDetailView(viewModel: DramaDetailViewModel(dramaId: dramaId))
+                    case .menuPlaceholder(let kind):
+                        MenuPlaceholderView(kind: kind)
                     }
                 }
         }

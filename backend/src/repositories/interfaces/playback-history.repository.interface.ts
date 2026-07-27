@@ -11,5 +11,6 @@ export interface UpsertPlaybackHistoryInput {
 
 export interface PlaybackHistoryRepositoryInterface {
   findLatest(playbackSessionId: string, dramaId: string): Promise<PlaybackHistory | null>;
+  listRecentBySession(playbackSessionId: string, limit: number): Promise<PlaybackHistory[]>;
   upsert(input: UpsertPlaybackHistoryInput): Promise<PlaybackHistory>;
 }

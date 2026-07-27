@@ -20,6 +20,7 @@ import {
   PlayerStartResponseSchema,
   PlayerStopRequestSchema,
   PlayerStopResponseSchema,
+  RecentlyViewedResponseSchema,
   RankingDramaSchema,
   RankingListResponseSchema,
   RankingQuerySchema,
@@ -412,6 +413,140 @@ describe('player schemas', () => {
     });
 
     expect(result.duration).toBe(180);
+  });
+
+  it('should parse recently viewed response with nullable cover_url', () => {
+    const result = RecentlyViewedResponseSchema.parse({
+      code: 0,
+      data: {
+        items: [
+          {
+            drama_id: '550e8400-e29b-41d4-a716-446655440001',
+            title: '逆袭归来后我成了豪门团宠',
+            cover_url: null,
+            episode_number: 12,
+            progress: 128.5,
+            updated_at: '2026-07-27T15:20:00.000Z',
+          },
+        ],
+      },
+      message: 'ok',
+    });
+
+    expect(result.data.items).toHaveLength(1);
+    expect(result.data.items[0]?.cover_url).toBeNull();
+  });
+
+  it('should allow recently viewed response with empty items', () => {
+    const result = RecentlyViewedResponseSchema.parse({
+      code: 0,
+      data: { items: [] },
+      message: 'ok',
+    });
+
+    expect(result.data.items).toEqual([]);
+  });
+
+  it('should reject invalid recently viewed response shape', () => {
+    expect(() =>
+      RecentlyViewedResponseSchema.parse({
+        code: 0,
+        data: {
+          items: [
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440001',
+              title: '有效数据',
+              cover_url: null,
+              episode_number: 1,
+              progress: 10,
+              updated_at: '2026-07-27T15:20:00.000Z',
+            },
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440002',
+              title: '有效数据',
+              cover_url: null,
+              episode_number: 2,
+              progress: 20,
+              updated_at: '2026-07-27T15:19:00.000Z',
+            },
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440003',
+              title: '有效数据',
+              cover_url: null,
+              episode_number: 3,
+              progress: 30,
+              updated_at: '2026-07-27T15:18:00.000Z',
+            },
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440004',
+              title: '越界数据',
+              cover_url: null,
+              episode_number: 4,
+              progress: 40,
+              updated_at: '2026-07-27T15:17:00.000Z',
+            },
+          ],
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
+
+    expect(() =>
+      RecentlyViewedResponseSchema.parse({
+        code: 0,
+        data: {
+          items: [
+            {
+              drama_id: 'invalid-uuid',
+              title: '非法 UUID',
+              cover_url: null,
+              episode_number: 1,
+              progress: 10,
+              updated_at: '2026-07-27T15:20:00.000Z',
+            },
+          ],
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
+
+    expect(() =>
+      RecentlyViewedResponseSchema.parse({
+        code: 0,
+        data: {
+          items: [
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440001',
+              title: '负进度',
+              cover_url: null,
+              episode_number: 1,
+              progress: -1,
+              updated_at: '2026-07-27T15:20:00.000Z',
+            },
+          ],
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
+
+    expect(() =>
+      RecentlyViewedResponseSchema.parse({
+        code: 0,
+        data: {
+          items: [
+            {
+              drama_id: '550e8400-e29b-41d4-a716-446655440001',
+              title: '非法集数',
+              cover_url: null,
+              episode_number: 0,
+              progress: 10,
+              updated_at: '2026-07-27T15:20:00.000Z',
+            },
+          ],
+        },
+        message: 'ok',
+      }),
+    ).toThrow();
   });
 
   it('should parse episode list response', () => {

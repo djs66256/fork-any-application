@@ -1,8 +1,10 @@
 package com.djs66256.short_drama.core.network
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -71,6 +73,17 @@ class ApiServiceTest {
 
         assertEquals("dramas/{id}/book", postAnnotation.value)
         assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
+    }
+
+    @Test
+    fun `T-03 getRecentlyViewed uses canonical path and playback session header`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "getRecentlyViewed" }
+        val getAnnotation = method.getAnnotation(GET::class.java)
+        val headerAnnotation = method.parameterAnnotations[0].filterIsInstance<Header>().single()
+
+        assertNotNull(getAnnotation)
+        assertEquals("player/recently-viewed", getAnnotation!!.value)
+        assertEquals("X-Playback-Session-Id", headerAnnotation.value)
     }
 
     @Test

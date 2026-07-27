@@ -20,6 +20,8 @@ enum AppRoute: Hashable {
     case player(videoId: String)
     /// Detail screen for a specific drama.
     case dramaDetail(dramaId: String)
+    /// Placeholder page pushed from the menu panel.
+    case menuPlaceholder(kind: MenuPlaceholderKind)
 
     var owningTab: AppTab {
         switch self {
@@ -31,7 +33,8 @@ enum AppRoute: Hashable {
              .newReleases,
              .actorHub,
              .player,
-             .dramaDetail:
+             .dramaDetail,
+             .menuPlaceholder:
             return .home
         }
     }
@@ -56,6 +59,8 @@ enum AppRoute: Hashable {
             return "play"
         case .dramaDetail:
             return "detail"
+        case .menuPlaceholder:
+            return "menu/placeholder"
         }
     }
 }

@@ -113,12 +113,14 @@ final class PlayerViewModel: ObservableObject {
     }
 
     func handleBack() {
+        router.dismiss()
         Task {
-            await exitPlayer()
+            await stopPlaybackIfNeeded(bestEffort: true)
         }
     }
 
     func handleDisappear() {
+        lastStopFingerprint = nil
         Task {
             await stopPlaybackIfNeeded(bestEffort: true)
         }

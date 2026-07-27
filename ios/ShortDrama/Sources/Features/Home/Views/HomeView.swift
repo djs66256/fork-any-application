@@ -39,6 +39,15 @@ struct HomeView: View {
         .navigationTitle("首页")
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    router.openMenuPanel()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                }
+                .accessibilityLabel("打开菜单")
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     router.navigate(to: .searchHome)

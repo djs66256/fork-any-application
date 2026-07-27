@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.first
 
@@ -15,7 +16,7 @@ interface PlaybackSessionStore {
 
 @Singleton
 class DataStorePlaybackSessionStore @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
+    @Named("playbackSession") private val dataStore: DataStore<Preferences>,
 ) : PlaybackSessionStore {
 
     override suspend fun getOrCreateSessionId(): String {

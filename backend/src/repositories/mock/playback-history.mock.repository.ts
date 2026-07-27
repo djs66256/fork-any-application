@@ -28,6 +28,14 @@ export class PlaybackHistoryMockRepository implements PlaybackHistoryRepositoryI
     return item ? clonePlaybackHistory(item) : null;
   }
 
+  async listRecentBySession(playbackSessionId: string, limit: number): Promise<PlaybackHistory[]> {
+    return Array.from(this.data.values())
+      .filter((item) => item.playback_session_id === playbackSessionId)
+      .sort((left, right) => right.updated_at.localeCompare(left.updated_at))
+      .slice(0, limit)
+      .map(clonePlaybackHistory);
+  }
+
   async upsert(input: UpsertPlaybackHistoryInput): Promise<PlaybackHistory> {
     const record = PlaybackHistorySchema.parse({
       ...input,

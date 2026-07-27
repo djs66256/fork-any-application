@@ -51,6 +51,10 @@ object Route {
     const val CLASSIFICATION = "classification"
     const val NEW_RELEASES = "new-releases"
     const val ACTORS = "actors"
+    const val MENU_LOGIN = "menu/login"
+    const val MENU_MESSAGES = "menu/messages"
+    const val MENU_BOOKING = "menu/booking"
+    const val MENU_DOWNLOADS = "menu/downloads"
 }
 
 object AppDestination {
@@ -78,6 +82,10 @@ object AppDestination {
         const val CLASSIFICATION = com.djs66256.short_drama.navigation.Route.CLASSIFICATION
         const val NEW_RELEASES = com.djs66256.short_drama.navigation.Route.NEW_RELEASES
         const val ACTORS = com.djs66256.short_drama.navigation.Route.ACTORS
+        const val MENU_LOGIN = com.djs66256.short_drama.navigation.Route.MENU_LOGIN
+        const val MENU_MESSAGES = com.djs66256.short_drama.navigation.Route.MENU_MESSAGES
+        const val MENU_BOOKING = com.djs66256.short_drama.navigation.Route.MENU_BOOKING
+        const val MENU_DOWNLOADS = com.djs66256.short_drama.navigation.Route.MENU_DOWNLOADS
     }
 
     object Arg {
@@ -117,6 +125,14 @@ object AppDestination {
 
     fun actors(): String = Route.ACTORS
 
+    fun menuLogin(): String = Route.MENU_LOGIN
+
+    fun menuMessages(): String = Route.MENU_MESSAGES
+
+    fun menuBooking(): String = Route.MENU_BOOKING
+
+    fun menuDownloads(): String = Route.MENU_DOWNLOADS
+
     private fun encodeRouteParam(rawValue: String): String {
         return URLEncoder.encode(rawValue, StandardCharsets.UTF_8.toString())
             .replace("+", "%20")
@@ -133,6 +149,10 @@ sealed interface PendingRoute {
     data object Classification : PendingRoute
     data object NewReleases : PendingRoute
     data object Actors : PendingRoute
+    data object MenuLogin : PendingRoute
+    data object MenuMessages : PendingRoute
+    data object MenuBooking : PendingRoute
+    data object MenuDownloads : PendingRoute
 }
 
 enum class NavigationErrorCode {

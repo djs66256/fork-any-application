@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -42,6 +43,7 @@ import com.djs66256.short_drama.feature.home.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(
+    onOpenMenu: () -> Unit,
     onOpenSearch: () -> Unit,
     onOpenPlay: (String) -> Unit,
     onOpenDetail: (String) -> Unit,
@@ -62,7 +64,10 @@ fun HomeScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        HomeTopBar(onOpenSearch = onOpenSearch)
+        HomeTopBar(
+            onOpenMenu = onOpenMenu,
+            onOpenSearch = onOpenSearch,
+        )
 
         Box(modifier = Modifier.fillMaxSize()) {
             when {
@@ -90,12 +95,21 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeTopBar(onOpenSearch: () -> Unit) {
+private fun HomeTopBar(
+    onOpenMenu: () -> Unit,
+    onOpenSearch: () -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        IconButton(onClick = onOpenMenu) {
+            Icon(
+                imageVector = Icons.Filled.Menu,
+                contentDescription = HOME_MENU_ENTRY_CONTENT_DESCRIPTION,
+            )
+        }
         Text(
             text = "首页",
             style = MaterialTheme.typography.headlineSmall,
@@ -298,6 +312,7 @@ private fun DramaCoverPlaceholder(drama: Drama) {
     }
 }
 
+internal const val HOME_MENU_ENTRY_CONTENT_DESCRIPTION = "打开菜单"
 internal const val HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION = "打开搜索"
 
 internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.trim().isNotEmpty()

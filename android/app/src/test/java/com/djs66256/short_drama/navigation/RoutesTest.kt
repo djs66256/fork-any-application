@@ -49,6 +49,22 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-02 menu placeholder routes are canonical`() {
+        assertEquals("menu/login", AppDestination.menuLogin())
+        assertEquals("menu/messages", AppDestination.menuMessages())
+        assertEquals("menu/booking", AppDestination.menuBooking())
+        assertEquals("menu/downloads", AppDestination.menuDownloads())
+    }
+
+    @Test
+    fun `T-02 pending route includes menu targets`() {
+        assertEquals(PendingRoute.MenuLogin, PendingRoute.MenuLogin)
+        assertEquals(PendingRoute.MenuMessages, PendingRoute.MenuMessages)
+        assertEquals(PendingRoute.MenuBooking, PendingRoute.MenuBooking)
+        assertEquals(PendingRoute.MenuDownloads, PendingRoute.MenuDownloads)
+    }
+
+    @Test
     fun `T-08 classification tags still reuse canonical search result route`() {
         assertEquals(
             "search/result?query=%E8%90%8C%E5%AE%9D",

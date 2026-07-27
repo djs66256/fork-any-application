@@ -11,6 +11,7 @@ import com.djs66256.short_drama.data.dto.PlayerStartResponseDto
 import com.djs66256.short_drama.data.dto.PlayerStopRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStopResponseDto
 import com.djs66256.short_drama.data.dto.RankingListResponseDto
+import com.djs66256.short_drama.data.dto.RecentlyViewedResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -79,6 +80,11 @@ interface ApiService {
         @Header("X-Playback-Session-Id") playbackSessionId: String,
         @Query("dramaId") dramaId: String,
     ): PlayerProgressResponseDto
+
+    @GET("player/recently-viewed")
+    suspend fun getRecentlyViewed(
+        @Header("X-Playback-Session-Id") playbackSessionId: String,
+    ): RecentlyViewedResponseDto
 
     @POST("player/start")
     suspend fun startPlayback(

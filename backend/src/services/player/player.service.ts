@@ -5,7 +5,10 @@ import {
   PlayerStartResponseSchema,
   PlayerStopResponse,
   PlayerStopResponseSchema,
+  RecentlyViewedResponse,
+  RecentlyViewedResponseSchema,
 } from '@/lib/schemas';
+import { RECENTLY_VIEWED_FETCH_LIMIT, RECENTLY_VIEWED_LIMIT } from '@/lib/player';
 import { Errors } from '@/lib/errors';
 import { DramaRepositoryInterface } from '@/repositories/interfaces/drama.repository.interface';
 import { EpisodeRepositoryInterface } from '@/repositories/interfaces/episode.repository.interface';
@@ -92,6 +95,50 @@ export class PlayerService {
       },
       message: 'ok',
     });
+  }
+
+  async getRecentlyViewed(playbackSessionId: string): Promise<RecentlyViewedResponse> {
+    const histories = await this.playbackHistoryRepository.listRecentBySession(
+      playbackSessionId,
+      RECENTLY_VIEWED_FETCH_LIMIT,
+    );
+
+    const items: RecentlyViewedResponse['data']['items'] = [];
+    for (const history of histories) {
+      const [drama, episode] = await Promise.all([
+        this.dramaRepository.findById(history.drama_id),
+        this.episodeRepository.findById(history.episode_id),
+      ]);
+
+      if (!drama || !episode || episode.drama_id !== history.drama_id) {
+        continue;
+      }
+
+      items.push({
+        drama_id: drama.id,
+        title: drama.title,
+        cover_url: drama.cover_url,
+        episode_number: episode.episode_number,
+        progress: history.progress,
+        updated_at: history.updated_at,
+      });
+
+      if (items.length >= RECENTLY_VIEWED_LIMIT) {
+        break;
+      }
+    }
+
+    const response = RecentlyViewedResponseSchema.safeParse({
+      code: 0,
+      data: { items },
+      message: 'ok',
+    });
+
+    if (!response.success) {
+      throw Errors.internal('Failed to map recently viewed response');
+    }
+
+    return response.data;
   }
 
   async stopPlayback(
