@@ -28,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
 import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
@@ -208,9 +209,11 @@ fun NavGraph(
                     )
                 }
                 composable(route = AppDestination.Route.CLASSIFICATION) {
-                    PlaceholderScreen(
-                        title = "分类",
-                        description = "分类功能建设中，后续 PRD 将在此接入真实页面。",
+                    ClassificationScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenSearchResult = { route ->
+                            navController.navigate(route)
+                        },
                     )
                 }
                 composable(route = AppDestination.Route.NEW_RELEASES) {

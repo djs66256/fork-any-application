@@ -34,6 +34,7 @@ describe('DramaSupabaseRepository', () => {
         category: '都市',
         total_episodes: 12,
         rating: 8.1,
+        tags: ['逆袭'],
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
       },
@@ -45,6 +46,7 @@ describe('DramaSupabaseRepository', () => {
         category: null,
         total_episodes: 24,
         rating: null,
+        tags: null,
         created_at: '2026-07-24T00:00:00Z',
         updated_at: '2026-07-24T00:00:00Z',
       },
@@ -72,7 +74,7 @@ describe('DramaSupabaseRepository', () => {
     const result = await repo.findMany({ page: 2, pageSize: 10 });
 
     expect(builder.select).toHaveBeenCalledWith(
-      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at',
+      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at,tags',
       { count: 'exact', head: false },
     );
     expect(result.pagination.page).toBe(2);
@@ -83,7 +85,7 @@ describe('DramaSupabaseRepository', () => {
     expect(result.data[0]).toMatchObject({
       episode_count: 12,
       description: '',
-      tags: [],
+      tags: ['逆袭'],
     });
     expect(result.data[1]).toMatchObject({
       episode_count: 24,
@@ -93,16 +95,17 @@ describe('DramaSupabaseRepository', () => {
     });
   });
 
-  it('search should query title and category with case-insensitive matching', async () => {
+  it('search should query title, category and tags with case-insensitive matching', async () => {
     const mockData = [
       {
         id: '550e8400-e29b-41d4-a716-446655440001',
-        title: '逆袭归来后我成了豪门团宠',
+        title: '天降萌宝总裁爹地别太宠',
         description: null,
         cover_url: null,
-        category: '都市',
+        category: '家庭',
         total_episodes: 68,
         rating: 8.9,
+        tags: ['萌宝'],
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
       },
@@ -123,10 +126,11 @@ describe('DramaSupabaseRepository', () => {
     getSupabaseAdmin().from.mockReturnValue(builder);
 
     const repo = new DramaSupabaseRepository();
-    const result = await repo.search({ q: '后', page: 1, pageSize: 10 });
+    const result = await repo.search({ q: '萌宝', page: 1, pageSize: 10 });
 
-    expect(builderAfterSelect.or).toHaveBeenCalledWith('title.ilike.%后%,category.ilike.%后%');
+    expect(builderAfterSelect.or).toHaveBeenCalledWith('title.ilike.%萌宝%,category.ilike.%萌宝%,tags.cs.{"萌宝"}');
     expect(result.data).toHaveLength(1);
+    expect(result.data[0]?.tags).toContain('萌宝');
     expect(result.pagination).toEqual({
       page: 1,
       page_size: 10,
@@ -162,6 +166,20 @@ describe('DramaSupabaseRepository', () => {
     });
   });
 
+  it('listClassificationTags should return fixed dimensions from repository seeds', async () => {
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listClassificationTags({ gender: 'all' });
+
+    expect(result).toEqual({
+      gender: 'all',
+      dimensions: [
+        { key: 'era_background', name: '时代背景', tags: ['都市', '古风', '年代', '校园', '豪门'] },
+        { key: 'theme_plot', name: '主题情节', tags: ['逆袭', '系统', '复仇', '甜宠', '穿书', '重生'] },
+        { key: 'character_setting', name: '角色设定', tags: ['总裁', '萌宝'] },
+      ],
+    });
+  });
+
   it('listRankings should map ranking fields and booking state', async () => {
     const rankingRows = [
       {
@@ -172,6 +190,7 @@ describe('DramaSupabaseRepository', () => {
         category: '都市',
         total_episodes: 12,
         rating: 8.1,
+        tags: ['逆袭'],
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
         content_type: 'ai',
@@ -222,7 +241,7 @@ describe('DramaSupabaseRepository', () => {
     );
 
     expect(rankingBuilder.select).toHaveBeenCalledWith(
-      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at,content_type,play_count,booking_count,recommendation_score',
+      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at,tags,content_type,play_count,booking_count,recommendation_score',
       { count: 'exact', head: false },
     );
     expect(rankingBuilderAfterSelect.eq).toHaveBeenCalledWith('content_type', 'ai');
@@ -232,6 +251,7 @@ describe('DramaSupabaseRepository', () => {
       booking_count: 20,
       recommendation_score: 88.4,
       is_booked: true,
+      tags: ['逆袭'],
     });
   });
 
@@ -253,6 +273,7 @@ describe('DramaSupabaseRepository', () => {
       category: '情感',
       total_episodes: 30,
       rating: 7.5,
+      tags: ['甜宠'],
       created_at: '2026-07-23T00:00:00Z',
       updated_at: '2026-07-23T00:00:00Z',
     };
@@ -273,7 +294,7 @@ describe('DramaSupabaseRepository', () => {
     expect(result).toMatchObject({
       id: row.id,
       episode_count: 30,
-      tags: [],
+      tags: ['甜宠'],
       description: '',
     });
   });
@@ -309,7 +330,7 @@ describe('DramaSupabaseRepository', () => {
     await expect(repo.findById('some-id')).rejects.toThrow();
   });
 
-  it('create should map canonical input to legacy supabase columns', async () => {
+  it('create should map canonical input to supabase columns including tags', async () => {
     const insertedRow = {
       id: '550e8400-e29b-41d4-a716-446655440004',
       title: 'Created drama',
@@ -318,6 +339,7 @@ describe('DramaSupabaseRepository', () => {
       category: '都市',
       total_episodes: 12,
       rating: null,
+      tags: ['标签'],
       created_at: '2026-07-22T00:00:00Z',
       updated_at: '2026-07-22T00:00:00Z',
     };
@@ -339,7 +361,7 @@ describe('DramaSupabaseRepository', () => {
       cover_url: null,
       category: '都市',
       episode_count: 12,
-      tags: [],
+      tags: ['标签'],
       rating: null,
     });
 
@@ -350,6 +372,7 @@ describe('DramaSupabaseRepository', () => {
       category: '都市',
       total_episodes: 12,
       rating: null,
+      tags: ['标签'],
       content_type: undefined,
       play_count: undefined,
       booking_count: undefined,
@@ -358,34 +381,40 @@ describe('DramaSupabaseRepository', () => {
     expect(result).toMatchObject({
       id: insertedRow.id,
       episode_count: 12,
-      tags: [],
+      tags: ['标签'],
     });
   });
 
-  it('create should reject non-empty tags until storage supports them', async () => {
-    const repo = new DramaSupabaseRepository();
+  it('update should persist tags when storage supports them', async () => {
+    const updatedRow = {
+      id: '550e8400-e29b-41d4-a716-446655440004',
+      title: 'Updated drama',
+      description: '',
+      cover_url: null,
+      category: '都市',
+      total_episodes: 12,
+      rating: null,
+      tags: ['萌宝'],
+      created_at: '2026-07-22T00:00:00Z',
+      updated_at: '2026-07-23T00:00:00Z',
+    };
 
-    await expect(
-      repo.create({
-        title: 'Created drama',
-        description: '',
-        cover_url: null,
-        category: '都市',
-        episode_count: 12,
-        tags: ['标签'],
-        rating: null,
+    const mockChain = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: updatedRow,
+        error: null,
       }),
-    ).rejects.toThrow(/does not support non-empty tags/i);
-  });
+    };
+    getSupabaseAdmin().from.mockReturnValue(mockChain);
 
-  it('update should reject non-empty tags until storage supports them', async () => {
     const repo = new DramaSupabaseRepository();
+    const result = await repo.update(updatedRow.id, { tags: ['萌宝'] });
 
-    await expect(
-      repo.update('550e8400-e29b-41d4-a716-446655440004', {
-        tags: ['标签'],
-      }),
-    ).rejects.toThrow(/does not support non-empty tags/i);
+    expect(mockChain.update).toHaveBeenCalledWith({ tags: ['萌宝'] });
+    expect(result?.tags).toEqual(['萌宝']);
   });
 
   it('create should handle conflict error', async () => {

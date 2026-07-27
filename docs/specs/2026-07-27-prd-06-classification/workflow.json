@@ -1,0 +1,164 @@
+{
+  "feature": {
+    "name": "prd-06-classification",
+    "dir": "docs/specs/2026-07-27-prd-06-classification",
+    "date": "2026-07-27",
+    "branch": "feature/2026-07-27-prd-06-classification",
+    "worktree_path": ".worktree/2026-07-27-prd-06-classification"
+  },
+  "stages": {
+    "worktree-setup": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:23:09.249515+00:00",
+      "completed_at": "2026-07-27T13:25:45.114774+00:00"
+    },
+    "spec-writing": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:25:45.114902+00:00",
+      "completed_at": "2026-07-27T13:25:59.285832+00:00"
+    },
+    "spec-review": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:25:59.285965+00:00",
+      "completed_at": "2026-07-27T13:36:56.559331+00:00",
+      "review_loops": 1
+    },
+    "spec-human-review": {
+      "status": "completed",
+      "started_at": null,
+      "completed_at": "2026-07-27T13:34:16.067401+00:00"
+    },
+    "design-shared": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:34:16.067536+00:00",
+      "completed_at": "2026-07-27T13:45:00.018144+00:00"
+    },
+    "design-platforms": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:36:56.559490+00:00",
+      "completed_at": "2026-07-27T14:02:16.582845+00:00",
+      "platforms": {
+        "android": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T13:44:55.075273+00:00"
+        },
+        "web": {
+          "status": "skipped",
+          "started_at": null,
+          "completed_at": "2026-07-27T13:44:55.732494+00:00"
+        },
+        "backend": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T13:44:53.780570+00:00"
+        },
+        "ios": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T13:44:54.425915+00:00"
+        }
+      }
+    },
+    "design-review": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:45:00.018321+00:00",
+      "completed_at": "2026-07-27T14:18:00.322730+00:00",
+      "review_loops": 1
+    },
+    "design-human-review": {
+      "status": "completed",
+      "started_at": null,
+      "completed_at": "2026-07-27T13:56:00.131220+00:00"
+    },
+    "plan-platforms": {
+      "status": "completed",
+      "started_at": "2026-07-27T13:56:00.131409+00:00",
+      "completed_at": "2026-07-27T14:23:59.570045+00:00",
+      "platforms": {
+        "android": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:02:12.409810+00:00"
+        },
+        "web": {
+          "status": "skipped",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:02:13.053726+00:00"
+        },
+        "backend": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:02:11.156289+00:00"
+        },
+        "ios": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:02:11.789275+00:00"
+        }
+      }
+    },
+    "coding-platforms": {
+      "status": "completed",
+      "started_at": "2026-07-27T14:02:16.583001+00:00",
+      "completed_at": "2026-07-27T14:17:55.753809+00:00",
+      "review_loops": 0,
+      "platforms": {
+        "android": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:17:55.161689+00:00",
+          "review_loops": 0
+        },
+        "web": {
+          "status": "skipped",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:17:55.753809+00:00",
+          "review_loops": 0
+        },
+        "backend": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:17:53.984434+00:00",
+          "review_loops": 0
+        },
+        "ios": {
+          "status": "completed",
+          "started_at": null,
+          "completed_at": "2026-07-27T14:17:54.576846+00:00",
+          "review_loops": 0
+        }
+      }
+    },
+    "code-human-review": {
+      "status": "completed",
+      "started_at": "2026-07-27T14:18:00.322865+00:00",
+      "completed_at": "2026-07-27T14:18:13.697431+00:00"
+    },
+    "qa-blackbox-testing": {
+      "status": "skipped",
+      "started_at": "2026-07-27T14:18:13.697564+00:00",
+      "completed_at": "2026-07-27T14:23:59.570790+00:00"
+    },
+    "worktree-merge": {
+      "status": "in_progress",
+      "started_at": "2026-07-27T14:23:59.570801+00:00",
+      "completed_at": null
+    },
+    "wiki-inclusion": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null
+    },
+    "completed": {
+      "status": "pending",
+      "started_at": null,
+      "completed_at": null
+    }
+  },
+  "metadata": {
+    "created_at": "2026-07-27T13:23:09.249902+00:00",
+    "updated_at": "2026-07-27T14:23:59.571514+00:00",
+    "version": "1.0"
+  }
+}

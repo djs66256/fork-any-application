@@ -8,6 +8,7 @@ import {
   RankingDrama,
 } from '@/lib/schemas';
 import {
+  ClassificationTagsResult,
   DramaRepositoryInterface,
   PaginatedResult,
 } from '@/repositories/interfaces/drama.repository.interface';
@@ -54,6 +55,58 @@ class InvalidSearchRepository implements DramaRepositoryInterface {
     };
   }
 
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listRankings(): Promise<PaginatedResult<RankingDrama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async findById(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async create(): Promise<Drama> {
+    throw new Error('Method not implemented.');
+  }
+
+  async update(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async delete(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+}
+
+class InvalidClassificationRepository implements DramaRepositoryInterface {
+  async findMany(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
+    return {
+      gender: 'all',
+      dimensions: [
+        { key: 'theme_plot', name: '主题情节', tags: ['逆袭'] },
+        { key: 'era_background', name: '时代背景', tags: ['都市'] },
+      ] as ClassificationDimension[],
+    };
+  }
+
   async listRankings(): Promise<PaginatedResult<RankingDrama>> {
     throw new Error('Method not implemented.');
   }
@@ -89,6 +142,10 @@ class InvalidHotSearchRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
     throw new Error('Method not implemented.');
   }
 
@@ -135,6 +192,10 @@ class InvalidRankingsRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
     throw new Error('Method not implemented.');
   }
 
@@ -199,6 +260,10 @@ class InvalidBookingRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
     throw new Error('Method not implemented.');
   }
 
@@ -293,6 +358,31 @@ describe('DramaService', () => {
     expect(result.pagination.total).toBe(6);
   });
 
+  it('should search dramas by tags without changing pagination structure', async () => {
+    const result = await service.searchDramas({ q: '萌宝', page: 1, pageSize: 10 });
+
+    expect(result.data.map((item) => item.title)).toEqual(['天降萌宝总裁爹地别太宠']);
+    expect(result.pagination).toEqual({
+      page: 1,
+      page_size: 10,
+      total: 1,
+      total_pages: 1,
+    });
+  });
+
+  it('should return classification tags with fixed dimensions', async () => {
+    const result = await service.listClassificationTags({ gender: 'all' });
+
+    expect(result).toEqual({
+      gender: 'all',
+      dimensions: [
+        { key: 'era_background', name: '时代背景', tags: ['都市', '古风', '年代', '校园', '豪门'] },
+        { key: 'theme_plot', name: '主题情节', tags: ['逆袭', '系统', '复仇', '甜宠', '穿书', '重生'] },
+        { key: 'character_setting', name: '角色设定', tags: ['总裁', '萌宝'] },
+      ],
+    });
+  });
+
   it('should return empty search results for large pages without failing', async () => {
     const result = await service.searchDramas({ q: '后', page: 999, pageSize: 10 });
 
@@ -364,6 +454,14 @@ describe('DramaService', () => {
     const invalidService = new DramaService(new InvalidSearchRepository());
 
     await expect(invalidService.searchDramas({ q: '逆袭', page: 1, pageSize: 10 })).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
+    });
+  });
+
+  it('should wrap invalid classification output as internal error', async () => {
+    const invalidService = new DramaService(new InvalidClassificationRepository());
+
+    await expect(invalidService.listClassificationTags({ gender: 'all' })).rejects.toMatchObject({
       code: 'INTERNAL_ERROR',
     });
   });

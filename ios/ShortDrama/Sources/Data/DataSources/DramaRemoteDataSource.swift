@@ -62,6 +62,18 @@ struct GetHotSearchesEndpoint: APIEndpoint {
     var method: HTTPMethod { .get }
 }
 
+struct GetClassificationTagsEndpoint: APIEndpoint {
+    typealias Response = ClassificationTagsResponseDTO
+
+    let gender: ClassificationGender
+
+    var path: String { "/api/dramas/tags" }
+    var method: HTTPMethod { .get }
+    var queryItems: [URLQueryItem]? {
+        [URLQueryItem(name: "gender", value: gender.rawValue)]
+    }
+}
+
 struct GetRankingsEndpoint: APIEndpoint {
     typealias Response = RankingListResponseDTO
 
@@ -104,6 +116,10 @@ enum DramaEndpoints {
 
     static func getHotSearches() -> GetHotSearchesEndpoint {
         GetHotSearchesEndpoint()
+    }
+
+    static func getClassificationTags(gender: ClassificationGender) -> GetClassificationTagsEndpoint {
+        GetClassificationTagsEndpoint(gender: gender)
     }
 
     static func getRankings(query: RankingQuery) -> GetRankingsEndpoint {
@@ -150,6 +166,12 @@ final class DramaRemoteDataSource: @unchecked Sendable {
         let endpoint = DramaEndpoints.getHotSearches()
         let response: HotSearchListResponseDTO = try await client.request(endpoint)
         return response.data
+    }
+
+    /// Fetches classification tags for the given gender.
+    func fetchClassificationTags(gender: ClassificationGender) async throws -> ClassificationTagsResponseDTO {
+        let endpoint = DramaEndpoints.getClassificationTags(gender: gender)
+        return try await client.request(endpoint)
     }
 
     /// Fetches rankings for the given query.

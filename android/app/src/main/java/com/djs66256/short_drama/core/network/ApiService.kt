@@ -1,6 +1,7 @@
 package com.djs66256.short_drama.core.network
 
 import com.djs66256.short_drama.data.dto.BookDramaResponseDto
+import com.djs66256.short_drama.data.dto.ClassificationTagsResponseDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
 import com.djs66256.short_drama.data.dto.RankingListResponseDto
@@ -35,6 +36,11 @@ interface ApiService {
 
     @GET("dramas/hot-search")
     suspend fun getHotSearches(): HotSearchListResponseDto
+
+    @GET("dramas/tags")
+    suspend fun getDramaTags(
+        @Query("gender") gender: String = "all",
+    ): ClassificationTagsResponseDto
 
     @GET("dramas/rankings")
     suspend fun getDramaRankings(

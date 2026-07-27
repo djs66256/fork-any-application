@@ -111,6 +111,40 @@ describe('DramaMockRepository', () => {
     expect(page999.pagination.total_pages).toBe(2);
   });
 
+  it('should return fixed dimensions for male classification tags', async () => {
+    const result = await repo.listClassificationTags({ gender: 'male' });
+
+    expect(result).toEqual({
+      gender: 'male',
+      dimensions: [
+        { key: 'era_background', name: '时代背景', tags: ['都市', '古风', '年代'] },
+        { key: 'theme_plot', name: '主题情节', tags: ['逆袭', '系统', '复仇'] },
+        { key: 'character_setting', name: '角色设定', tags: ['总裁', '萌宝'] },
+      ],
+    });
+  });
+
+  it('should preserve empty dimensions for female classification tags', async () => {
+    const result = await repo.listClassificationTags({ gender: 'female' });
+
+    expect(result.dimensions).toHaveLength(3);
+    expect(result.dimensions[2]).toEqual({
+      key: 'character_setting',
+      name: '角色设定',
+      tags: [],
+    });
+  });
+
+  it('should merge all classification tags with stable dedupe order', async () => {
+    const result = await repo.listClassificationTags({ gender: 'all' });
+
+    expect(result.dimensions).toEqual([
+      { key: 'era_background', name: '时代背景', tags: ['都市', '古风', '年代', '校园', '豪门'] },
+      { key: 'theme_plot', name: '主题情节', tags: ['逆袭', '系统', '复仇', '甜宠', '穿书', '重生'] },
+      { key: 'character_setting', name: '角色设定', tags: ['总裁', '萌宝'] },
+    ]);
+  });
+
   it('should search dramas by title with case-insensitive contains matching', async () => {
     const result = await repo.search({ q: '后', page: 1, pageSize: 10 });
 
@@ -131,6 +165,14 @@ describe('DramaMockRepository', () => {
 
     expect(result.data).toHaveLength(2);
     expect(result.data.every((item) => item.category === '都市')).toBe(true);
+  });
+
+  it('should search dramas by tags in default mock chain', async () => {
+    const result = await repo.search({ q: '萌宝', page: 1, pageSize: 10 });
+
+    expect(result.data.map((item) => item.title)).toEqual(['天降萌宝总裁爹地别太宠']);
+    expect(result.data[0]?.tags).toContain('萌宝');
+    expect(result.pagination.total).toBe(1);
   });
 
   it('should return empty search results for oversized pages while preserving pagination', async () => {

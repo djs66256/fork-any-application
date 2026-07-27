@@ -14,6 +14,9 @@ protocol DramaRepositoryProtocol: Sendable {
     /// Fetches hot search items.
     func fetchHotSearches() async throws -> [HotSearchItem]
 
+    /// Fetches classification tags for the selected gender.
+    func fetchClassificationTags(gender: ClassificationGender) async throws -> ClassificationTagsPayload
+
     /// Fetches ranking data for the given query.
     func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama>
 

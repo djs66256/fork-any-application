@@ -96,6 +96,61 @@ export const RankingQuerySchema = z.object({
 
 export type RankingQuery = z.infer<typeof RankingQuerySchema>;
 
+export const CLASSIFICATION_DIMENSION_KEYS = ['era_background', 'theme_plot', 'character_setting'] as const;
+
+export const ClassificationGenderSchema = z.enum(['all', 'male', 'female']);
+export type ClassificationGender = z.infer<typeof ClassificationGenderSchema>;
+
+export const ClassificationDimensionKeySchema = z.enum(CLASSIFICATION_DIMENSION_KEYS);
+export type ClassificationDimensionKey = z.infer<typeof ClassificationDimensionKeySchema>;
+
+export const ClassificationTagsQuerySchema = z.object({
+  gender: ClassificationGenderSchema.default('all'),
+});
+
+export type ClassificationTagsQuery = z.infer<typeof ClassificationTagsQuerySchema>;
+
+export const ClassificationDimensionSchema = z.object({
+  key: ClassificationDimensionKeySchema,
+  name: z.string().trim().min(1),
+  tags: z.array(z.string().trim().min(1)).default([]),
+});
+
+export type ClassificationDimension = z.infer<typeof ClassificationDimensionSchema>;
+
+export const ClassificationDimensionsSchema = z
+  .array(ClassificationDimensionSchema)
+  .length(CLASSIFICATION_DIMENSION_KEYS.length)
+  .superRefine((dimensions, context) => {
+    CLASSIFICATION_DIMENSION_KEYS.forEach((expectedKey, index) => {
+      const dimension = dimensions[index];
+      if (!dimension) {
+        return;
+      }
+
+      if (dimension.key !== expectedKey) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Expected classification dimension key ${expectedKey}`,
+          path: [index, 'key'],
+        });
+      }
+    });
+  });
+
+export const ClassificationTagsResultSchema = z.object({
+  gender: ClassificationGenderSchema,
+  dimensions: ClassificationDimensionsSchema,
+});
+
+export type ClassificationTagsResult = z.infer<typeof ClassificationTagsResultSchema>;
+
+export const ClassificationTagsResponseSchema = z.object({
+  data: ClassificationTagsResultSchema,
+});
+
+export type ClassificationTagsResponse = z.infer<typeof ClassificationTagsResponseSchema>;
+
 export const BookDramaResponseSchema = z.object({
   drama_id: z.string().uuid(),
   booked: z.literal(true),

@@ -16,6 +16,12 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         case delayed([HotSearchItem], TimeInterval)
     }
 
+    enum ClassificationBehavior {
+        case success(ClassificationTagsPayload)
+        case failure(APIError)
+        case delayed(ClassificationTagsPayload, TimeInterval)
+    }
+
     enum RankingBehavior {
         case success(PagedResult<RankingDrama>)
         case failure(APIError)
@@ -37,6 +43,16 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     var hotSearchBehavior: HotSearchBehavior = .success([])
     var queuedHotSearchBehaviors: [HotSearchBehavior] = []
 
+    var classificationBehavior: ClassificationBehavior = .success(
+        ClassificationTagsPayload(
+            gender: .all,
+            dimensions: ClassificationDimensionKey.allCases.map {
+                ClassificationDimension(key: $0, name: $0.title, tags: [])
+            }
+        )
+    )
+    var queuedClassificationBehaviors: [ClassificationBehavior] = []
+
     var rankingBehavior: RankingBehavior = .success(
         PagedResult(items: [], page: 1, pageSize: 10, total: 0, totalPages: 1)
     )
@@ -57,6 +73,9 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     private(set) var lastSearchPageSize: Int?
 
     private(set) var fetchHotSearchesCallCount = 0
+
+    private(set) var fetchClassificationTagsCallCount = 0
+    private(set) var lastClassificationGender: ClassificationGender?
 
     private(set) var fetchRankingsCallCount = 0
     private(set) var lastRankingQuery: RankingQuery?
@@ -114,6 +133,25 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         case .delayed(let items, let delay):
             try await Task.sleep(for: .seconds(delay))
             return items
+        }
+    }
+
+    func fetchClassificationTags(gender: ClassificationGender) async throws -> ClassificationTagsPayload {
+        fetchClassificationTagsCallCount += 1
+        lastClassificationGender = gender
+
+        let currentBehavior = queuedClassificationBehaviors.isEmpty
+            ? classificationBehavior
+            : queuedClassificationBehaviors.removeFirst()
+
+        switch currentBehavior {
+        case .success(let payload):
+            return payload
+        case .failure(let error):
+            throw error
+        case .delayed(let payload, let delay):
+            try await Task.sleep(for: .seconds(delay))
+            return payload
         }
     }
 

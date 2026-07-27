@@ -145,6 +145,15 @@ struct APIClientTests {
         #expect(endpoint.queryItems == nil)
     }
 
+    @Test("classification endpoint uses canonical path and gender query")
+    func testClassificationEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.getClassificationTags(gender: .female)
+
+        #expect(endpoint.path == "/api/dramas/tags")
+        #expect(endpoint.method == .get)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "gender", value: "female")) == true)
+    }
+
     @Test("ranking endpoint uses canonical path and query")
     func testRankingEndpointUsesCanonicalContract() {
         let endpoint = DramaEndpoints.getRankings(
@@ -287,6 +296,51 @@ struct APIClientTests {
         #expect(response.data.first?.rank == 1)
         #expect(response.data.first?.keyword == "逆袭")
         #expect(response.data.first?.score == 9821)
+    }
+
+    @Test("classification response decodes canonical payload")
+    func testClassificationResponseDecoding() async throws {
+        let json = """
+        {
+          "data": {
+            "gender": "female",
+            "dimensions": [
+              {
+                "key": "era_background",
+                "name": "时代背景",
+                "tags": ["古言", "都市"]
+              },
+              {
+                "key": "theme_plot",
+                "name": "主题情节",
+                "tags": []
+              },
+              {
+                "key": "character_setting",
+                "name": "角色设定",
+                "tags": ["大女主"]
+              }
+            ]
+          }
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/tags?gender=female")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/tags")
+            #expect(request.url?.query?.contains("gender=female") == true)
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.getClassificationTags(gender: .female)
+        let response: ClassificationTagsResponseDTO = try await client.request(endpoint)
+
+        #expect(response.data.gender == .female)
+        #expect(response.data.dimensions.count == 3)
+        #expect(response.data.dimensions[1].key == .themePlot)
+        #expect(response.data.dimensions[1].tags.isEmpty)
     }
 
     @Test("ranking response decodes canonical payload")

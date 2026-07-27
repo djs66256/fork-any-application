@@ -27,7 +27,7 @@ struct DiscoveryPlaceholderView: View {
             case .ranking:
                 return "排行承接页建设中，后续将与排行能力对齐。"
             case .classification:
-                return "分类承接页建设中，后续将与分类能力对齐。"
+                return "分类入口已升级为真实页面，此占位页不再用于线上承接。"
             case .newReleases:
                 return "新剧承接页建设中，首版保持 Native 占位。"
             case .actorHub:
