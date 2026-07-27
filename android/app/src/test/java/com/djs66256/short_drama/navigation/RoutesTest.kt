@@ -26,6 +26,27 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-01 search route generates canonical destination`() {
+        assertEquals("search", AppDestination.search())
+    }
+
+    @Test
+    fun `T-01 search result route encodes query parameter`() {
+        assertEquals(
+            "search/result?query=%E9%80%86%E8%A2%AD%20%E5%BD%92%E6%9D%A5",
+            AppDestination.searchResult(" 逆袭 归来 "),
+        )
+    }
+
+    @Test
+    fun `T-01 quick entry routes are canonical`() {
+        assertEquals("ranking", AppDestination.ranking())
+        assertEquals("classification", AppDestination.classification())
+        assertEquals("new-releases", AppDestination.newReleases())
+        assertEquals("actors", AppDestination.actors())
+    }
+
+    @Test
     fun `feed actions reuse play and detail destinations with drama id`() {
         val dramaId = "feed-drama-001"
 

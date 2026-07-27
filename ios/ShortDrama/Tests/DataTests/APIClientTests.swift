@@ -1,28 +1,25 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
+
+private struct APIClientTestResponse: Decodable, Equatable {
+    let code: Int
+    let data: APIClientTestData
+}
+
+private struct APIClientTestData: Decodable, Equatable {
+    let id: String
+    let title: String
+}
+
+private struct APIClientTestGetEndpoint: APIEndpoint {
+    typealias Response = APIClientTestResponse
+
+    var path: String
+    var method: HTTPMethod { .get }
+}
 
 struct APIClientTests {
-
-    // MARK: - Test Models
-
-    private struct TestResponse: Decodable, Equatable {
-        let code: Int
-        let data: TestData
-    }
-
-    private struct TestData: Decodable, Equatable {
-        let id: String
-        let title: String
-    }
-
-    private struct TestGetEndpoint: APIEndpoint {
-        typealias Response = TestResponse
-        var path: String
-        var method: HTTPMethod { .get }
-    }
-
-    // MARK: - Helper
 
     private func makeSession(
         handler: @escaping URLProtocolMock.RequestHandler
@@ -33,27 +30,18 @@ struct APIClientTests {
         return URLSession(configuration: config)
     }
 
-    /// Asserts that an async closure throws a specific APIError case.
-    private func expectAPIError(
-        _ operation: () async throws -> some Any,
-        expectedCase: @escaping (APIError) -> Bool,
-        sourceLocation: SourceLocation = #_sourceLocation
-    ) async {
-        do {
-            _ = try await operation()
-            Issue.record("Expected APIError but no error thrown", sourceLocation: sourceLocation)
-        } catch let error as APIError {
-            #expect(
-                expectedCase(error),
-                "Unexpected APIError case: \(error)",
-                sourceLocation: sourceLocation
-            )
-        } catch {
-            return
+    private func makeResponse(url: URL, statusCode: Int) throws -> HTTPURLResponse {
+        guard let response = HTTPURLResponse(
+            url: url,
+            statusCode: statusCode,
+            httpVersion: nil,
+            headerFields: nil
+        ) else {
+            throw APIError.invalidResponse
         }
-    }
 
-    // MARK: - T-11: GET returns 200 success
+        return response
+    }
 
     @Test("T-11: APIClient GET returns 200 success and decodes response")
     func testGetSuccess() async throws {
@@ -62,26 +50,19 @@ struct APIClientTests {
         """
         let url = URL(string: "https://api.example.com/test")!
         let handler: URLProtocolMock.RequestHandler = { _ in
-            let response = HTTPURLResponse(
-                url: url,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let response = try self.makeResponse(url: url, statusCode: 200)
             return (response, Data(json.utf8))
         }
 
         let session = makeSession(handler: handler)
         let client = APIClient(session: session)
-        let endpoint = TestGetEndpoint(path: "/test")
-        let result: TestResponse = try await client.request(endpoint)
+        let endpoint = APIClientTestGetEndpoint(path: "/test")
+        let result: APIClientTestResponse = try await client.request(endpoint)
 
         #expect(result.code == 0)
         #expect(result.data.id == "1")
         #expect(result.data.title == "Test")
     }
-
-    // MARK: - T-12: 501 Not Implemented
 
     @Test("T-12: APIClient throws notImplemented on 501 response")
     func test501NotImplemented() async throws {
@@ -90,21 +71,16 @@ struct APIClientTests {
         """
         let url = URL(string: "https://api.example.com/test")!
         let handler: URLProtocolMock.RequestHandler = { _ in
-            let response = HTTPURLResponse(
-                url: url,
-                statusCode: 501,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let response = try self.makeResponse(url: url, statusCode: 501)
             return (response, Data(json.utf8))
         }
 
         let session = makeSession(handler: handler)
         let client = APIClient(session: session)
-        let endpoint = TestGetEndpoint(path: "/test")
+        let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
-            let _: TestResponse = try await client.request(endpoint)
+            let _: APIClientTestResponse = try await client.request(endpoint)
             Issue.record("Expected notImplemented error")
         } catch let error as APIError {
             if case .notImplemented(let message) = error {
@@ -117,8 +93,6 @@ struct APIClientTests {
         }
     }
 
-    // MARK: - T-13: Network error
-
     @Test("T-13: APIClient wraps network errors as APIError.network")
     func testNetworkErrorWrapping() async throws {
         let handler: URLProtocolMock.RequestHandler = { _ in
@@ -126,14 +100,13 @@ struct APIClientTests {
         }
         let session = makeSession(handler: handler)
         let client = APIClient(session: session)
-        let endpoint = TestGetEndpoint(path: "/test")
+        let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
-            let _: TestResponse = try await client.request(endpoint)
+            let _: APIClientTestResponse = try await client.request(endpoint)
             Issue.record("Expected error but none thrown")
         } catch let error as APIError {
             if case .network = error {
-                // Expected
             } else {
                 Issue.record("Expected network, got \(error)")
             }
@@ -144,13 +117,32 @@ struct APIClientTests {
 
     @Test("T-01: Drama endpoint uses canonical path and query")
     func testDramaEndpointUsesCanonicalContract() {
-        let endpoint = DramaEndpoints.GetDramas(page: 1, pageSize: 10)
+        let endpoint = DramaEndpoints.getDramas(page: 1, pageSize: 10)
 
         #expect(endpoint.path == "/api/dramas")
         #expect(endpoint.queryItems?.count == 2)
         #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page", value: "1")) == true)
         #expect(endpoint.queryItems?.contains(URLQueryItem(name: "pageSize", value: "10")) == true)
         #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page_size", value: "10")) == false)
+    }
+
+    @Test("search endpoint uses canonical path and query")
+    func testSearchEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.searchDramas(query: "逆袭", page: 1, pageSize: 10)
+
+        #expect(endpoint.path == "/api/dramas/search")
+        #expect(endpoint.queryItems?.count == 3)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "q", value: "逆袭")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page", value: "1")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "pageSize", value: "10")) == true)
+    }
+
+    @Test("hot search endpoint uses canonical path")
+    func testHotSearchEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.getHotSearches()
+
+        #expect(endpoint.path == "/api/dramas/hot-search")
+        #expect(endpoint.queryItems == nil)
     }
 
     @Test("T-02: Drama list response decodes canonical payload")
@@ -184,18 +176,13 @@ struct APIClientTests {
             #expect(request.url?.path == "/api/dramas")
             #expect(request.url?.query?.contains("page=1") == true)
             #expect(request.url?.query?.contains("pageSize=10") == true)
-            let response = HTTPURLResponse(
-                url: url,
-                statusCode: 200,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let response = try self.makeResponse(url: url, statusCode: 200)
             return (response, Data(json.utf8))
         }
 
         let session = makeSession(handler: handler)
         let client = APIClient(session: session)
-        let endpoint = DramaEndpoints.GetDramas(page: 1, pageSize: 10)
+        let endpoint = DramaEndpoints.getDramas(page: 1, pageSize: 10)
         let response: DramaListResponse = try await client.request(endpoint)
 
         #expect(response.data.count == 1)
@@ -206,7 +193,79 @@ struct APIClientTests {
         #expect(response.pagination.totalPages == 2)
     }
 
-    // MARK: - Server error
+    @Test("search response decodes canonical payload")
+    func testSearchResponseDecoding() async throws {
+        let json = """
+        {
+          "data": [
+            {
+              "id": "search-001",
+              "title": "逆袭归来后我成了豪门团宠",
+              "description": "搜索命中结果",
+              "cover_url": "https://example.com/search.jpg",
+              "category": "都市",
+              "episode_count": 68,
+              "tags": ["逆袭", "豪门"],
+              "rating": 8.9,
+              "created_at": "2026-07-25T00:00:00Z",
+              "updated_at": "2026-07-25T00:00:00Z"
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 1,
+            "total_pages": 1
+          }
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/search?q=%E9%80%86%E8%A2%AD&page=1&pageSize=10")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/search")
+            #expect(request.url?.query?.contains("q=%E9%80%86%E8%A2%AD") == true)
+            #expect(request.url?.query?.contains("page=1") == true)
+            #expect(request.url?.query?.contains("pageSize=10") == true)
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.searchDramas(query: "逆袭", page: 1, pageSize: 10)
+        let response: DramaListResponse = try await client.request(endpoint)
+
+        #expect(response.data.count == 1)
+        #expect(response.data.first?.id == "search-001")
+        #expect(response.data.first?.title == "逆袭归来后我成了豪门团宠")
+    }
+
+    @Test("hot search response decodes canonical payload")
+    func testHotSearchResponseDecoding() async throws {
+        let json = """
+        {
+          "data": [
+            { "rank": 1, "keyword": "逆袭", "score": 9821 },
+            { "rank": 2, "keyword": "豪门", "score": 9540 }
+          ]
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/hot-search")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/dramas/hot-search")
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.getHotSearches()
+        let response: HotSearchListResponseDTO = try await client.request(endpoint)
+
+        #expect(response.data.count == 2)
+        #expect(response.data.first?.rank == 1)
+        #expect(response.data.first?.keyword == "逆袭")
+        #expect(response.data.first?.score == 9821)
+    }
 
     @Test("APIClient throws server error on 400 response")
     func testServerError() async throws {
@@ -215,26 +274,51 @@ struct APIClientTests {
         """
         let url = URL(string: "https://api.example.com/test")!
         let handler: URLProtocolMock.RequestHandler = { _ in
-            let response = HTTPURLResponse(
-                url: url,
-                statusCode: 400,
-                httpVersion: nil,
-                headerFields: nil
-            )!
+            let response = try self.makeResponse(url: url, statusCode: 400)
             return (response, Data(json.utf8))
         }
 
         let session = makeSession(handler: handler)
         let client = APIClient(session: session)
-        let endpoint = TestGetEndpoint(path: "/test")
+        let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
-            let _: TestResponse = try await client.request(endpoint)
+            let _: APIClientTestResponse = try await client.request(endpoint)
             Issue.record("Expected error but none thrown")
         } catch let error as APIError {
             if case .server(let code, let message) = error {
                 #expect(code == 400)
                 #expect(message == "Bad request")
+            } else {
+                Issue.record("Expected server error, got \(error)")
+            }
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
+    @Test("APIClient decodes nested error payload")
+    func testNestedErrorPayload() async throws {
+        let json = """
+        {"error":{"code":"VALIDATION_ERROR","message":"输入内容无效，请检查后重试"}}
+        """
+        let url = URL(string: "https://api.example.com/api/dramas/search?q=%20")!
+        let handler: URLProtocolMock.RequestHandler = { _ in
+            let response = try self.makeResponse(url: url, statusCode: 400)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = DramaEndpoints.searchDramas(query: " ", page: 1, pageSize: 10)
+
+        do {
+            let _: DramaListResponse = try await client.request(endpoint)
+            Issue.record("Expected server error but none thrown")
+        } catch let error as APIError {
+            if case .server(let code, let message) = error {
+                #expect(code == 400)
+                #expect(message == "输入内容无效，请检查后重试")
             } else {
                 Issue.record("Expected server error, got \(error)")
             }

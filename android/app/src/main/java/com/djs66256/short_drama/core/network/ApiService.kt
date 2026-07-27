@@ -1,6 +1,7 @@
 package com.djs66256.short_drama.core.network
 
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
+import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -22,6 +23,16 @@ interface ApiService {
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 10,
     ): DramaListResponseDto
+
+    @GET("dramas/search")
+    suspend fun searchDramas(
+        @Query("q") query: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 10,
+    ): DramaListResponseDto
+
+    @GET("dramas/hot-search")
+    suspend fun getHotSearches(): HotSearchListResponseDto
 
     @POST("dramas")
     suspend fun createDrama(@Body body: Map<String, String>): Unit

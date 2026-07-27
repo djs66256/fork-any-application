@@ -93,6 +93,84 @@ describe('DramaSupabaseRepository', () => {
     });
   });
 
+  it('search should query title and category with case-insensitive matching', async () => {
+    const mockData = [
+      {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        title: '逆袭归来后我成了豪门团宠',
+        description: null,
+        cover_url: null,
+        category: '都市',
+        total_episodes: 68,
+        rating: 8.9,
+        created_at: '2026-07-25T00:00:00Z',
+        updated_at: '2026-07-25T00:00:00Z',
+      },
+    ];
+
+    const builderAfterRange = {
+      order: vi.fn().mockResolvedValue({ data: mockData, error: null, count: 1 }),
+    };
+    const builderAfterOr = {
+      range: vi.fn().mockReturnValue(builderAfterRange),
+    };
+    const builderAfterSelect = {
+      or: vi.fn().mockReturnValue(builderAfterOr),
+    };
+    const builder = {
+      select: vi.fn().mockReturnValue(builderAfterSelect),
+    };
+    getSupabaseAdmin().from.mockReturnValue(builder);
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.search({ q: '后', page: 1, pageSize: 10 });
+
+    expect(builderAfterSelect.or).toHaveBeenCalledWith('title.ilike.%后%,category.ilike.%后%');
+    expect(result.data).toHaveLength(1);
+    expect(result.pagination).toEqual({
+      page: 1,
+      page_size: 10,
+      total: 1,
+      total_pages: 1,
+    });
+  });
+
+  it('search should return empty data for oversized pages while preserving pagination', async () => {
+    const builderAfterRange = {
+      order: vi.fn().mockResolvedValue({ data: [], error: null, count: 4 }),
+    };
+    const builderAfterOr = {
+      range: vi.fn().mockReturnValue(builderAfterRange),
+    };
+    const builderAfterSelect = {
+      or: vi.fn().mockReturnValue(builderAfterOr),
+    };
+    const builder = {
+      select: vi.fn().mockReturnValue(builderAfterSelect),
+    };
+    getSupabaseAdmin().from.mockReturnValue(builder);
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.search({ q: '后', page: 999, pageSize: 10 });
+
+    expect(result.data).toEqual([]);
+    expect(result.pagination).toEqual({
+      page: 999,
+      page_size: 10,
+      total: 4,
+      total_pages: 1,
+    });
+  });
+
+  it('listHotSearches should return stable static items', async () => {
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listHotSearches();
+
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data.length).toBeLessThanOrEqual(10);
+    expect(result.data[0]).toEqual({ rank: 1, keyword: '逆袭', score: 9821 });
+  });
+
   it('findById should return canonical drama data', async () => {
     const row = {
       id: '550e8400-e29b-41d4-a716-446655440003',

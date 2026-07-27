@@ -7,4 +7,10 @@ protocol DramaRepositoryProtocol: Sendable {
 
     /// Fetches detailed information for a specific drama.
     func fetchDramaDetail(id: String) async throws -> Drama
+
+    /// Searches dramas by keyword.
+    func searchDramas(query: String, page: Int, pageSize: Int) async throws -> [Drama]
+
+    /// Fetches hot search items.
+    func fetchHotSearches() async throws -> [HotSearchItem]
 }

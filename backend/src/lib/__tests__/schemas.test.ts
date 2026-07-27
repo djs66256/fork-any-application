@@ -6,6 +6,9 @@ import {
   DramaListResponseSchema,
   PlayerStartRequestSchema,
   UserProfileSchema,
+  SearchDramaQuerySchema,
+  HotSearchItemSchema,
+  HotSearchListResponseSchema,
 } from '../schemas';
 
 describe('HealthResponseSchema', () => {
@@ -163,6 +166,90 @@ describe('DramaListResponseSchema', () => {
     const result = DramaListResponseSchema.parse(data);
     expect(result.data).toHaveLength(1);
     expect(result.pagination.total_pages).toBe(1);
+  });
+});
+
+describe('SearchDramaQuerySchema', () => {
+  it('should trim q and coerce pagination params', () => {
+    const result = SearchDramaQuerySchema.parse({
+      q: '  逆袭  ',
+      page: '1',
+      pageSize: '10',
+    });
+
+    expect(result).toEqual({
+      q: '逆袭',
+      page: 1,
+      pageSize: 10,
+    });
+  });
+
+  it('should apply default pagination values', () => {
+    const result = SearchDramaQuerySchema.parse({
+      q: '豪门',
+    });
+
+    expect(result).toEqual({
+      q: '豪门',
+      page: 1,
+      pageSize: 10,
+    });
+  });
+
+  it('should reject blank or oversized q', () => {
+    expect(() => SearchDramaQuerySchema.parse({ q: '   ' })).toThrow();
+    expect(() => SearchDramaQuerySchema.parse({ q: 'a'.repeat(51) })).toThrow();
+  });
+
+  it('should reject invalid page or pageSize', () => {
+    expect(() => SearchDramaQuerySchema.parse({ q: '逆袭', page: 0 })).toThrow();
+    expect(() => SearchDramaQuerySchema.parse({ q: '逆袭', pageSize: 101 })).toThrow();
+  });
+});
+
+describe('HotSearchItemSchema', () => {
+  it('should parse valid hot search item', () => {
+    const result = HotSearchItemSchema.parse({
+      rank: 1,
+      keyword: '逆袭',
+      score: 9821,
+    });
+
+    expect(result.rank).toBe(1);
+    expect(result.keyword).toBe('逆袭');
+    expect(result.score).toBe(9821);
+  });
+
+  it('should reject invalid hot search item fields', () => {
+    expect(() => HotSearchItemSchema.parse({ rank: 0, keyword: '逆袭', score: 1 })).toThrow();
+    expect(() => HotSearchItemSchema.parse({ rank: 1, keyword: '   ', score: 1 })).toThrow();
+    expect(() => HotSearchItemSchema.parse({ rank: 1, keyword: '逆袭', score: -1 })).toThrow();
+  });
+});
+
+describe('HotSearchListResponseSchema', () => {
+  it('should parse valid hot search response', () => {
+    const result = HotSearchListResponseSchema.parse({
+      data: [
+        { rank: 1, keyword: '逆袭', score: 9821 },
+        { rank: 2, keyword: '豪门', score: 9540 },
+      ],
+    });
+
+    expect(result.data).toHaveLength(2);
+    expect(result.data[0].keyword).toBe('逆袭');
+  });
+
+  it('should reject more than 10 hot search items', () => {
+    expect(() =>
+      HotSearchListResponseSchema.parse({
+        data: Array.from({ length: 11 }, (_, index) => ({
+          rank: index + 1,
+          keyword: `关键词${index + 1}`,
+          score: 1000 - index,
+        })),
+      }),
+    ).toThrow();
   });
 });
 

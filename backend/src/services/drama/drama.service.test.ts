@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DramaService } from './drama.service';
 import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
-import { Drama } from '@/lib/schemas';
+import { Drama, HotSearchListResponse } from '@/lib/schemas';
+import { DramaRepositoryInterface, PaginatedResult } from '@/repositories/interfaces/drama.repository.interface';
 
 function makeDramaInput(overrides: Partial<Omit<Drama, 'id' | 'created_at' | 'updated_at'>> = {}): Omit<Drama, 'id' | 'created_at' | 'updated_at'> {
   return {
@@ -13,6 +14,95 @@ function makeDramaInput(overrides: Partial<Omit<Drama, 'id' | 'created_at' | 'up
     tags: overrides.tags ?? [],
     rating: overrides.rating ?? null,
   };
+}
+
+class InvalidSearchRepository implements DramaRepositoryInterface {
+  async findMany(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async search(): Promise<PaginatedResult<Drama>> {
+    return {
+      data: [
+        {
+          id: 'not-a-uuid',
+          title: 'Broken',
+          description: '',
+          cover_url: null,
+          category: '都市',
+          episode_count: 12,
+          tags: [],
+          rating: 8,
+          created_at: '2026-07-24T00:00:00Z',
+          updated_at: '2026-07-24T00:00:00Z',
+        } as unknown as Drama,
+      ],
+      pagination: {
+        page: 1,
+        page_size: 10,
+        total: 1,
+        total_pages: 1,
+      },
+    };
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async findById(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async create(): Promise<Drama> {
+    throw new Error('Method not implemented.');
+  }
+
+  async update(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async delete(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+}
+
+class InvalidHotSearchRepository implements DramaRepositoryInterface {
+  async findMany(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    return {
+      data: [
+        {
+          rank: 0,
+          keyword: '非法热搜',
+          score: 1,
+        },
+      ],
+    } as HotSearchListResponse;
+  }
+
+  async findById(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async create(): Promise<Drama> {
+    throw new Error('Method not implemented.');
+  }
+
+  async update(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async delete(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
 }
 
 describe('DramaService', () => {
@@ -56,6 +146,56 @@ describe('DramaService', () => {
       title: 'Schema Check',
       episode_count: 9,
       tags: ['测试'],
+    });
+  });
+
+  it('should search dramas and validate response contract', async () => {
+    const result = await service.searchDramas({ q: '后', page: 1, pageSize: 10 });
+
+    expect(result.data.map((item) => item.title)).toEqual([
+      '逆袭归来后我成了豪门团宠',
+      '离婚后前夫跪求复合',
+      '我在八零年代当后妈',
+      '重生后我把渣男送进火葬场',
+      '误撩禁欲教授后她红了',
+      '替嫁后她成了京圈白月光',
+    ]);
+    expect(result.pagination.total).toBe(6);
+  });
+
+  it('should return empty search results for large pages without failing', async () => {
+    const result = await service.searchDramas({ q: '后', page: 999, pageSize: 10 });
+
+    expect(result.data).toEqual([]);
+    expect(result.pagination).toEqual({
+      page: 999,
+      page_size: 10,
+      total: 6,
+      total_pages: 1,
+    });
+  });
+
+  it('should list hot searches and validate response contract', async () => {
+    const result = await service.listHotSearches();
+
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data.length).toBeLessThanOrEqual(10);
+    expect(result.data[0]).toEqual({ rank: 1, keyword: '逆袭', score: 9821 });
+  });
+
+  it('should wrap invalid search output as internal error', async () => {
+    const invalidService = new DramaService(new InvalidSearchRepository());
+
+    await expect(invalidService.searchDramas({ q: '逆袭', page: 1, pageSize: 10 })).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
+    });
+  });
+
+  it('should wrap invalid hot search output as internal error', async () => {
+    const invalidService = new DramaService(new InvalidHotSearchRepository());
+
+    await expect(invalidService.listHotSearches()).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
     });
   });
 

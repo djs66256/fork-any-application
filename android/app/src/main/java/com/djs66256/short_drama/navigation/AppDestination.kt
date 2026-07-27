@@ -1,5 +1,9 @@
 package com.djs66256.short_drama.navigation
 
+import com.djs66256.short_drama.domain.model.normalizeSearchQuery
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
 enum class TopLevelTab(
     val graphRoute: String,
     val rootRoute: String,
@@ -24,6 +28,7 @@ object Arg {
     const val ID = "id"
     const val VIDEO_ID = "videoId"
     const val DRAMA_ID = "dramaId"
+    const val QUERY = "query"
 }
 
 object Route {
@@ -36,6 +41,12 @@ object Route {
     const val PLAYER_ALIAS = "player/{videoId}"
     const val DETAIL = "detail/{dramaId}"
     const val DRAMA_DETAIL_ALIAS = "dramaDetail/{dramaId}"
+    const val SEARCH = "search"
+    const val SEARCH_RESULT = "search/result?query={query}"
+    const val RANKING = "ranking"
+    const val CLASSIFICATION = "classification"
+    const val NEW_RELEASES = "new-releases"
+    const val ACTORS = "actors"
 }
 
 object AppDestination {
@@ -57,12 +68,19 @@ object AppDestination {
         const val PLAYER_ALIAS = com.djs66256.short_drama.navigation.Route.PLAYER_ALIAS
         const val DETAIL = com.djs66256.short_drama.navigation.Route.DETAIL
         const val DRAMA_DETAIL_ALIAS = com.djs66256.short_drama.navigation.Route.DRAMA_DETAIL_ALIAS
+        const val SEARCH = com.djs66256.short_drama.navigation.Route.SEARCH
+        const val SEARCH_RESULT = com.djs66256.short_drama.navigation.Route.SEARCH_RESULT
+        const val RANKING = com.djs66256.short_drama.navigation.Route.RANKING
+        const val CLASSIFICATION = com.djs66256.short_drama.navigation.Route.CLASSIFICATION
+        const val NEW_RELEASES = com.djs66256.short_drama.navigation.Route.NEW_RELEASES
+        const val ACTORS = com.djs66256.short_drama.navigation.Route.ACTORS
     }
 
     object Arg {
         const val ID = com.djs66256.short_drama.navigation.Arg.ID
         const val VIDEO_ID = com.djs66256.short_drama.navigation.Arg.VIDEO_ID
         const val DRAMA_ID = com.djs66256.short_drama.navigation.Arg.DRAMA_ID
+        const val QUERY = com.djs66256.short_drama.navigation.Arg.QUERY
     }
 
     val topLevelTabs = TopLevelTab.entries
@@ -74,12 +92,35 @@ object AppDestination {
     fun detail(dramaId: String): String = "detail/$dramaId"
 
     fun dramaDetailAlias(dramaId: String): String = "dramaDetail/$dramaId"
+
+    fun search(): String = Route.SEARCH
+
+    fun searchResult(query: String): String = "search/result?query=${encodeRouteParam(normalizeSearchQuery(query))}"
+
+    fun ranking(): String = Route.RANKING
+
+    fun classification(): String = Route.CLASSIFICATION
+
+    fun newReleases(): String = Route.NEW_RELEASES
+
+    fun actors(): String = Route.ACTORS
+
+    private fun encodeRouteParam(rawValue: String): String {
+        return URLEncoder.encode(rawValue, StandardCharsets.UTF_8.toString())
+            .replace("+", "%20")
+    }
 }
 
 sealed interface PendingRoute {
     data object Home : PendingRoute
     data class Play(val videoId: String) : PendingRoute
     data class Detail(val dramaId: String) : PendingRoute
+    data object SearchHome : PendingRoute
+    data class SearchResult(val query: String) : PendingRoute
+    data object Ranking : PendingRoute
+    data object Classification : PendingRoute
+    data object NewReleases : PendingRoute
+    data object Actors : PendingRoute
 }
 
 enum class NavigationErrorCode {

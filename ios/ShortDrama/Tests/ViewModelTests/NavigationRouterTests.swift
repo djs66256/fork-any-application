@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
 
 @MainActor
 struct NavigationRouterTests {
@@ -30,6 +30,26 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.mall]?.isEmpty == true)
         #expect(router.pendingRoute == nil)
         #expect(router.containerReady == false)
+    }
+
+    @Test("search discovery routes belong to home tab")
+    func testSearchRoutesBelongToHomeTab() {
+        #expect(AppRoute.searchHome.owningTab == .home)
+        #expect(AppRoute.searchResult(query: "逆袭").owningTab == .home)
+        #expect(AppRoute.rankingHome.owningTab == .home)
+        #expect(AppRoute.classificationHome.owningTab == .home)
+        #expect(AppRoute.newReleases.owningTab == .home)
+        #expect(AppRoute.actorHub.owningTab == .home)
+    }
+
+    @Test("search discovery routes expose canonical public names")
+    func testSearchRoutesPublicNames() {
+        #expect(AppRoute.searchHome.publicRouteName == "search")
+        #expect(AppRoute.searchResult(query: "逆袭").publicRouteName == "search/result")
+        #expect(AppRoute.rankingHome.publicRouteName == "ranking")
+        #expect(AppRoute.classificationHome.publicRouteName == "classification")
+        #expect(AppRoute.newReleases.publicRouteName == "new-releases")
+        #expect(AppRoute.actorHub.publicRouteName == "actors")
     }
 
     @Test("home route builder creates player route from drama id")
@@ -74,6 +94,39 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 1)
     }
 
+    @Test("navigate appends search home route to home stack")
+    func testNavigateSearchHomeAppendsPath() {
+        let router = NavigationRouter()
+
+        router.navigate(to: .searchHome)
+
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("navigate appends search result route to home stack")
+    func testNavigateSearchResultAppendsPath() {
+        let router = NavigationRouter()
+
+        router.navigate(to: .searchResult(query: "逆袭"))
+
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("navigate appends discovery placeholder route to home stack")
+    func testNavigateDiscoveryPlaceholderRoutesAppendPath() {
+        let router = NavigationRouter()
+
+        router.navigate(to: .rankingHome)
+        router.navigate(to: .classificationHome)
+        router.navigate(to: .newReleases)
+        router.navigate(to: .actorHub)
+
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 4)
+    }
+
     @Test("dismiss removes last path element from selected tab")
     func testDismissRemovesLast() {
         let router = NavigationRouter()
@@ -107,10 +160,10 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.mall]?.isEmpty == true)
     }
 
-    @Test("markContainerReady consumes pending route")
-    func testPendingRouteConsumedWhenReady() {
+    @Test("markContainerReady consumes pending search route")
+    func testPendingSearchRouteConsumedWhenReady() {
         let router = NavigationRouter()
-        router.enqueueDeepLink(.player(videoId: "123"))
+        router.enqueueDeepLink(.searchResult(query: "逆袭"))
 
         router.markContainerReady()
 

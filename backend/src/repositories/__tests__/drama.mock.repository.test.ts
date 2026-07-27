@@ -110,4 +110,51 @@ describe('DramaMockRepository', () => {
     expect(page999.pagination.total).toBe(12);
     expect(page999.pagination.total_pages).toBe(2);
   });
+
+  it('should search dramas by title with case-insensitive contains matching', async () => {
+    const result = await repo.search({ q: '后', page: 1, pageSize: 10 });
+
+    expect(result.data.map((item) => item.title)).toEqual([
+      '逆袭归来后我成了豪门团宠',
+      '离婚后前夫跪求复合',
+      '我在八零年代当后妈',
+      '重生后我把渣男送进火葬场',
+      '误撩禁欲教授后她红了',
+      '替嫁后她成了京圈白月光',
+    ]);
+    expect(result.pagination.total).toBe(6);
+    expect(result.pagination.total_pages).toBe(1);
+  });
+
+  it('should search dramas by category with case-insensitive contains matching', async () => {
+    const result = await repo.search({ q: '都市', page: 1, pageSize: 10 });
+
+    expect(result.data).toHaveLength(2);
+    expect(result.data.every((item) => item.category === '都市')).toBe(true);
+  });
+
+  it('should return empty search results for oversized pages while preserving pagination', async () => {
+    const result = await repo.search({ q: '后', page: 999, pageSize: 10 });
+
+    expect(result.data).toEqual([]);
+    expect(result.pagination).toEqual({
+      page: 999,
+      page_size: 10,
+      total: 6,
+      total_pages: 1,
+    });
+  });
+
+  it('should return hot search items with stable rank and size constraints', async () => {
+    const result = await repo.listHotSearches();
+
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.data.length).toBeLessThanOrEqual(10);
+    expect(result.data[0]).toEqual({
+      rank: 1,
+      keyword: '逆袭',
+      score: 9821,
+    });
+    expect(result.data.every((item, index) => item.rank === index + 1)).toBe(true);
+  });
 });

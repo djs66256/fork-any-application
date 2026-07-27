@@ -83,7 +83,6 @@ final class APIClient: @unchecked Sendable {
                 throw APIError.decodingFailed(error)
             }
         case 501:
-            // Attempt to parse error response body
             if let errorResponse = try? decoder.decode(ErrorResponse.self, from: data) {
                 throw APIError.notImplemented(errorResponse.message)
             }
@@ -102,14 +101,33 @@ final class APIClient: @unchecked Sendable {
 
 /// Generic error response structure.
 private struct ErrorResponse: Decodable {
-    let message: String
-
-    enum CodingKeys: String, CodingKey {
-        case message
+    private struct NestedError: Decodable {
+        let code: String?
+        let message: String?
     }
 
+    private struct FlatError: Decodable {
+        let message: String?
+    }
+
+    let message: String
+
     init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        message = try container.decodeIfPresent(String.self, forKey: .message) ?? "未知错误"
+        if let container = try? decoder.container(keyedBy: CodingKeys.self),
+           let nested = try? container.decode(NestedError.self, forKey: .error) {
+            message = nested.message ?? "未知错误"
+            return
+        }
+
+        if let flat = try? FlatError(from: decoder) {
+            message = flat.message ?? "未知错误"
+            return
+        }
+
+        message = "未知错误"
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case error
     }
 }

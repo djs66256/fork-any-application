@@ -54,6 +54,28 @@ export const DramaListResponseSchema = z.object({
 
 export type DramaListResponse = z.infer<typeof DramaListResponseSchema>;
 
+export const SearchDramaQuerySchema = z.object({
+  q: z.string().trim().min(1).max(50),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(10),
+});
+
+export type SearchDramaQuery = z.infer<typeof SearchDramaQuerySchema>;
+
+export const HotSearchItemSchema = z.object({
+  rank: z.number().int().min(1),
+  keyword: z.string().trim().min(1).max(50),
+  score: z.number().int().min(0),
+});
+
+export type HotSearchItem = z.infer<typeof HotSearchItemSchema>;
+
+export const HotSearchListResponseSchema = z.object({
+  data: z.array(HotSearchItemSchema).max(10),
+});
+
+export type HotSearchListResponse = z.infer<typeof HotSearchListResponseSchema>;
+
 export const PlayerStartRequestSchema = z.object({
   drama_id: z.string().uuid(),
   episode_id: z.string().uuid(),

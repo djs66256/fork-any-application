@@ -1,5 +1,6 @@
 package com.djs66256.short_drama.navigation
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalMall
@@ -11,7 +12,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +32,8 @@ import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
+import com.djs66256.short_drama.feature.search.ui.SearchHomeScreen
+import com.djs66256.short_drama.feature.search.ui.SearchResultScreen
 
 @Composable
 fun NavGraph(
@@ -70,6 +72,34 @@ fun NavGraph(
                     navController.navigate(AppDestination.detail(pendingRoute.dramaId))
                     navigationViewModel.consumePendingRoute()
                 }
+            }
+            PendingRoute.SearchHome -> {
+                navController.navigate(AppDestination.search())
+                navigationViewModel.consumePendingRoute()
+            }
+            is PendingRoute.SearchResult -> {
+                if (pendingRoute.query.isBlank()) {
+                    navigationViewModel.rejectPendingRoute(NavigationErrorCode.INVALID_ROUTE_PARAMS)
+                } else {
+                    navController.navigate(AppDestination.searchResult(pendingRoute.query))
+                    navigationViewModel.consumePendingRoute()
+                }
+            }
+            PendingRoute.Ranking -> {
+                navController.navigate(AppDestination.ranking())
+                navigationViewModel.consumePendingRoute()
+            }
+            PendingRoute.Classification -> {
+                navController.navigate(AppDestination.classification())
+                navigationViewModel.consumePendingRoute()
+            }
+            PendingRoute.NewReleases -> {
+                navController.navigate(AppDestination.newReleases())
+                navigationViewModel.consumePendingRoute()
+            }
+            PendingRoute.Actors -> {
+                navController.navigate(AppDestination.actors())
+                navigationViewModel.consumePendingRoute()
             }
         }
     }
@@ -120,12 +150,61 @@ fun NavGraph(
             ) {
                 composable(route = AppDestination.Route.HOME) {
                     HomeScreen(
+                        onOpenSearch = {
+                            navController.navigate(AppDestination.search())
+                        },
                         onOpenPlay = { videoId ->
                             navController.navigate(AppDestination.play(videoId))
                         },
                         onOpenDetail = { dramaId ->
                             navController.navigate(AppDestination.detail(dramaId))
                         },
+                    )
+                }
+                composable(route = AppDestination.Route.SEARCH) {
+                    SearchHomeScreen(
+                        onBack = { navController.popBackStack() },
+                        onSubmitQuery = { route -> navController.navigate(route) },
+                        onOpenQuickEntry = { route -> navController.navigate(route) },
+                    )
+                }
+                composable(
+                    route = AppDestination.Route.SEARCH_RESULT,
+                    arguments = listOf(
+                        navArgument(AppDestination.Arg.QUERY) {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
+                ) {
+                    SearchResultScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenPlay = { videoId -> navController.navigate(AppDestination.play(videoId)) },
+                        onOpenDetail = { dramaId -> navController.navigate(AppDestination.detail(dramaId)) },
+                    )
+                }
+                composable(route = AppDestination.Route.RANKING) {
+                    PlaceholderScreen(
+                        title = "排行",
+                        description = "排行功能建设中，后续 PRD 将在此接入真实页面。",
+                    )
+                }
+                composable(route = AppDestination.Route.CLASSIFICATION) {
+                    PlaceholderScreen(
+                        title = "分类",
+                        description = "分类功能建设中，后续 PRD 将在此接入真实页面。",
+                    )
+                }
+                composable(route = AppDestination.Route.NEW_RELEASES) {
+                    PlaceholderScreen(
+                        title = "新剧",
+                        description = "新剧功能建设中，当前为 Native 承接页。",
+                    )
+                }
+                composable(route = AppDestination.Route.ACTORS) {
+                    PlaceholderScreen(
+                        title = "演员",
+                        description = "演员功能建设中，当前为 Native 承接页。",
                     )
                 }
                 composable(

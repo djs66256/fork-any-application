@@ -1,5 +1,5 @@
-import { Drama, DramaListResponseSchema } from '@/lib/schemas';
-import { DramaRepositoryInterface, PaginationParams, PaginatedResult } from '@/repositories/interfaces/drama.repository.interface';
+import { Drama, DramaListResponseSchema, HotSearchListResponse, HotSearchListResponseSchema } from '@/lib/schemas';
+import { DramaRepositoryInterface, PaginationParams, PaginatedResult, SearchDramasParams } from '@/repositories/interfaces/drama.repository.interface';
 import { Errors } from '@/lib/errors';
 
 export class DramaService {
@@ -7,6 +7,28 @@ export class DramaService {
 
   async listDramas(params: PaginationParams): Promise<PaginatedResult<Drama>> {
     return DramaListResponseSchema.parse(await this.dramaRepository.findMany(params));
+  }
+
+  async searchDramas(params: SearchDramasParams): Promise<PaginatedResult<Drama>> {
+    try {
+      return DramaListResponseSchema.parse(await this.dramaRepository.search(params));
+    } catch (error) {
+      if (error instanceof Error && 'code' in error) {
+        throw error;
+      }
+      throw Errors.internal('Invalid drama search result');
+    }
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    try {
+      return HotSearchListResponseSchema.parse(await this.dramaRepository.listHotSearches());
+    } catch (error) {
+      if (error instanceof Error && 'code' in error) {
+        throw error;
+      }
+      throw Errors.internal('Invalid hot search result');
+    }
   }
 
   async getDramaById(id: string): Promise<Drama> {

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { Drama, DramaSchema } from '@/lib/schemas';
-import { DramaRepositoryInterface, PaginationParams, PaginatedResult } from '@/repositories/interfaces/drama.repository.interface';
+import { Drama, DramaSchema, HotSearchListResponse, HotSearchListResponseSchema } from '@/lib/schemas';
+import { DramaRepositoryInterface, PaginationParams, PaginatedResult, SearchDramasParams } from '@/repositories/interfaces/drama.repository.interface';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 import { Errors } from '@/lib/errors';
 
@@ -17,6 +17,23 @@ const SupabaseDramaRowSchema = z.object({
 });
 
 type SupabaseDramaRow = z.infer<typeof SupabaseDramaRowSchema>;
+
+const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at';
+
+const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.parse({
+  data: [
+    { rank: 1, keyword: '逆袭', score: 9821 },
+    { rank: 2, keyword: '豪门', score: 9540 },
+    { rank: 3, keyword: '总裁', score: 9300 },
+    { rank: 4, keyword: '甜宠', score: 9088 },
+    { rank: 5, keyword: '重生', score: 8890 },
+    { rank: 6, keyword: '穿书', score: 8605 },
+    { rank: 7, keyword: '都市', score: 8411 },
+    { rank: 8, keyword: '校园', score: 8204 },
+    { rank: 9, keyword: '复仇', score: 7988 },
+    { rank: 10, keyword: '萌宝', score: 7802 },
+  ],
+});
 
 function mapRowToDrama(row: unknown): Drama {
   const parsed = SupabaseDramaRowSchema.safeParse(row);
@@ -59,7 +76,9 @@ function mapDramaToRow(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): O
   };
 }
 
-const DRAMA_SELECT_COLUMNS = 'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at';
+function computeTotalPages(total: number, pageSize: number): number {
+  return total === 0 ? 0 : Math.ceil(total / pageSize);
+}
 
 export class DramaSupabaseRepository implements DramaRepositoryInterface {
   async findMany(params: PaginationParams): Promise<PaginatedResult<Drama>> {
@@ -78,7 +97,6 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
     }
 
     const total = count ?? 0;
-    const totalPages = total === 0 ? 0 : Math.ceil(total / params.pageSize);
 
     return {
       data: (data ?? []).map(mapRowToDrama),
@@ -86,8 +104,45 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
         page: params.page,
         page_size: params.pageSize,
         total,
-        total_pages: totalPages,
+        total_pages: computeTotalPages(total, params.pageSize),
       },
+    };
+  }
+
+  async search(params: SearchDramasParams): Promise<PaginatedResult<Drama>> {
+    const supabase = getSupabaseAdmin();
+    const from = (params.page - 1) * params.pageSize;
+    const to = from + params.pageSize - 1;
+    const escapedQuery = params.q.trim().replace(/[%_]/g, (char) => `\\${char}`);
+    const queryPattern = `%${escapedQuery}%`;
+
+    const { data, error, count } = await supabase
+      .from('dramas')
+      .select(DRAMA_SELECT_COLUMNS, { count: 'exact', head: false })
+      .or(`title.ilike.${queryPattern},category.ilike.${queryPattern}`)
+      .range(from, to)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw Errors.internal(`Failed to search dramas: ${error.message}`);
+    }
+
+    const total = count ?? 0;
+
+    return {
+      data: (data ?? []).map(mapRowToDrama),
+      pagination: {
+        page: params.page,
+        page_size: params.pageSize,
+        total,
+        total_pages: computeTotalPages(total, params.pageSize),
+      },
+    };
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    return {
+      data: HOT_SEARCH_ITEMS.data.map((item) => ({ ...item })),
     };
   }
 

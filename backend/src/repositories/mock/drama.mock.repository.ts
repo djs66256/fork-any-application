@@ -1,5 +1,5 @@
-import { Drama, DramaSchema } from '@/lib/schemas';
-import { DramaRepositoryInterface, PaginationParams, PaginatedResult } from '@/repositories/interfaces/drama.repository.interface';
+import { Drama, DramaSchema, HotSearchListResponse, HotSearchListResponseSchema } from '@/lib/schemas';
+import { DramaRepositoryInterface, PaginationParams, PaginatedResult, SearchDramasParams } from '@/repositories/interfaces/drama.repository.interface';
 
 const HOMEPAGE_DRAMAS: Drama[] = [
   {
@@ -148,10 +148,46 @@ const HOMEPAGE_DRAMAS: Drama[] = [
   },
 ].map((drama) => DramaSchema.parse(drama));
 
+const HOT_SEARCH_ITEMS: HotSearchListResponse = HotSearchListResponseSchema.parse({
+  data: [
+    { rank: 1, keyword: '逆袭', score: 9821 },
+    { rank: 2, keyword: '豪门', score: 9540 },
+    { rank: 3, keyword: '总裁', score: 9300 },
+    { rank: 4, keyword: '甜宠', score: 9088 },
+    { rank: 5, keyword: '重生', score: 8890 },
+    { rank: 6, keyword: '穿书', score: 8605 },
+    { rank: 7, keyword: '都市', score: 8411 },
+    { rank: 8, keyword: '校园', score: 8204 },
+    { rank: 9, keyword: '复仇', score: 7988 },
+    { rank: 10, keyword: '萌宝', score: 7802 },
+  ],
+});
+
 function cloneDrama(drama: Drama): Drama {
   return {
     ...drama,
     tags: [...drama.tags],
+  };
+}
+
+function normalizeSearchValue(value: string): string {
+  return value.trim().toLocaleLowerCase();
+}
+
+function paginate<T>(items: T[], params: PaginationParams): PaginatedResult<T> {
+  const total = items.length;
+  const totalPages = total === 0 ? 0 : Math.ceil(total / params.pageSize);
+  const start = (params.page - 1) * params.pageSize;
+  const data = items.slice(start, start + params.pageSize);
+
+  return {
+    data,
+    pagination: {
+      page: params.page,
+      page_size: params.pageSize,
+      total,
+      total_pages: totalPages,
+    },
   };
 }
 
@@ -163,20 +199,26 @@ export class DramaMockRepository implements DramaRepositoryInterface {
   }
 
   async findMany(params: PaginationParams): Promise<PaginatedResult<Drama>> {
-    const all = Array.from(this.data.values());
-    const total = all.length;
-    const totalPages = total === 0 ? 0 : Math.ceil(total / params.pageSize);
-    const start = (params.page - 1) * params.pageSize;
-    const data = all.slice(start, start + params.pageSize).map(cloneDrama);
+    const all = Array.from(this.data.values()).map(cloneDrama);
+    return paginate(all, params);
+  }
 
+  async search(params: SearchDramasParams): Promise<PaginatedResult<Drama>> {
+    const normalizedQuery = normalizeSearchValue(params.q);
+    const matched = Array.from(this.data.values())
+      .filter((drama) => {
+        const title = normalizeSearchValue(drama.title);
+        const category = normalizeSearchValue(drama.category);
+        return title.includes(normalizedQuery) || category.includes(normalizedQuery);
+      })
+      .map(cloneDrama);
+
+    return paginate(matched, params);
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
     return {
-      data,
-      pagination: {
-        page: params.page,
-        page_size: params.pageSize,
-        total,
-        total_pages: totalPages,
-      },
+      data: HOT_SEARCH_ITEMS.data.map((item) => ({ ...item })),
     };
   }
 
