@@ -1,7 +1,8 @@
 ---
 name: feature-workflow
 description: >
-  需求到落地的全流程管理 skill。覆盖从 worktree 创建、需求撰写与 review（含自动修复循环）、
+  需求到落地的全流程管理 skill。以 EnterWorktree 开始、合并到 master + ExitWorktree 清理为结束，
+  覆盖从 worktree 创建、需求撰写与 review（含自动修复循环）、
   技术方案设计与 review、各端 plan 与 coding（含 code review）、QA 黑盒测试，到 worktree 合并与 wiki 收录的 15 个阶段。
   触发场景：用户提出新功能开发需求、说"开始一个新需求"、"创建一个功能分支"、"推进 XX 需求"、
   "做 XX 功能"、"实现 XX"、"开发 XX"、"加一个 XX 功能"。只要涉及从需求到代码落地的完整开发流程，
@@ -15,6 +16,17 @@ description: >
 feature-workflow 是需求从「想法」到「代码落地」的完整编排层。它不替代任何已有 skill（如 llm-wiki），而是在它们之上提供阶段编排、状态管理和人机协作边界。
 
 核心设计理念：**agent 高度自主推进流程，人只在 3 个固定确认点和必要时介入**。每个需要 review 的阶段都内置了「执行→审查→修复」循环，agent 会自行修复能解决的问题，仅将无法判断的问题上报给人。
+
+## 生命周期边界（硬性约束）
+
+feature-workflow 的启动和完成有明确边界，违反边界等同于流程未完成：
+
+| 边界 | 操作 | 工具 | 说明 |
+|------|------|------|------|
+| **开始** | 进入 worktree | `EnterWorktree` | 阶段 1 开始时必须调用，不进入 worktree 不能开始后续阶段 |
+| **完成标准** | 合并到 master + 清理 + 离开 worktree | git + `ExitWorktree` | 阶段 13 结束时必须满足以下两项全部完成，才算需求真正完成：<br>① 代码已 `git merge --no-ff` 合并到 `master`（或 main 分支）<br>② 已通过 `ExitWorktree(action: "remove")` 清理 worktree |
+
+> ⚠️ **完成标准不可跳过或降级**：即使 wiki-inclusion 被跳过，worktree-merge（合并到 master + ExitWorktree）仍然必须执行。没有合并到 master 并清理 worktree 的需求不算完成。
 
 ## 推进路径
 
@@ -83,6 +95,7 @@ flowchart TD
 - **执行者**：主 agent + EnterWorktree 工具
 - **前置条件**：无
 - **执行规范**：详见 [references/worktree.md](references/worktree.md)「创建 worktree」节
+- **强制前提**：必须通过 `EnterWorktree` 工具进入 worktree 后才能执行后续操作。不进入 worktree 不得开始任何后续阶段
 - **产物**：worktree 就绪，`docs/specs/<YYYY-MM-dd>-<name>/workflow.json`
 - **推进命令**：`python3 scripts/workflow.py init <name>`（在 worktree 中执行，init 后阶段 1 自动完成）
 - **下一阶段提示**：「worktree 已就绪。是否开始需求撰写？」
@@ -190,9 +203,12 @@ flowchart TD
 - **执行者**：主 agent + Bash + ExitWorktree 工具
 - **前置条件**：qa-blackbox-testing 完成或跳过
 - **执行规范**：详见 [references/worktree.md](references/worktree.md)「合回主干」和「退出 worktree」节
-- **产物**：代码已合并到 main 并推送
-- **推进命令**：合并完成后 `python3 scripts/workflow.py advance`
-- **下一阶段提示**：「主干已合并。是否进行 wiki 收录？」
+- **完成标准**（全部 2 项必须满足）：
+  1. 代码已通过 `git merge --no-ff` 合并到 `master`（或 main）分支
+  2. 已通过 `ExitWorktree(action: "remove")` 清理 worktree
+- **产物**：代码已合并到 master，worktree 已清理
+- **推进命令**：合并完成且 ExitWorktree 成功后 `python3 scripts/workflow.py advance`
+- **下一阶段提示**：「主干已合并，worktree 已清理。是否进行 wiki 收录？」
 
 ### 阶段 14：wiki-inclusion
 
@@ -209,6 +225,7 @@ flowchart TD
 - 产物清单（所有 spec/design/plan 文档）
 - 代码变更摘要（各端变更文件数）
 - Wiki 收录结果
+- Worktree 清理验证（确认 `ExitWorktree` 已执行，worktree 目录已删除）
 - 流程耗时统计
 
 ## 人机协作边界

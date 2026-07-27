@@ -34,38 +34,36 @@ python3 scripts/workflow.py init <name>
 
 在 `worktree-merge` 阶段，代码合并完成后使用 `ExitWorktree` 工具退出并清理 worktree：
 
-1. 先推送分支并合并到 main（通过 Bash 执行 git 命令）
+1. 先将 feature 分支合并到 master（通过 Bash 执行 git 命令）
 2. 调用 `ExitWorktree` 工具，参数：
    - `action`: `"remove"`
    - `discard_changes`: `false`
 3. 工具会自动清理 worktree 目录和关联分支
 
-注意：在调用 `ExitWorktree` 之前，务必确认代码已合并到 main 并推送成功。
+注意：在调用 `ExitWorktree` 之前，务必确认代码已合并到 master。
 
 ## 合回主干
 
-在 `worktree-merge` 阶段执行：
+在 `worktree-merge` 阶段执行。完成标准：
+1. 代码已通过 `git merge --no-ff` 合并到 `master`（或 main）
+2. 已通过 `ExitWorktree(action: "remove")` 清理 worktree
 
 ```bash
 # 1. 确认当前在 worktree 目录中
 pwd
 
-# 2. 推送分支到远程
-git push origin feature/<YYYY-MM-dd>-<name>
-
-# 3. 切回主仓库的 main 分支（需要先退出 worktree，或通过 cd <project-root> 切换）
+# 2. 切回主仓库的 master 分支（需要先退出 worktree，或通过 cd <project-root> 切换）
 cd <project-root>
-git checkout main
-git pull origin main
+git checkout master
+git pull origin master
 
-# 4. 合并 feature 分支（使用 --no-ff 保留分支历史）
+# 3. 合并 feature 分支（使用 --no-ff 保留分支历史）
 git merge --no-ff feature/<YYYY-MM-dd>-<name>
 
-# 5. 推送到远程
-git push origin main
+# 4. 使用 ExitWorktree 工具退出并清理 worktree
 ```
 
-然后使用 `ExitWorktree` 工具退出并清理 worktree。
+然后使用 `ExitWorktree` 工具退出并清理 worktree（`action: "remove"`）。
 
 ## 异常处理
 
@@ -74,7 +72,7 @@ git push origin main
 | worktree 创建失败（分支已存在） | 检查是否已有同名分支，如属于本项目则复用，否则换名 |
 | 合并冲突 | 手动解决冲突后 `git add . && git commit` |
 | ExitWorktree 失败（有未提交变更） | 先 `git add . && git commit` 或 `git stash`，然后重试 |
-| main 有新的远程更新 | `git pull --rebase origin main` 后再 merge |
+| main 有新的远程更新 | `git pull --rebase origin master` 后再 merge |
 
 ## 相关命令参考
 
