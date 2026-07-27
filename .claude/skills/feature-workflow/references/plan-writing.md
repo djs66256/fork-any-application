@@ -37,6 +37,8 @@ Plan 中每个步骤包含：
 
 主 agent 为各涉及平台并行派发 plan subagent：
 
+> **重要约束**：plan subagent 只写入 `docs/specs/<YYYY-MM-dd>-<name>/plan-<platform>.md`，各端文件互不冲突。**派发 subagent 时不得使用 `isolation: 'worktree'`**。
+
 ```
 Subagent：
   description: "Plan：<platform>-<feature-name>"

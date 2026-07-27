@@ -22,6 +22,8 @@ coding-platforms 阶段是核心实现阶段。每端派发一个 coding subagen
 
 **派发优先级**：优先使用 agent team 模式，agent team 不可用时使用独立 subagent。详见 [references/agent-team.md](agent-team.md)。
 
+> **重要约束**：coding subagent 只修改 `<platform>/` 目录下的文件，各端目录互不重叠，天然不会产生文件冲突。**派发 subagent 时不得使用 `isolation: 'worktree'`**。
+
 ```
 Subagent：
   description: "Coding：<platform>-<feature-name>"

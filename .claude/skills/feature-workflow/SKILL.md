@@ -362,3 +362,4 @@ python3 scripts/workflow.py init add-playback-speed
   - 如功能尚未经过 `product-manager` skill 拆解（缺少 PRD + 子任务拆分），应先通过 product-manager 完成需求拆解后再走 feature-workflow。已有 PRD 时，spec-writing 阶段可直接引用 PRD 中的用户故事和核心流程
 - **平台跳过**：不涉及的平台用 `mark-platform --status skipped`，advance 会等同 completed 处理
 - **Review 循环上限**：脚本在 3 轮后输出 warning，agent 必须停止自动循环并上报人工
+- **Subagent 不使用 worktree 隔离**：plan、coding、code-review 等阶段的 subagent 只修改各自平台目录下的文件，互不冲突，无需创建 worktree 进行隔离。主 agent 派发 subagent 时不得传入 `isolation: 'worktree'`

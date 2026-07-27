@@ -14,7 +14,7 @@ Agent Team 是**实验性功能**，需要以下条件全部满足：
 
 ## 核心理念
 
-单个 agent 处理复杂多平台任务时上下文窗口利用率高、等待时间长。Agent team 按职能（平台、领域）将任务拆分给多个 teammate，每个 teammate 拥有独立的上下文和 git worktree，并行执行后由 team lead 汇总。
+单个 agent 处理复杂多平台任务时上下文窗口利用率高、等待时间长。Agent team 按职能（平台、领域）将任务拆分给多个 teammate，每个 teammate 拥有独立的上下文，并行执行后由 team lead 汇总。
 
 ## 团队结构
 
@@ -26,7 +26,7 @@ Team Lead（主 agent）
 ```
 
 - **Team Lead**：拆解任务、派发 teammate、汇总结果
-- **Teammate**：独立执行被分配的子任务，在隔离的 git worktree 中工作
+- **Teammate**：独立执行被分配的子任务
 
 ## 协调机制
 
@@ -39,7 +39,7 @@ Team lead 负责最终汇总所有 teammate 的结果。
 
 ## 工作隔离
 
-每个 teammate 运行在独立的 git worktree 中，代码变更仅在 teammate 完成并通过验证后才合并，避免文件冲突。
+各端 teammate 修改各自平台目录（`android/`、`ios/`、`web/`、`backend/`）下的文件，天然互不冲突，无需创建 worktree 隔离。
 
 ## 如何触发
 
