@@ -1,0 +1,117 @@
+# ============================================================
+# Kong 声明式配置 — Supabase API Gateway (localhost:54321)
+#
+# 路由 (strip_path: true, 即 Gateway 剥离前缀)：
+#   /auth/v1/*      → GoTrue (auth:9999)
+#   /rest/v1/*      → PostgREST (rest:3000)
+#   /storage/v1/*   → Storage API (storage:5000)
+#   /realtime/v1/*  → Realtime (realtime:4000)
+# ============================================================
+
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: auth-v1
+    url: http://auth:9999
+    routes:
+      - name: auth-v1-route
+        strip_path: true
+        paths:
+          - /auth/v1
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          headers:
+            - "*"
+          exposed_headers:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          credentials: false
+          max_age: 86400
+
+  - name: rest-v1
+    url: http://rest:3000
+    routes:
+      - name: rest-v1-route
+        strip_path: true
+        paths:
+          - /rest/v1
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          headers:
+            - "*"
+          exposed_headers:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          credentials: false
+          max_age: 86400
+
+  - name: storage-v1
+    url: http://storage:5000
+    routes:
+      - name: storage-v1-route
+        strip_path: true
+        paths:
+          - /storage/v1
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          headers:
+            - "*"
+          exposed_headers:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          credentials: false
+          max_age: 86400
+
+  - name: realtime-v1
+    url: http://realtime:4000
+    routes:
+      - name: realtime-v1-route
+        strip_path: true
+        paths:
+          - /realtime/v1
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "*"
+          headers:
+            - "*"
+          exposed_headers:
+            - "*"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - OPTIONS
+          credentials: false
+          max_age: 86400
