@@ -109,7 +109,7 @@ export function requireRole(roles: string[], handler: RouteHandler): RouteHandle
     }
 
     // Inject auth context into request
-    (request as Record<string, unknown>).auth = auth;
+    (request as unknown as Record<string, unknown>).auth = auth;
 
     return handler(request, context);
   };
@@ -119,7 +119,7 @@ export function requireRole(roles: string[], handler: RouteHandler): RouteHandle
  * Extract AuthContext from request (set by requireRole middleware).
  */
 export function getAuth(request: NextRequest): AuthContext {
-  const auth = (request as Record<string, unknown>).auth as AuthContext | undefined;
+  const auth = (request as unknown as Record<string, unknown>).auth as AuthContext | undefined;
   if (!auth) {
     throw Errors.unauthorized('Auth context not found');
   }

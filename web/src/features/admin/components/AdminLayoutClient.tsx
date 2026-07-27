@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
+import { ToastProvider } from './Toast';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 import styles from './AdminLayout.module.css';
 
@@ -51,12 +52,14 @@ export function AdminLayoutClient({ children }: AdminLayoutClientProps) {
   }
 
   return (
-    <div className={styles.layoutWrapper}>
-      <AdminHeader email={user.email} role={user.role} onLogout={handleLogout} />
-      <div className={styles.mainArea}>
-        <AdminSidebar role={user.role} />
-        <main className={styles.content}>{children}</main>
+    <ToastProvider>
+      <div className={styles.layoutWrapper}>
+        <AdminHeader email={user.email} role={user.role} onLogout={handleLogout} />
+        <div className={styles.mainArea}>
+          <AdminSidebar role={user.role} />
+          <main className={styles.content}>{children}</main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

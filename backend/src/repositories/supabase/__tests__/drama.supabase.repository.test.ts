@@ -32,7 +32,7 @@ describe('DramaSupabaseRepository', () => {
         description: null,
         cover_url: null,
         category: '都市',
-        total_episodes: 12,
+        episode_count: 12,
         rating: 8.1,
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
@@ -43,7 +43,7 @@ describe('DramaSupabaseRepository', () => {
         description: 'desc',
         cover_url: 'https://example.com/drama-2.jpg',
         category: null,
-        total_episodes: 24,
+        episode_count: 24,
         rating: null,
         created_at: '2026-07-24T00:00:00Z',
         updated_at: '2026-07-24T00:00:00Z',
@@ -72,7 +72,7 @@ describe('DramaSupabaseRepository', () => {
     const result = await repo.findMany({ page: 2, pageSize: 10 });
 
     expect(builder.select).toHaveBeenCalledWith(
-      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at',
+      'id,title,description,cover_url,category,episode_count,rating,created_at,updated_at',
       { count: 'exact', head: false },
     );
     expect(result.pagination.page).toBe(2);
@@ -101,7 +101,7 @@ describe('DramaSupabaseRepository', () => {
         description: null,
         cover_url: null,
         category: '都市',
-        total_episodes: 68,
+        episode_count: 68,
         rating: 8.9,
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
@@ -170,7 +170,7 @@ describe('DramaSupabaseRepository', () => {
         description: null,
         cover_url: null,
         category: '都市',
-        total_episodes: 12,
+        episode_count: 12,
         rating: 8.1,
         created_at: '2026-07-25T00:00:00Z',
         updated_at: '2026-07-25T00:00:00Z',
@@ -222,7 +222,7 @@ describe('DramaSupabaseRepository', () => {
     );
 
     expect(rankingBuilder.select).toHaveBeenCalledWith(
-      'id,title,description,cover_url,category,total_episodes,rating,created_at,updated_at,content_type,play_count,booking_count,recommendation_score',
+      'id,title,description,cover_url,category,episode_count,rating,created_at,updated_at,content_type,play_count,booking_count,recommendation_score',
       { count: 'exact', head: false },
     );
     expect(rankingBuilderAfterSelect.eq).toHaveBeenCalledWith('content_type', 'ai');
@@ -251,7 +251,7 @@ describe('DramaSupabaseRepository', () => {
       description: null,
       cover_url: null,
       category: '情感',
-      total_episodes: 30,
+      episode_count: 30,
       rating: 7.5,
       created_at: '2026-07-23T00:00:00Z',
       updated_at: '2026-07-23T00:00:00Z',
@@ -316,7 +316,7 @@ describe('DramaSupabaseRepository', () => {
       description: '',
       cover_url: null,
       category: '都市',
-      total_episodes: 12,
+      episode_count: 12,
       rating: null,
       created_at: '2026-07-22T00:00:00Z',
       updated_at: '2026-07-22T00:00:00Z',
@@ -348,7 +348,7 @@ describe('DramaSupabaseRepository', () => {
       description: '',
       cover_url: null,
       category: '都市',
-      total_episodes: 12,
+      episode_count: 12,
       rating: null,
       content_type: undefined,
       play_count: undefined,

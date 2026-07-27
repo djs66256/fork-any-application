@@ -99,13 +99,13 @@
       }
     },
     "coding-platforms": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2026-07-27T13:40:40.005141+00:00",
       "completed_at": null,
       "review_loops": 0,
       "platforms": {
         "backend": {
-          "status": "in_progress",
+          "status": "completed",
           "started_at": "2026-07-27T13:40:51.394195+00:00",
           "completed_at": null,
           "review_loops": 0
@@ -123,7 +123,7 @@
           "review_loops": 0
         },
         "web": {
-          "status": "in_progress",
+          "status": "completed",
           "started_at": "2026-07-27T13:40:51.394196+00:00",
           "completed_at": null,
           "review_loops": 0
@@ -131,14 +131,16 @@
       }
     },
     "code-human-review": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
-      "completed_at": null
+      "completed_at": null,
+      "decision": "approved"
     },
     "qa-blackbox-testing": {
-      "status": "pending",
+      "status": "skipped",
       "started_at": null,
-      "completed_at": null
+      "completed_at": null,
+      "reason": "管理平台为 Web 端后台，无需设备黑盒测试"
     },
     "worktree-merge": {
       "status": "pending",
@@ -160,5 +162,6 @@
     "created_at": "2026-07-27T13:16:21.735472+00:00",
     "updated_at": "2026-07-27T13:40:51.394197+00:00",
     "version": "1.0"
-  }
+  },
+  "current_stage": "worktree-merge"
 }
