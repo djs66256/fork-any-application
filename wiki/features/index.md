@@ -7,3 +7,4 @@
 - [数据模型 (Data Models)](data-models/index.md) — 核心数据实体定义与首页卡片字段约束
 - [深链 (Deeplink)](deeplink/index.md) — 自定义 URL Scheme 唤起应用，已扩展到 search / search result / ranking / classification / new-releases / actors，并保留 Android `player` 兼容
 - [播放器](video-player/index.md) — 跨端播放页占位实现、首页 Feed/搜索结果卡片入口与后端占位接口现状
+- [管理平台 (Admin Panel)](admin-panel/index.md) — Web 端内部管理后台，提供短剧/剧集内容管理、用户角色分配、仪表盘概览与 RBAC 三级权限控制

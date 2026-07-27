@@ -143,17 +143,17 @@
       "reason": "管理平台为 Web 端后台，无需设备黑盒测试"
     },
     "worktree-merge": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
       "completed_at": null
     },
     "wiki-inclusion": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
       "completed_at": null
     },
     "completed": {
-      "status": "pending",
+      "status": "completed",
       "started_at": null,
       "completed_at": null
     }
@@ -163,5 +163,5 @@
     "updated_at": "2026-07-27T13:40:51.394197+00:00",
     "version": "1.0"
   },
-  "current_stage": "worktree-merge"
+  "current_stage": "completed"
 }
