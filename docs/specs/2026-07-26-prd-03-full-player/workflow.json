@@ -151,14 +151,14 @@
       "completed_at": "2026-07-26T10:38:52.754668+00:00"
     },
     "completed": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2026-07-26T10:02:46.321475+00:00",
-      "completed_at": null
+      "completed_at": "2026-07-27T13:18:14.802068+00:00"
     }
   },
   "metadata": {
     "created_at": "2026-07-26T00:00:00+00:00",
-    "updated_at": "2026-07-26T10:38:52.756147+00:00",
+    "updated_at": "2026-07-27T13:18:14.802654+00:00",
     "version": "1.0"
   }
 }
