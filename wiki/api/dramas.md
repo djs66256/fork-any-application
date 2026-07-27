@@ -8,14 +8,14 @@
 
 ### 功能简介
 
-获取首页信息流短剧列表。当前已从“骨架返回空数组”演进为可分页返回首页卡片数据的列表接口，是 Android / iOS Native 首页 Feed 的唯一数据来源；PRD-04 搜索结果页继续复用同一 `Drama` 列表契约，因此该接口与搜索接口共享响应字段语义。
+获取首页信息流短剧列表。当前已从“骨架返回空数组”演进为可分页返回首页卡片数据的列表接口，是 Android / iOS Native 首页 Feed 的唯一数据来源；同时 `tags` 字段也会作为搜索发现与分类承接链路的共享基础字段继续下发（`backend/src/app/api/dramas/route.ts:8-24`、`backend/src/lib/schemas.ts:15-28,68-73`）。
 
 ### 代码文件路径
 
 - Route：`backend/src/app/api/dramas/route.ts:8-24`
-- Service：`backend/src/services/drama/drama.service.ts:5-10`
-- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:4-234`
-- Schema：`backend/src/lib/schemas.ts:15-39`
+- Service：`backend/src/services/drama/drama.service.ts:32-34`
+- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:421-424`
+- Schema：`backend/src/lib/schemas.ts:15-28,61-73`
 - 测试：`backend/src/app/api/__tests__/dramas.test.ts:6-92`
 
 ### path / method
@@ -56,7 +56,7 @@
 }
 ```
 
-> 说明：示例响应反映当前代码中的字段形态与分页结构；真实列表由 mock repository 中的 12 条预置短剧分页切片得到（`backend/src/repositories/mock/drama.mock.repository.ts:4-234`）。
+> 说明：示例响应反映当前代码中的字段形态与分页结构；真实列表由 mock repository 中的预置短剧分页切片得到（`backend/src/repositories/mock/drama.mock.repository.ts:421-424`）。
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -67,7 +67,7 @@
 | `data[].cover_url` | string \| null | 封面图 URL |
 | `data[].category` | string | 分类 |
 | `data[].episode_count` | number | 集数 |
-| `data[].tags` | string[] | 标签列表 |
+| `data[].tags` | string[] | 标签列表；后续搜索与分类链路会复用该字段 |
 | `data[].rating` | number \| null | 评分 |
 | `data[].created_at` | string | 创建时间 |
 | `data[].updated_at` | string | 更新时间 |
@@ -79,9 +79,9 @@
 ### 当前行为说明
 
 - 默认请求 `GET /api/dramas` 返回第一页 10 条数据，当前总数为 12，总页数为 2（`backend/src/app/api/__tests__/dramas.test.ts:17-35`）。
-- 请求 `GET /api/dramas?page=2&pageSize=10` 返回第 2 页剩余 2 条数据（`backend/src/app/api/__tests__/dramas.test.ts:37-59`）。
+- 请求 `GET /api/dramas?page=2&pageSize=10` 返回第 2 页剩余数据（`backend/src/app/api/__tests__/dramas.test.ts:37-59`）。
 - 请求超大页码时仍返回 200，但 `data=[]`，分页信息保持正确（`backend/src/app/api/__tests__/dramas.test.ts:61-74`）。
-- 当前 Android / iOS 客户端都只消费第一页，未实现下拉刷新或加载更多（`android/app/src/main/java/com/djs66256/short_drama/feature/home/viewmodel/HomeViewModel.kt:50-66,102-106`；`ios/ShortDrama/Sources/Features/Home/ViewModels/HomeViewModel.swift:14-17,72-81`）。
+- 当前 Android / iOS 客户端都只消费第一页，未实现首页加载更多；但搜索和排行链路会继续复用同一 `Drama` 基础字段契约。
 
 ### Error Code
 
@@ -97,16 +97,18 @@
 
 ### 功能简介
 
-按关键词搜索短剧。PRD-04 搜索发现页与搜索结果页都依赖该接口；接口继续返回与首页 `GET /api/dramas` 相同的 `DramaListResponse` 结构，因此移动端搜索结果可以直接复用首页卡片组件、播放路由与详情路由（`backend/src/app/api/dramas/search/route.ts:7-19`、`backend/src/services/drama/drama.service.ts:12-20`）。
+搜索短剧列表。当前接口继续作为搜索结果页的唯一数据源，同时也是分类标签点击后的结果承接接口。PRD-06 已将命中规则从 `title + category` 扩展为 `title + category + tags`，因此点击分类标签后无需新增独立结果页或独立查询接口（`backend/src/app/api/dramas/search/route.ts:7-19`、`backend/src/services/drama/drama.service.ts:36-45`、`backend/src/repositories/mock/drama.mock.repository.ts:426-439`、`backend/src/repositories/supabase/drama.supabase.repository.ts:259-321`）。
 
 ### 代码文件路径
 
 - Route：`backend/src/app/api/dramas/search/route.ts:1-20`
-- Service：`backend/src/services/drama/drama.service.ts:12-20`
-- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:173-223`
-- Schema：`backend/src/lib/schemas.ts:57-77`
-- 路由测试：`backend/src/app/api/__tests__/dramas-search.test.ts:34-111`
-- Service 测试：`backend/src/services/drama/drama.service.test.ts:152-199`
+- Service：`backend/src/services/drama/drama.service.ts:36-45`
+- Repository Contract：`backend/src/repositories/interfaces/drama.repository.interface.ts:17-19,56-59`
+- Mock Repository：`backend/src/repositories/mock/drama.mock.repository.ts:426-439`
+- Supabase Repository：`backend/src/repositories/supabase/drama.supabase.repository.ts:255-321`
+- Schema：`backend/src/lib/schemas.ts:82-88`
+- Route 测试：`backend/src/app/api/__tests__/dramas-search.test.ts:34-127`
+- Supabase 测试：`backend/src/repositories/supabase/__tests__/drama.supabase.repository.test.ts:98-140`
 
 ### path / method
 
@@ -116,11 +118,213 @@
 
 | 字段 | 类型 | 必填 | 默认值 | 说明 |
 |------|------|------|--------|------|
-| `q` | string | 是 | — | 搜索关键词；会先 `trim()`，要求长度 1~50 |
+| `q` | string | 是 | — | 搜索词；`trim` 后长度 1~50 |
 | `page` | number | 否 | 1 | 页码（int，min 1） |
 | `pageSize` | number | 否 | 10 | 每页数量（int，min 1，max 100） |
 
-> 参数规则由 `SearchDramaQuerySchema` 统一定义：`q.trim().min(1).max(50)`、`page>=1`、`pageSize<=100`（`backend/src/lib/schemas.ts:57-61`）。
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440012",
+      "title": "天降萌宝总裁爹地别太宠",
+      "description": "萌宝助攻下，破镜重圆的爱情再次启动。",
+      "cover_url": "https://example.com/dramas/012.jpg",
+      "category": "家庭",
+      "episode_count": 66,
+      "tags": ["萌宝", "破镜重圆"],
+      "rating": 8,
+      "created_at": "2026-07-24T13:00:00Z",
+      "updated_at": "2026-07-24T13:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 10,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+> 说明：响应结构与 `GET /api/dramas` 完全一致，差异只在于数据集按搜索词过滤（`backend/src/lib/schemas.ts:68-73`、`backend/src/app/api/__tests__/dramas-search.test.ts:39-57`）。
+
+### 当前行为说明
+
+- Route 会先用 `SearchDramaQuerySchema` 对 `q/page/pageSize` 做标准化与校验；例如 `q=%20萌宝%20` 会被清洗为 `萌宝`（`backend/src/app/api/dramas/search/route.ts:8-17`、`backend/src/app/api/__tests__/dramas-search.test.ts:39-57`）。
+- Mock repository 当前按标题、分类和 `tags[]` 三路做不区分大小写的包含匹配（`backend/src/repositories/mock/drama.mock.repository.ts:426-435`）。
+- Supabase repository 也已将搜索表达式扩展到 `title.ilike`、`category.ilike` 与 `tags.cs` 三路匹配（`backend/src/repositories/supabase/drama.supabase.repository.ts:259-304`，`backend/src/repositories/supabase/__tests__/drama.supabase.repository.test.ts:128-133`）。
+- 请求超大页码时返回 200 + 空数组，分页元数据仍保留（`backend/src/app/api/__tests__/dramas-search.test.ts:71-96`）。
+- 该接口既服务普通搜索结果页，也服务分类页点击标签后的搜索结果承接；当前没有独立的 `classification/result` API。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 成功（含空列表和大页码空结果） |
+| 400 | `VALIDATION_ERROR` | `q` 为空白、过长，或分页参数非法 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误 |
+
+---
+
+## GET /api/dramas/hot-search
+
+### 功能简介
+
+获取搜索发现页的热搜词列表。当前返回固定不超过 10 条的静态项，用于搜索发现页首屏热词展示；本期未引入真实搜索统计或实时榜单来源（`backend/src/app/api/dramas/hot-search/route.ts:6-11`、`backend/src/services/drama/drama.service.ts:73-81`、`backend/src/lib/schemas.ts:162-174`）。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/dramas/hot-search/route.ts:1-12`
+- Service：`backend/src/services/drama/drama.service.ts:73-81`
+- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:464-468`
+- Schema：`backend/src/lib/schemas.ts:162-174`
+- 测试：`backend/src/app/api/__tests__/dramas-hot-search.test.ts:18-44`
+
+### path / method
+
+`GET /api/dramas/hot-search`
+
+### Response
+
+```json
+{
+  "data": [
+    { "rank": 1, "keyword": "逆袭", "score": 9821 },
+    { "rank": 2, "keyword": "豪门", "score": 9540 }
+  ]
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data[].rank` | number | 排名，int，min 1 |
+| `data[].keyword` | string | 热搜词，`trim` 后长度 1~50 |
+| `data[].score` | number | 热度分值，int，min 0 |
+
+### 当前行为说明
+
+- 当前 Route 不接收 query 参数，直接返回 Service 透传的数据（`backend/src/app/api/dramas/hot-search/route.ts:6-11`）。
+- 返回项上限为 10；mock / supabase repository 当前都使用固定静态数据集（`backend/src/lib/schemas.ts:170-171`、`backend/src/repositories/mock/drama.mock.repository.ts:464-468`、`backend/src/repositories/supabase/drama.supabase.repository.ts:398-401`）。
+- 当前热门词与分类标签是两套独立来源：热搜用于搜索发现首屏，分类 tags 用于分类页维度浏览。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 成功 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误 |
+
+---
+
+## GET /api/dramas/tags
+
+### 功能简介
+
+获取分类浏览页的标签矩阵。该接口是 Android / iOS 分类页的唯一数据源，返回固定三维度——`时代背景`、`主题情节`、`角色设定`——并支持 `all / male / female` 三种性别视图。`all` 视图会按 `male` 在前、`female` 在后的顺序去重合并标签；即使某维度当前为空，也不会省略该维度（`backend/src/app/api/dramas/tags/route.ts:7-18`、`backend/src/lib/schemas.ts:99-152`、`backend/src/repositories/mock/drama.mock.repository.ts:249-289,387-446`）。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/dramas/tags/route.ts:1-18`
+- Service：`backend/src/services/drama/drama.service.ts:47-57`
+- Repository Contract：`backend/src/repositories/interfaces/drama.repository.interface.ts:26-33,56-60`
+- Mock Repository：`backend/src/repositories/mock/drama.mock.repository.ts:249-289,387-446`
+- Supabase Repository：`backend/src/repositories/supabase/drama.supabase.repository.ts:71-160,323-328`
+- Schema：`backend/src/lib/schemas.ts:99-152`
+- Supabase 测试：`backend/src/repositories/supabase/__tests__/drama.supabase.repository.test.ts:169-181`
+
+### path / method
+
+`GET /api/dramas/tags`
+
+### Query 参数
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `gender` | enum | 否 | `all` | `all` / `male` / `female` |
+
+### Response
+
+```json
+{
+  "data": {
+    "gender": "all",
+    "dimensions": [
+      {
+        "key": "era_background",
+        "name": "时代背景",
+        "tags": ["都市", "古风", "年代", "校园", "豪门"]
+      },
+      {
+        "key": "theme_plot",
+        "name": "主题情节",
+        "tags": ["逆袭", "系统", "复仇", "甜宠", "穿书", "重生"]
+      },
+      {
+        "key": "character_setting",
+        "name": "角色设定",
+        "tags": ["总裁", "萌宝"]
+      }
+    ]
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.gender` | enum | 当前返回的性别视图 |
+| `data.dimensions` | array | 固定 3 个维度，顺序不可变 |
+| `data.dimensions[].key` | enum | `era_background` / `theme_plot` / `character_setting` |
+| `data.dimensions[].name` | string | 维度展示名 |
+| `data.dimensions[].tags` | string[] | 当前维度标签列表，可为空数组 |
+
+### 当前行为说明
+
+- Route 会用 `ClassificationTagsQuerySchema` 解析 query，默认值为 `gender=all`（`backend/src/app/api/dramas/tags/route.ts:8-11`、`backend/src/lib/schemas.ts:107-111`）。
+- `ClassificationDimensionsSchema` 强制返回数组长度等于 3，且维度顺序必须和 `CLASSIFICATION_DIMENSION_KEYS` 保持一致（`backend/src/lib/schemas.ts:121-144`）。
+- `all` 视图通过 `mergeUniqueTags(primary, secondary)` 先拼 male，再拼 female，按出现顺序去重（`backend/src/repositories/mock/drama.mock.repository.ts:371-397`、`backend/src/repositories/supabase/drama.supabase.repository.ts:121-147`）。
+- 当前运行时 Route 仍直接实例化 `DramaMockRepository()`；Supabase repository 已补齐同等 classification 能力，但尚未切换为实际运行时数据源（`backend/src/app/api/dramas/tags/route.ts:13-16`、`backend/src/repositories/supabase/drama.supabase.repository.ts:323-328`）。
+- 该接口只提供分类页标签矩阵；点击标签后的结果仍统一走 `GET /api/dramas/search`。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 成功 |
+| 400 | `VALIDATION_ERROR` | `gender` 非法 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误 |
+
+---
+
+## GET /api/dramas/rankings
+
+### 功能简介
+
+获取排行页榜单列表。当前接口是 Android / iOS 排行页的唯一数据来源，支持内容类型与榜单类型双维度筛选，以及标准分页返回。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/dramas/rankings/route.ts:8-24`
+- Service：`backend/src/services/drama/drama.service.ts:59-71`
+- Repository Contract：`backend/src/repositories/interfaces/drama.repository.interface.ts:21-24,59-61`
+- Mock Repository：`backend/src/repositories/mock/drama.mock.repository.ts:449-462`
+- Schema：`backend/src/lib/schemas.ts:30-44,75-80,90-97`
+- 测试：`backend/src/app/api/__tests__/dramas-rankings.test.ts:39-138`
+
+### path / method
+
+`GET /api/dramas/rankings`
+
+### Query 参数
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `type` | enum | 否 | `hot` | 榜单类型：`hot` / `recommend` / `booking` |
+| `contentType` | enum | 否 | `all` | 内容类型：`all` / `live_action` / `ai` |
+| `page` | number | 否 | 1 | 页码（int，min 1） |
+| `pageSize` | number | 否 | 10 | 每页数量（int，min 1，max 100） |
 
 ### Response
 
@@ -137,93 +341,116 @@
       "tags": ["逆袭", "豪门"],
       "rating": 8.9,
       "created_at": "2026-07-25T00:00:00Z",
-      "updated_at": "2026-07-25T00:00:00Z"
+      "updated_at": "2026-07-25T00:00:00Z",
+      "content_type": "live_action",
+      "play_count": 98210,
+      "booking_count": 820,
+      "recommendation_score": 58930.6,
+      "is_booked": false
     }
   ],
   "pagination": {
     "page": 1,
     "page_size": 10,
-    "total": 1,
-    "total_pages": 1
+    "total": 12,
+    "total_pages": 2
   }
-}
-```
-
-> 说明：响应结构与首页列表接口完全一致，便于客户端复用首页 Feed 卡片组件和 `Drama` 字段映射（`backend/src/app/api/__tests__/dramas-search.test.ts:35-53`、`backend/src/lib/schemas.ts:45-61`）。
-
-### 当前行为说明
-
-- Route 层当前直接实例化 `DramaMockRepository`，搜索数据仍来自 mock repository，而不是 Supabase repository（`backend/src/app/api/dramas/search/route.ts:15-17`）。
-- 搜索匹配规则为 `title` + `category` 的大小写不敏感 contains 匹配：先对 query/title/category 做 `trim().toLocaleLowerCase()`，再执行 `includes`（`backend/src/repositories/mock/drama.mock.repository.ts:173-175,206-216`）。
-- 关键词会在进入 service 前完成 `trim()`；例如 `q=%20逆袭%20` 最终按 `逆袭` 查询（`backend/src/app/api/__tests__/dramas-search.test.ts:35-53`）。
-- 超大页码返回 `200 + data=[]`，分页信息保留实际 `page/page_size/total/total_pages`，不视为异常（`backend/src/app/api/__tests__/dramas-search.test.ts:55-80`、`backend/src/services/drama/drama.service.test.ts:166-176`）。
-- Service 层会用 `DramaListResponseSchema` 再次校验 repository 输出，非法结构会被包装成 `INTERNAL_ERROR`（`backend/src/services/drama/drama.service.ts:12-20`、`backend/src/services/drama/drama.service.test.ts:186-199`）。
-
-### Error Code
-
-| 状态码 | 错误码 | 说明 |
-|--------|--------|------|
-| 200 | — | 成功（包含空结果和超大页码空结果） |
-| 400 | `VALIDATION_ERROR` | `q` 为空、`page<1`、`pageSize>100` 等参数非法 |
-| 500 | `INTERNAL_ERROR` | service 抛错或 schema 校验失败 |
-
----
-
-## GET /api/dramas/hot-search
-
-### 功能简介
-
-返回搜索发现页热搜榜数据。该接口为 Android / iOS 搜索发现首页的热搜区块提供关键词、排名与热度分值，当前数据来自 mock repository 内置的 10 条热搜种子（`backend/src/app/api/dramas/hot-search/route.ts:6-11`、`backend/src/repositories/mock/drama.mock.repository.ts:151-164,219-223`）。
-
-### 代码文件路径
-
-- Route：`backend/src/app/api/dramas/hot-search/route.ts:1-12`
-- Service：`backend/src/services/drama/drama.service.ts:22-30`
-- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:151-164,219-223`
-- Schema：`backend/src/lib/schemas.ts:65-77`
-- 路由测试：`backend/src/app/api/__tests__/dramas-hot-search.test.ts:18-43`
-- Service 测试：`backend/src/services/drama/drama.service.test.ts:178-199`
-
-### path / method
-
-`GET /api/dramas/hot-search`
-
-### Query 参数
-
-无。
-
-### Response
-
-```json
-{
-  "data": [
-    { "rank": 1, "keyword": "逆袭", "score": 9821 },
-    { "rank": 2, "keyword": "豪门", "score": 9540 },
-    { "rank": 3, "keyword": "总裁", "score": 9300 }
-  ]
 }
 ```
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `data` | array | 热搜列表，最多 10 条 |
-| `data[].rank` | number | 排名，从 1 开始 |
-| `data[].keyword` | string | 热搜关键词，长度 1~50 |
-| `data[].score` | number | 热度分值，int，min 0 |
+| `data[].content_type` | enum | 内容类型：`live_action` / `ai` |
+| `data[].play_count` | number | 热榜排序与展示的热度代理值 |
+| `data[].booking_count` | number | 预约榜排序与展示的预约数 |
+| `data[].recommendation_score` | number | 推荐榜排序与展示的推荐值 |
+| `data[].is_booked` | boolean | 当前用户是否已预约；匿名请求固定返回 `false` |
+| `pagination.*` | object | 与 `GET /api/dramas` 相同的统一分页结构 |
 
 ### 当前行为说明
 
-- Route 层当前直接实例化 `DramaMockRepository`，尚未接入真实热搜聚合逻辑（`backend/src/app/api/dramas/hot-search/route.ts:7-9`）。
-- Schema 约束返回数组最多 10 条（`backend/src/lib/schemas.ts:65-75`）。
-- 当前 mock 热搜 seed 固定为 10 条：`逆袭`、`豪门`、`总裁`、`甜宠`、`重生`、`穿书`、`都市`、`校园`、`复仇`、`萌宝`（`backend/src/repositories/mock/drama.mock.repository.ts:151-164`）。
-- Service 层会用 `HotSearchListResponseSchema` 再次校验 repository 输出，非法结构会被包装成 `INTERNAL_ERROR`（`backend/src/services/drama/drama.service.ts:22-30`、`backend/src/services/drama/drama.service.test.ts:194-199`）。
+- 默认请求 `GET /api/dramas/rankings` 会被解析为 `type=hot&contentType=all&page=1&pageSize=10`。
+- Repository 先按 `content_type` 过滤，再按榜单类型分别使用 `play_count`、`recommendation_score`、`booking_count` 降序排序；分值相同则按 `created_at` 倒序稳定打散。
+- 当请求携带 `x-user-id` 或 `Authorization: Bearer <user-id>` 时，Route 会把该值透传为可选 `authContext`，并据此计算 `is_booked`。
+- 超大页码返回 200 + 空数组，不视为错误。
+- 当前运行时数据源仍是 `DramaMockRepository`，不是 Supabase 实时数据。
 
 ### Error Code
 
 | 状态码 | 错误码 | 说明 |
 |--------|--------|------|
-| 200 | — | 成功 |
-| 500 | `INTERNAL_ERROR` | service 抛错或 schema 校验失败 |
+| 200 | — | 成功（含空列表和大页码空结果） |
+| 400 | `VALIDATION_ERROR` | `type` / `contentType` / 分页参数非法 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误 |
+
+---
+
+## POST /api/dramas/[id]/book
+
+### 功能简介
+
+提交短剧预约。该接口服务于预约榜交互，当前要求调用方提供骨架态身份信息；成功后返回单向幂等的 `booked: true` 结果和最新预约数。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/dramas/[id]/book/route.ts:16-28`
+- Auth：`backend/src/middleware/auth.ts:16-32`
+- Service：`backend/src/services/drama/drama.service.ts:84-92`
+- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:470-504`
+- Schema：`backend/src/lib/schemas.ts:154-160`
+- 测试：`backend/src/app/api/__tests__/dramas-book.test.ts:18-133`
+
+### path / method
+
+`POST /api/dramas/:id/book`
+
+### Path Parameters
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `id` | string | 是 | 短剧 UUID |
+
+### Headers
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `x-user-id` | 否 | 骨架态显式 userId；若存在则优先于 Authorization |
+| `Authorization` | 否 | `Bearer <user-id>`；当前 token 不做 JWT 校验，直接当作 userId 使用 |
+
+> 说明：本接口必须能解析出 userId，否则返回 401 `UNAUTHORIZED`。
+
+### Response
+
+```json
+{
+  "drama_id": "550e8400-e29b-41d4-a716-446655440001",
+  "booked": true,
+  "booking_count": 821
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `drama_id` | string | 被预约的短剧 UUID |
+| `booked` | literal `true` | 当前版本只支持“预约成功 / 已预约”语义，不支持取消 |
+| `booking_count` | number | 预约后的最新预约数 |
+
+### 当前行为说明
+
+- 当 `x-user-id` 与 `Authorization` 同时存在时，优先使用 `x-user-id`。
+- 若同一用户重复预约同一短剧，接口保持幂等 success：返回 `booked: true`，但不会再次增加 `booking_count`。
+- 首次预约成功时，Repository 会在内存中累加 `booking_count`，并把目标项 `is_booked` 标记为 `true`。
+- 若 `id` 不存在，则返回 404 `NOT_FOUND`。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 预约成功或重复预约幂等成功 |
+| 400 | `VALIDATION_ERROR` | `id` 不是合法 UUID |
+| 401 | `UNAUTHORIZED` | 未提供可解析的 userId |
+| 404 | `NOT_FOUND` | 短剧不存在 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误 |
 
 ---
 
@@ -231,7 +458,7 @@
 
 ### 功能简介
 
-创建短剧。当前仍为占位接口，返回 501 Not Implemented，不属于 PRD-02 首页信息流或 PRD-04 搜索发现范围。
+创建短剧。当前仍为占位接口，返回 501 Not Implemented，不属于当前搜索发现 / 排行 / 分类体系范围。
 
 ### 代码文件路径
 
@@ -264,7 +491,7 @@
 
 ### 功能简介
 
-获取短剧详情。当前仍为 501 占位接口；首页卡片和搜索结果卡片的“详情”入口现阶段只复用客户端既有占位详情页路由，不依赖该接口。
+获取短剧详情。当前仍为 501 占位接口；首页、搜索、排行与分类链路都只复用客户端既有占位路由，不依赖该接口。
 
 ### 代码文件路径
 
@@ -292,8 +519,9 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
-| 2026-07-27 | 更新：新增 `GET /api/dramas/search` 与 `GET /api/dramas/hot-search` 文档，补充搜索 query 校验、title/category 不区分大小写 contains 匹配、超大页码 `200 + data=[]` 行为、热搜 Top 10 种子和 mock repository 现状 |
-| 2026-07-26 | 更新：`GET /api/dramas` 从空骨架修正为首页 Feed 列表接口，补充 canonical query、首页卡片字段、12 条 mock 数据分页行为与 `VALIDATION_ERROR` 校验错误码 |
+| 2026-07-27 | 更新：新增 `GET /api/dramas/search`、`GET /api/dramas/hot-search`、`GET /api/dramas/tags` 文档，补充 `tags` 字段在首页/搜索/分类中的共享事实，并将搜索命中规则明确为 `title + category + tags` |
+| 2026-07-27 | 更新：新增 `GET /api/dramas/rankings` 与 `POST /api/dramas/:id/book` 文档，补充排行 query、扩展字段、可选 auth 上下文、预约幂等行为与当前骨架态认证约束 |
+| 2026-07-26 | 更新：`GET /api/dramas` 从空骨架修正为首页 Feed 列表接口，补充 canonical query、首页卡片字段、mock 数据分页行为与 `VALIDATION_ERROR` 校验错误码 |
 | 2026-07-24 | 初始创建，项目初始化阶段新增 3 个 dramas API 端点 |
 
 ---
