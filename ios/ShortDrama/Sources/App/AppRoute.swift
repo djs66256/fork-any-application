@@ -1,7 +1,7 @@
 import Foundation
 
 /// Navigation destinations within the app.
-enum AppRoute: Hashable {
+enum AppRoute: Hashable, Sendable {
     /// The main home screen.
     case home
     /// Search discovery home.
@@ -22,6 +22,8 @@ enum AppRoute: Hashable {
     case dramaDetail(dramaId: String)
     /// Placeholder page pushed from the menu panel.
     case menuPlaceholder(kind: MenuPlaceholderKind)
+    /// Settings screen under profile tab.
+    case settings
 
     var owningTab: AppTab {
         switch self {
@@ -36,6 +38,8 @@ enum AppRoute: Hashable {
              .dramaDetail,
              .menuPlaceholder:
             return .home
+        case .settings:
+            return .profile
         }
     }
 
@@ -61,6 +65,8 @@ enum AppRoute: Hashable {
             return "detail"
         case .menuPlaceholder:
             return "menu/placeholder"
+        case .settings:
+            return "profile/settings"
         }
     }
 }

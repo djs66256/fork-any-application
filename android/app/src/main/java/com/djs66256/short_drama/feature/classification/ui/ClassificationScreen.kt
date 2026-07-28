@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.domain.model.ClassificationDimensionKey
 import com.djs66256.short_drama.domain.model.ClassificationGender
+import kotlinx.coroutines.flow.collect
 import com.djs66256.short_drama.feature.classification.model.ClassificationDimensionUiModel
 import com.djs66256.short_drama.feature.classification.viewmodel.ClassificationEffect
 import com.djs66256.short_drama.feature.classification.viewmodel.ClassificationUiState

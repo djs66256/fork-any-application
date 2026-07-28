@@ -3,7 +3,6 @@ package com.djs66256.short_drama.navigation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalMall
@@ -23,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,17 +35,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
+import com.djs66256.short_drama.feature.auth.ui.LoginScreen
 import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
 import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelDrawer
-import com.djs66256.short_drama.feature.theater.ui.TheaterScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelRoute
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
+import com.djs66256.short_drama.feature.profile.ui.ProfileScreen
+import com.djs66256.short_drama.feature.profile.ui.SettingsScreen
 import com.djs66256.short_drama.feature.ranking.ui.RankingScreen
 import com.djs66256.short_drama.feature.search.ui.SearchHomeScreen
 import com.djs66256.short_drama.feature.search.ui.SearchResultScreen
+import com.djs66256.short_drama.feature.theater.ui.TheaterScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -111,7 +114,12 @@ fun NavGraph(
                 navigationViewModel.consumePendingRoute()
             }
             PendingRoute.MenuLogin -> {
-                navController.navigate(AppDestination.menuLogin())
+                navController.navigate(
+                    AppDestination.login(
+                        returnRoute = AppDestination.Route.PROFILE,
+                        source = "menu_login",
+                    ),
+                )
                 navigationViewModel.consumePendingRoute()
             }
             PendingRoute.MenuMessages -> {
@@ -224,8 +232,13 @@ fun NavGraph(
                             onOpenPlay = { videoId ->
                                 navController.navigate(AppDestination.play(videoId))
                             },
-                            onRequireLogin = { _ ->
-                                // Login flow is not implemented in this PRD yet.
+                            onRequireLogin = { returnRoute ->
+                                navController.navigate(
+                                    AppDestination.login(
+                                        returnRoute = returnRoute,
+                                        source = "ranking_booking",
+                                    ),
+                                )
                             },
                         )
                     }
@@ -345,11 +358,52 @@ fun NavGraph(
                     route = AppDestination.Graph.PROFILE,
                 ) {
                     composable(route = AppDestination.Route.PROFILE) {
-                        PlaceholderScreen(
-                            title = TopLevelTab.PROFILE.label,
-                            description = "我的频道占位页，后续 PRD 会在这里接入真实内容。",
+                        ProfileScreen(
+                            onLoginClick = {
+                                navController.navigate(AppDestination.login(returnRoute = AppDestination.Route.PROFILE))
+                            },
+                            onOpenSettings = {
+                                navController.navigate(AppDestination.Route.SETTINGS)
+                            },
                         )
                     }
+                    composable(route = AppDestination.Route.SETTINGS) {
+                        SettingsScreen(
+                            onBack = { navController.popBackStack() },
+                            onLoggedOut = {
+                                navController.navigate(AppDestination.Route.PROFILE) {
+                                    popUpTo(AppDestination.Graph.PROFILE) {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
+                }
+
+                composable(
+                    route = AppDestination.Route.LOGIN,
+                    arguments = listOf(
+                        navArgument(AppDestination.Arg.RETURN_ROUTE) {
+                            type = NavType.StringType
+                            defaultValue = ""
+                        },
+                        navArgument(AppDestination.Arg.SOURCE) {
+                            type = NavType.StringType
+                            defaultValue = "profile"
+                        },
+                    ),
+                ) {
+                    LoginScreen(
+                        onClose = { navController.popBackStack() },
+                        onLoginSuccess = { route ->
+                            navController.popBackStack()
+                            navController.navigate(route) {
+                                launchSingleTop = true
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -377,7 +431,11 @@ fun NavGraph(
     }
 }
 
-internal fun shouldShowBottomBar(route: String?): Boolean = !AppDestination.isPlayerRoute(route)
+internal fun shouldShowBottomBar(route: String?): Boolean {
+    return !AppDestination.isPlayerRoute(route) &&
+        route != AppDestination.Route.LOGIN &&
+        route != AppDestination.Route.SETTINGS
+}
 
 internal data class MenuPlaceholderSpec(
     val route: String,

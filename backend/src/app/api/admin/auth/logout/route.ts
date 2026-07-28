@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withErrorHandler } from '@/middleware/error-handler';
 import { withCors } from '@/middleware/cors';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 
-export const POST = withCors(withErrorHandler(async (request: NextRequest) => {
+export const POST = withCors(withErrorHandler(async () => {
   const supabase = getSupabaseAdmin();
   await supabase.auth.signOut();
 

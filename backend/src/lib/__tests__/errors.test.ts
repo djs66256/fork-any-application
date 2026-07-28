@@ -108,6 +108,48 @@ describe('Errors factory', () => {
     expect(err.statusCode).toBe(503);
     expect(err.message).toBe('Service unavailable: Redis');
   });
+
+  it('should create authInvalidPhone with correct properties', () => {
+    const err = Errors.authInvalidPhone();
+    expect(err.code).toBe(ErrorCode.AUTH_INVALID_PHONE);
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('should create authInvalidCode with correct properties', () => {
+    const err = Errors.authInvalidCode();
+    expect(err.code).toBe(ErrorCode.AUTH_INVALID_CODE);
+    expect(err.statusCode).toBe(400);
+  });
+
+  it('should create authUnauthorized with correct properties', () => {
+    const err = Errors.authUnauthorized();
+    expect(err.code).toBe(ErrorCode.AUTH_UNAUTHORIZED);
+    expect(err.statusCode).toBe(401);
+  });
+
+  it('should create authRefreshExpired with correct properties', () => {
+    const err = Errors.authRefreshExpired();
+    expect(err.code).toBe(ErrorCode.AUTH_REFRESH_EXPIRED);
+    expect(err.statusCode).toBe(401);
+  });
+
+  it('should create authCodeCooldown with correct properties', () => {
+    const err = Errors.authCodeCooldown();
+    expect(err.code).toBe(ErrorCode.AUTH_CODE_COOLDOWN);
+    expect(err.statusCode).toBe(409);
+  });
+
+  it('should create authCodeExpired with correct properties', () => {
+    const err = Errors.authCodeExpired();
+    expect(err.code).toBe(ErrorCode.AUTH_CODE_EXPIRED);
+    expect(err.statusCode).toBe(410);
+  });
+
+  it('should create authRateLimited with correct properties', () => {
+    const err = Errors.authRateLimited();
+    expect(err.code).toBe(ErrorCode.AUTH_RATE_LIMITED);
+    expect(err.statusCode).toBe(429);
+  });
 });
 
 describe('formatErrorResponse', () => {

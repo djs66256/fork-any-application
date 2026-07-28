@@ -4,6 +4,7 @@ struct TabNavigationHostView: View {
     let tab: AppTab
 
     @EnvironmentObject private var router: NavigationRouter
+    @EnvironmentObject private var authStore: AuthStore
 
     var body: some View {
         NavigationStack(path: router.pathBinding(for: tab)) {
@@ -17,7 +18,10 @@ struct TabNavigationHostView: View {
                     case .searchResult(let query):
                         SearchResultView(query: query)
                     case .rankingHome:
-                        RankingHomeView(initialEntryContext: router.consumeTheaterRankingEntryContext())
+                        RankingHomeView(
+                            initialEntryContext: router.consumeTheaterRankingEntryContext(),
+                            isUserLoggedIn: { authStore.isAuthenticated }
+                        )
                     case .classificationHome:
                         ClassificationHomeView()
                     case .newReleases:
@@ -30,6 +34,10 @@ struct TabNavigationHostView: View {
                         DramaDetailView(viewModel: DramaDetailViewModel(dramaId: dramaId))
                     case .menuPlaceholder(let kind):
                         MenuPlaceholderView(kind: kind)
+                    case .settings:
+                        SettingsView(logoutAction: {
+                            try await authStore.logout()
+                        })
                     }
                 }
         }
@@ -42,7 +50,9 @@ struct TabNavigationHostView: View {
             HomeView()
         case .theater:
             TheaterView()
-        case .mall, .earn, .profile:
+        case .profile:
+            ProfileHomeView()
+        case .mall, .earn:
             PlaceholderTabView(tab: tab)
         }
     }

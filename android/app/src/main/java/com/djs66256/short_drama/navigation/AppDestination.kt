@@ -33,6 +33,8 @@ object Arg {
     const val QUERY = "query"
     const val CONTENT_TYPE = "contentType"
     const val TYPE = "type"
+    const val RETURN_ROUTE = "returnRoute"
+    const val SOURCE = "source"
 }
 
 object Route {
@@ -41,6 +43,8 @@ object Route {
     const val MALL = "mall"
     const val EARN = "earn"
     const val PROFILE = "profile"
+    const val SETTINGS = "settings"
+    const val LOGIN = "login?returnRoute={returnRoute}&source={source}"
     const val PLAY = "play/{videoId}"
     const val PLAYER_ALIAS = "player/{videoId}"
     const val DETAIL = "detail/{dramaId}"
@@ -72,6 +76,8 @@ object AppDestination {
         const val MALL = com.djs66256.short_drama.navigation.Route.MALL
         const val EARN = com.djs66256.short_drama.navigation.Route.EARN
         const val PROFILE = com.djs66256.short_drama.navigation.Route.PROFILE
+        const val SETTINGS = com.djs66256.short_drama.navigation.Route.SETTINGS
+        const val LOGIN = com.djs66256.short_drama.navigation.Route.LOGIN
         const val PLAY = com.djs66256.short_drama.navigation.Route.PLAY
         const val PLAYER_ALIAS = com.djs66256.short_drama.navigation.Route.PLAYER_ALIAS
         const val DETAIL = com.djs66256.short_drama.navigation.Route.DETAIL
@@ -95,6 +101,8 @@ object AppDestination {
         const val QUERY = com.djs66256.short_drama.navigation.Arg.QUERY
         const val CONTENT_TYPE = com.djs66256.short_drama.navigation.Arg.CONTENT_TYPE
         const val TYPE = com.djs66256.short_drama.navigation.Arg.TYPE
+        const val RETURN_ROUTE = com.djs66256.short_drama.navigation.Arg.RETURN_ROUTE
+        const val SOURCE = com.djs66256.short_drama.navigation.Arg.SOURCE
     }
 
     val topLevelTabs = TopLevelTab.entries
@@ -107,6 +115,12 @@ object AppDestination {
     fun detail(dramaId: String): String = "detail/$dramaId"
 
     fun dramaDetailAlias(dramaId: String): String = "dramaDetail/$dramaId"
+
+    fun login(returnRoute: String? = null, source: String = "profile"): String {
+        val encodedReturnRoute = encodeRouteParam(returnRoute.orEmpty())
+        val encodedSource = encodeRouteParam(source)
+        return "login?returnRoute=$encodedReturnRoute&source=$encodedSource"
+    }
 
     fun isPlayerRoute(route: String?): Boolean = route in playerRoutes
 

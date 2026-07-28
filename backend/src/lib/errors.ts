@@ -8,13 +8,20 @@ export enum ErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-INVALID_PARAMS = 'INVALID_PARAMS',
+  INVALID_PARAMS = 'INVALID_PARAMS',
   INVALID_PLAYBACK_SESSION = 'INVALID_PLAYBACK_SESSION',
   DRAMA_NOT_FOUND = 'DRAMA_NOT_FOUND',
   EPISODE_NOT_FOUND = 'EPISODE_NOT_FOUND',
   EPISODE_NOT_PLAYABLE = 'EPISODE_NOT_PLAYABLE',
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
   CANNOT_MODIFY_SELF = 'CANNOT_MODIFY_SELF',
+  AUTH_INVALID_PHONE = 'AUTH_INVALID_PHONE',
+  AUTH_INVALID_CODE = 'AUTH_INVALID_CODE',
+  AUTH_UNAUTHORIZED = 'AUTH_UNAUTHORIZED',
+  AUTH_REFRESH_EXPIRED = 'AUTH_REFRESH_EXPIRED',
+  AUTH_CODE_COOLDOWN = 'AUTH_CODE_COOLDOWN',
+  AUTH_CODE_EXPIRED = 'AUTH_CODE_EXPIRED',
+  AUTH_RATE_LIMITED = 'AUTH_RATE_LIMITED',
 }
 
 const ErrorStatusCode: Record<ErrorCode, number> = {
@@ -27,13 +34,20 @@ const ErrorStatusCode: Record<ErrorCode, number> = {
   [ErrorCode.INTERNAL_ERROR]: 500,
   [ErrorCode.NOT_IMPLEMENTED]: 501,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
-[ErrorCode.INVALID_PARAMS]: 400,
+  [ErrorCode.INVALID_PARAMS]: 400,
   [ErrorCode.INVALID_PLAYBACK_SESSION]: 400,
   [ErrorCode.DRAMA_NOT_FOUND]: 404,
   [ErrorCode.EPISODE_NOT_FOUND]: 404,
   [ErrorCode.EPISODE_NOT_PLAYABLE]: 409,
   [ErrorCode.INVALID_CREDENTIALS]: 401,
   [ErrorCode.CANNOT_MODIFY_SELF]: 400,
+  [ErrorCode.AUTH_INVALID_PHONE]: 400,
+  [ErrorCode.AUTH_INVALID_CODE]: 400,
+  [ErrorCode.AUTH_UNAUTHORIZED]: 401,
+  [ErrorCode.AUTH_REFRESH_EXPIRED]: 401,
+  [ErrorCode.AUTH_CODE_COOLDOWN]: 409,
+  [ErrorCode.AUTH_CODE_EXPIRED]: 410,
+  [ErrorCode.AUTH_RATE_LIMITED]: 429,
 };
 
 export class AppError extends Error {
@@ -98,6 +112,27 @@ export const Errors = {
 
   cannotModifySelf: (message = 'Cannot modify your own role') =>
     new AppError(ErrorCode.CANNOT_MODIFY_SELF, message),
+
+  authInvalidPhone: (message = 'Invalid phone number') =>
+    new AppError(ErrorCode.AUTH_INVALID_PHONE, message),
+
+  authInvalidCode: (message = 'Invalid verification code') =>
+    new AppError(ErrorCode.AUTH_INVALID_CODE, message),
+
+  authUnauthorized: (message = 'Authentication required') =>
+    new AppError(ErrorCode.AUTH_UNAUTHORIZED, message),
+
+  authRefreshExpired: (message = 'Refresh token expired or invalid') =>
+    new AppError(ErrorCode.AUTH_REFRESH_EXPIRED, message),
+
+  authCodeCooldown: (message = 'Verification code is in cooldown') =>
+    new AppError(ErrorCode.AUTH_CODE_COOLDOWN, message),
+
+  authCodeExpired: (message = 'Verification code expired') =>
+    new AppError(ErrorCode.AUTH_CODE_EXPIRED, message),
+
+  authRateLimited: (message = 'Too many authentication attempts') =>
+    new AppError(ErrorCode.AUTH_RATE_LIMITED, message),
 };
 
 export interface ErrorResponseBody {

@@ -13,6 +13,7 @@ lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.5"
 coreKtx = "1.15.0"
 datastorePreferences = "1.1.1"
+securityCrypto = "1.1.0-alpha06"
 detekt = "1.23.7"
 ksp = "2.0.21-1.0.27"
 
@@ -58,6 +59,7 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx"
 
 # DataStore
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 
 # Test
 junit = { group = "junit", name = "junit", version.ref = "junit" }

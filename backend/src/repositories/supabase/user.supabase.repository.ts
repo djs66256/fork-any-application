@@ -1,4 +1,4 @@
-import { AdminUserProfile, UserProfile } from '@/lib/schemas';
+import { AdminUserProfile } from '@/lib/schemas';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 import { Errors } from '@/lib/errors';
 

@@ -25,6 +25,7 @@ final class NavigationRouter: ObservableObject {
     @Published private(set) var containerReady = false
     @Published private(set) var menuPanelState: MenuPanelPresentationState = .closed
     @Published private(set) var pendingMenuNavigation: AppRoute?
+    @Published private(set) var presentedLoginContext: LoginInterceptionContext?
 
     private var pendingTheaterRankingEntryContext: TheaterRankingEntryContext?
 
@@ -63,7 +64,8 @@ final class NavigationRouter: ObservableObject {
              .actorHub,
              .player,
              .dramaDetail,
-             .menuPlaceholder:
+             .menuPlaceholder,
+             .settings:
             var path = pathsByTab[tab] ?? NavigationPath()
             path.append(route)
             pathsByTab[tab] = path
@@ -111,6 +113,12 @@ final class NavigationRouter: ObservableObject {
         menuPanelState = .closed
         guard let route = pendingMenuNavigation else { return }
         pendingMenuNavigation = nil
+
+        if case .menuPlaceholder(let kind) = route, kind == .login {
+            presentLogin(context: LoginInterceptionContext(source: .profileEntry, returnRoute: .profilePlaceholderReturnRoute))
+            return
+        }
+
         navigate(to: route)
     }
 
@@ -138,6 +146,42 @@ final class NavigationRouter: ObservableObject {
         }
     }
 
+    func presentLogin(context: LoginInterceptionContext?) {
+        presentedLoginContext = context ?? LoginInterceptionContext(source: .unknown)
+    }
+
+    func cancelLogin() {
+        presentedLoginContext = nil
+    }
+
+    func completeLogin() {
+        let context = presentedLoginContext
+        presentedLoginContext = nil
+
+        guard let returnRoute = context?.returnRoute else {
+            select(tab: .profile)
+            return
+        }
+
+        switch returnRoute {
+        case .home:
+            popToRoot(of: .home)
+        case .settings:
+            select(tab: .profile)
+            navigate(to: .settings)
+        case .searchHome,
+             .searchResult,
+             .rankingHome,
+             .classificationHome,
+             .newReleases,
+             .actorHub,
+             .player,
+             .dramaDetail,
+             .menuPlaceholder:
+            navigate(to: returnRoute)
+        }
+    }
+
     func dismiss(in tab: AppTab? = nil) {
         let targetTab = tab ?? selectedTab
         guard var path = pathsByTab[targetTab], !path.isEmpty else { return }
@@ -155,4 +199,8 @@ final class NavigationRouter: ObservableObject {
         pendingMenuNavigation = nil
         menuPanelState = .closed
     }
+}
+
+private extension AppRoute {
+    static let profilePlaceholderReturnRoute = AppRoute.settings
 }

@@ -4,6 +4,7 @@ import Foundation
 enum HTTPMethod: String {
     case get = "GET"
     case post = "POST"
+    case delete = "DELETE"
 }
 
 /// Protocol for defining type-safe API endpoints.
@@ -26,6 +27,9 @@ protocol APIEndpoint {
 
     /// Optional request body.
     var body: Encodable? { get }
+
+    /// Encoder used for the request body.
+    var bodyEncoder: JSONEncoder { get }
 }
 
 // Default implementations for optional properties.
@@ -33,4 +37,10 @@ extension APIEndpoint {
     var queryItems: [URLQueryItem]? { nil }
     var headers: [String: String] { [:] }
     var body: Encodable? { nil }
+
+    var bodyEncoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        return encoder
+    }
 }

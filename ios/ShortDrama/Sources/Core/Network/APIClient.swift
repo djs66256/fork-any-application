@@ -49,9 +49,7 @@ final class APIClient: @unchecked Sendable {
         }
 
         if let body = endpoint.body {
-            let encoder = JSONEncoder()
-            encoder.keyEncodingStrategy = .convertToSnakeCase
-            request.httpBody = try encoder.encode(body)
+            request.httpBody = try endpoint.bodyEncoder.encode(body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         }
 
@@ -88,6 +86,14 @@ final class APIClient: @unchecked Sendable {
             throw APIError.notImplemented("该功能暂未实现")
         default:
             if let errorResponse = try? decoder.decode(ErrorResponse.self, from: data) {
+                if let businessCode = errorResponse.code {
+                    throw APIError.business(
+                        statusCode: httpResponse.statusCode,
+                        businessCode: businessCode,
+                        message: errorResponse.message
+                    )
+                }
+
                 throw APIError.server(code: httpResponse.statusCode, message: errorResponse.message)
             }
             throw APIError.server(
@@ -105,23 +111,28 @@ private struct ErrorResponse: Decodable {
     }
 
     private struct FlatError: Decodable {
+        let code: String?
         let message: String?
     }
 
+    let code: String?
     let message: String
 
     init(from decoder: Decoder) throws {
         if let container = try? decoder.container(keyedBy: CodingKeys.self),
            let nested = try? container.decode(NestedError.self, forKey: .error) {
+            code = nested.code
             message = nested.message ?? "未知错误"
             return
         }
 
         if let flat = try? FlatError(from: decoder) {
+            code = flat.code
             message = flat.message ?? "未知错误"
             return
         }
 
+        code = nil
         message = "未知错误"
     }
 

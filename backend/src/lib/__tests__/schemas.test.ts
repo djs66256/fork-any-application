@@ -1,17 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import {
+  AuthSessionResponseSchema,
+  AuthSessionSchema,
+  AuthUserSchema,
   BookDramaResponseSchema,
   CLASSIFICATION_DIMENSION_KEYS,
   ClassificationTagsQuerySchema,
   ClassificationTagsResponseSchema,
+  CreateAuthSessionRequestSchema,
+  CountryCodeSchema,
+  CurrentUserResponseSchema,
   DramaIdPathSchema,
   DramaListResponseSchema,
   DramaSchema,
+  EmptySuccessResponseSchema,
   EpisodeListResponseSchema,
   EpisodeSchema,
   HealthResponseSchema,
   HotSearchItemSchema,
   HotSearchListResponseSchema,
+  OtpCodeSchema,
+  PhoneSchema,
   PlaybackHistorySchema,
   PlaybackSessionIdHeaderSchema,
   PlayerProgressQuerySchema,
@@ -24,7 +33,10 @@ import {
   RankingDramaSchema,
   RankingListResponseSchema,
   RankingQuerySchema,
+  RefreshAuthSessionRequestSchema,
   SearchDramaQuerySchema,
+  SendOtpRequestSchema,
+  SendOtpResponseSchema,
   TheaterDramaSchema,
   TheaterFeedQuerySchema,
   TheaterFeedResponseSchema,
@@ -387,6 +399,168 @@ describe('ClassificationTagsResponseSchema', () => {
             { key: 'theme_plot', name: '主题情节', tags: [] },
           ],
         },
+      }),
+    ).toThrow();
+  });
+});
+
+describe('Auth schemas', () => {
+  it('should parse valid auth primitives', () => {
+    expect(CountryCodeSchema.parse('+86')).toBe('+86');
+    expect(PhoneSchema.parse('13800138000')).toBe('13800138000');
+    expect(OtpCodeSchema.parse('123456')).toBe('123456');
+  });
+
+  it('should reject invalid auth primitives', () => {
+    expect(() => CountryCodeSchema.parse('86')).toThrow();
+    expect(() => PhoneSchema.parse('123')).toThrow();
+    expect(() => OtpCodeSchema.parse('12345a')).toThrow();
+  });
+
+  it('should parse send otp request with defaults', () => {
+    const result = SendOtpRequestSchema.parse({
+      phone: '13800138000',
+    });
+
+    expect(result).toEqual({
+      countryCode: '+86',
+      phone: '13800138000',
+      scene: 'login',
+    });
+  });
+
+  it('should reject invalid send otp request', () => {
+    expect(() =>
+      SendOtpRequestSchema.parse({
+        countryCode: '+86',
+        phone: '123',
+        scene: 'login',
+      }),
+    ).toThrow();
+  });
+
+  it('should parse create auth session request', () => {
+    const result = CreateAuthSessionRequestSchema.parse({
+      phone: '13800138000',
+      code: '654321',
+    });
+
+    expect(result.countryCode).toBe('+86');
+    expect(result.phone).toBe('13800138000');
+    expect(result.code).toBe('654321');
+  });
+
+  it('should reject invalid create auth session request', () => {
+    expect(() =>
+      CreateAuthSessionRequestSchema.parse({
+        countryCode: '+86',
+        phone: '13800138000',
+        code: '12345',
+      }),
+    ).toThrow();
+  });
+
+  it('should parse refresh auth session request', () => {
+    const result = RefreshAuthSessionRequestSchema.parse({
+      refreshToken: 'refresh-token',
+    });
+
+    expect(result.refreshToken).toBe('refresh-token');
+  });
+
+  it('should reject blank refresh token', () => {
+    expect(() =>
+      RefreshAuthSessionRequestSchema.parse({
+        refreshToken: '   ',
+      }),
+    ).toThrow();
+  });
+
+  it('should parse auth user and session responses', () => {
+    const user = AuthUserSchema.parse({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      phone: '13800138000',
+      display_name: '测试用户',
+      avatar_url: 'https://example.com/avatar.jpg',
+      is_new_user: true,
+    });
+
+    const session = AuthSessionSchema.parse({
+      access_token: 'access-token',
+      refresh_token: 'refresh-token',
+      expires_at: '2026-07-28T12:00:00Z',
+      user,
+    });
+
+    const sendOtpResponse = SendOtpResponseSchema.parse({
+      code: 0,
+      data: {
+        requestId: 'otp_req_xxx',
+        cooldownSeconds: 60,
+        expiresInSeconds: 300,
+      },
+      message: 'ok',
+    });
+
+    const sessionResponse = AuthSessionResponseSchema.parse({
+      code: 0,
+      data: {
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+        expiresAt: session.expires_at,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          displayName: user.display_name,
+          avatarUrl: user.avatar_url,
+          role: user.role,
+          isNewUser: user.is_new_user,
+        },
+      },
+      message: 'ok',
+    });
+
+    const currentUserResponse = CurrentUserResponseSchema.parse({
+      code: 0,
+      data: {
+        id: user.id,
+        phone: user.phone,
+        displayName: user.display_name,
+        avatarUrl: user.avatar_url,
+        role: user.role,
+        isNewUser: user.is_new_user,
+      },
+      message: 'ok',
+    });
+
+    const emptySuccess = EmptySuccessResponseSchema.parse({
+      code: 0,
+      data: null,
+      message: 'ok',
+    });
+
+    expect(sendOtpResponse.data.cooldownSeconds).toBe(60);
+    expect(sendOtpResponse.data.expiresInSeconds).toBe(300);
+    expect(sessionResponse.data.user.isNewUser).toBe(true);
+    expect(currentUserResponse.data.phone).toBe('13800138000');
+    expect(emptySuccess.data).toBeNull();
+  });
+
+  it('should reject malformed auth session response payload', () => {
+    expect(() =>
+      AuthSessionResponseSchema.parse({
+        code: 0,
+        data: {
+          accessToken: '',
+          refreshToken: 'refresh-token',
+          expiresAt: '2026-07-28T12:00:00Z',
+          user: {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            phone: '13800138000',
+            isNewUser: false,
+          },
+        },
+        message: 'ok',
       }),
     ).toThrow();
   });

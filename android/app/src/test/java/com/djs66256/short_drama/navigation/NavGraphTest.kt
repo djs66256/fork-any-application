@@ -62,4 +62,10 @@ class NavGraphTest {
         assertTrue(shouldRenderMenuDrawer(MenuPanelPresentationState.CLOSING, progress = 0.3f))
         assertFalse(shouldRenderMenuDrawer(MenuPanelPresentationState.CLOSED, progress = 0f))
     }
+
+    @Test
+    fun `T-10 login and settings routes hide bottom bar`() {
+        assertFalse(shouldShowBottomBar(AppDestination.Route.LOGIN))
+        assertFalse(shouldShowBottomBar(AppDestination.Route.SETTINGS))
+    }
 }

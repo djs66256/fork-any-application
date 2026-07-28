@@ -8,6 +8,7 @@ import com.djs66256.short_drama.domain.usecase.ClearSearchHistoryUseCase
 import com.djs66256.short_drama.domain.usecase.GetHotSearchKeywordsUseCase
 import com.djs66256.short_drama.domain.usecase.ObserveSearchHistoryUseCase
 import com.djs66256.short_drama.feature.search.model.SearchQuickEntryType
+import com.djs66256.short_drama.navigation.AppDestination
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -111,9 +112,7 @@ class SearchHomeViewModelTest {
 
             viewModel.openQuickEntry(SearchQuickEntryType.RANKING)
             when (val quickEntryEvent = awaitItem()) {
-                is SearchHomeEvent.OpenQuickEntry -> {
-                    assertEquals("ranking?contentType=all&type=hot", quickEntryEvent.route)
-                }
+                is SearchHomeEvent.OpenQuickEntry -> assertEquals(AppDestination.ranking(), quickEntryEvent.route)
                 else -> fail("Expected quick entry event")
             }
 

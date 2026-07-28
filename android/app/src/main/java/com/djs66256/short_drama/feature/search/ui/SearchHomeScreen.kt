@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.feature.search.viewmodel.SearchHomeEvent
 import com.djs66256.short_drama.feature.search.viewmodel.SearchHomeViewModel
+import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

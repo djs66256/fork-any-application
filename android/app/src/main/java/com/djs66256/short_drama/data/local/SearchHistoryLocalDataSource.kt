@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.djs66256.short_drama.core.di.AppPreferencesDataStore
 import com.djs66256.short_drama.domain.model.SearchHistoryItem
 import com.djs66256.short_drama.domain.model.normalizeSearchQueryOrNull
 import javax.inject.Inject
@@ -19,7 +20,7 @@ import kotlinx.serialization.json.Json
 
 @Singleton
 class SearchHistoryLocalDataSource @Inject constructor(
-    @Named("searchHistory") private val dataStore: DataStore<Preferences>,
+    @AppPreferencesDataStore private val dataStore: DataStore<Preferences>,
     private val json: Json,
 ) {
     val history: Flow<List<SearchHistoryItem>> = dataStore.data

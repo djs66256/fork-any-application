@@ -91,6 +91,7 @@ struct NavigationRouterTests {
         #expect(AppRoute.classificationHome.publicRouteName == "classification")
         #expect(AppRoute.newReleases.publicRouteName == "new-releases")
         #expect(AppRoute.actorHub.publicRouteName == "actors")
+        #expect(AppRoute.settings.publicRouteName == "profile/settings")
     }
 
     @Test("classification keeps existing route semantics and search result reuse")
@@ -98,6 +99,7 @@ struct NavigationRouterTests {
         #expect(AppRoute.classificationHome.owningTab == .home)
         #expect(AppRoute.classificationHome.publicRouteName == "classification")
         #expect(AppRoute.searchResult(query: "萌宝") == .searchResult(query: "萌宝"))
+        #expect(AppRoute.settings.owningTab == .profile)
     }
 
     @Test("home route builder creates player route from drama id")
@@ -132,6 +134,22 @@ struct NavigationRouterTests {
     @Test("ranking route builder rejects empty ids")
     func testRankingRouteBuilderRejectsEmptyIDs() {
         #expect(RankingRouteBuilder.playRoute(for: makeRankingDrama(id: "")) == nil)
+    }
+
+    @Test("ranking route builder converts ranking login context to unified login context")
+    func testRankingRouteBuilderCreatesUnifiedLoginContext() {
+        let loginContext = RankingRouteBuilder.loginContext(
+            for: RankingLoginContext(
+                source: "ranking",
+                contentType: .all,
+                rankingType: .booking,
+                dramaID: "booking-001"
+            )
+        )
+
+        #expect(loginContext.source == .rankingBooking)
+        #expect(loginContext.returnRoute == .rankingHome)
+        #expect(loginContext.rankingContext?.dramaID == "booking-001")
     }
 
     @Test("navigate appends player route to home stack")
@@ -279,10 +297,10 @@ struct NavigationRouterTests {
         let router = NavigationRouter()
         router.openMenuPanel()
 
-        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .login))
+        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .messages))
 
         #expect(router.menuPanelState == .closing)
-        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .login))
+        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .messages))
         #expect(router.pathsByTab[.home]?.isEmpty == true)
 
         router.markMenuPanelDidClose()
@@ -290,6 +308,24 @@ struct NavigationRouterTests {
         #expect(router.pendingMenuNavigation == nil)
         #expect(router.menuPanelState == .closed)
         #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("menu login closes panel and presents real login flow")
+    func testCloseMenuPanelThenPresentLogin() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .login))
+
+        #expect(router.menuPanelState == .closing)
+        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .login))
+
+        router.markMenuPanelDidClose()
+
+        #expect(router.pendingMenuNavigation == nil)
+        #expect(router.menuPanelState == .closed)
+        #expect(router.presentedLoginContext?.source == .profileEntry)
+        #expect(router.presentedLoginContext?.returnRoute == .settings)
     }
 
     @Test("player navigation waits until panel close completes")
@@ -318,6 +354,53 @@ struct NavigationRouterTests {
 
         #expect(router.pathsByTab[.home]?.count == 1)
         #expect(router.pendingMenuNavigation == nil)
+    }
+
+    @Test("router can present and cancel login context")
+    func testPresentAndCancelLogin() {
+        let router = NavigationRouter()
+        let context = LoginInterceptionContext(source: .profileEntry)
+
+        router.presentLogin(context: context)
+        #expect(router.presentedLoginContext == context)
+
+        router.cancelLogin()
+        #expect(router.presentedLoginContext == nil)
+    }
+
+    @Test("router completes login to profile tab when no return route exists")
+    func testCompleteLoginDefaultsToProfile() {
+        let router = NavigationRouter()
+        router.presentLogin(context: LoginInterceptionContext(source: .profileEntry))
+
+        router.completeLogin()
+
+        #expect(router.presentedLoginContext == nil)
+        #expect(router.selectedTab == .profile)
+    }
+
+    @Test("router completes login and keeps ranking route semantics")
+    func testCompleteLoginWithRankingReturnRoute() {
+        let router = NavigationRouter()
+        router.presentLogin(context: LoginInterceptionContext(source: .rankingBooking, returnRoute: .rankingHome))
+
+        router.completeLogin()
+
+        #expect(router.presentedLoginContext == nil)
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("router completes login and opens settings when requested")
+    func testCompleteLoginWithSettingsReturnRoute() {
+        let router = NavigationRouter()
+        router.presentLogin(context: LoginInterceptionContext(source: .profileEntry, returnRoute: .settings))
+
+        router.completeLogin()
+
+        #expect(router.presentedLoginContext == nil)
+        #expect(router.selectedTab == .profile)
+        #expect(router.pathsByTab[.profile]?.count == 1)
     }
 
     @Test("dismiss on empty path is safe")

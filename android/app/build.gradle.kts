@@ -118,6 +118,7 @@ dependencies {
 
     // DataStore
     implementation(libs.datastore.preferences)
+    implementation(libs.security.crypto)
 
     // Test
     testImplementation(libs.junit)

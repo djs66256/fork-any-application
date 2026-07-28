@@ -95,6 +95,22 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-10 login route encodes return route and source`() {
+        assertEquals(
+            "login?returnRoute=ranking%3FcontentType%3Dall%26type%3Dbooking&source=ranking_booking",
+            AppDestination.login(
+                returnRoute = "ranking?contentType=all&type=booking",
+                source = "ranking_booking",
+            ),
+        )
+    }
+
+    @Test
+    fun `T-10 settings route is canonical`() {
+        assertEquals("settings", AppDestination.Route.SETTINGS)
+    }
+
+    @Test
     fun `feed actions reuse play and detail destinations with drama id`() {
         val dramaId = "feed-drama-001"
 

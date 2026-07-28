@@ -114,7 +114,7 @@ final class PlayerViewModel: ObservableObject {
 
     func handleBack() {
         router.dismiss()
-        Task {
+        Task(priority: .userInitiated) {
             await stopPlaybackIfNeeded(bestEffort: true)
         }
     }
@@ -232,8 +232,8 @@ final class PlayerViewModel: ObservableObject {
     }
 
     private func exitPlayer() async {
-        await stopPlaybackIfNeeded(bestEffort: true)
         router.dismiss()
+        await stopPlaybackIfNeeded(bestEffort: true)
     }
 
     private func startPlayback(

@@ -453,6 +453,37 @@ struct APIClientTests {
         }
     }
 
+    @Test("APIClient decodes nested auth business error payload")
+    func testNestedAuthBusinessErrorPayload() async throws {
+        let json = """
+        {"error":{"code":"AUTH_INVALID_CODE","message":"验证码错误，请重新输入"}}
+        """
+        let url = URL(string: "https://api.example.com/api/auth/sessions")!
+        let handler: URLProtocolMock.RequestHandler = { _ in
+            let response = try self.makeResponse(url: url, statusCode: 400)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session)
+        let endpoint = APIClientTestGetEndpoint(path: "/api/auth/sessions")
+
+        do {
+            let _: APIClientTestResponse = try await client.request(endpoint)
+            Issue.record("Expected business error but none thrown")
+        } catch let error as APIError {
+            if case .business(let statusCode, let businessCode, let message) = error {
+                #expect(statusCode == 400)
+                #expect(businessCode == "AUTH_INVALID_CODE")
+                #expect(message == "验证码错误，请重新输入")
+            } else {
+                Issue.record("Expected business error, got \(error)")
+            }
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
     @Test("APIClient decodes nested error payload")
     func testNestedErrorPayload() async throws {
         let json = """
@@ -470,13 +501,14 @@ struct APIClientTests {
 
         do {
             let _: DramaListResponse = try await client.request(endpoint)
-            Issue.record("Expected server error but none thrown")
+            Issue.record("Expected business error but none thrown")
         } catch let error as APIError {
-            if case .server(let code, let message) = error {
-                #expect(code == 400)
+            if case .business(let statusCode, let businessCode, let message) = error {
+                #expect(statusCode == 400)
+                #expect(businessCode == "VALIDATION_ERROR")
                 #expect(message == "输入内容无效，请检查后重试")
             } else {
-                Issue.record("Expected server error, got \(error)")
+                Issue.record("Expected business error, got \(error)")
             }
         } catch {
             Issue.record("Unexpected error type: \(error)")
