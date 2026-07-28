@@ -53,3 +53,5 @@ venv/
 *.log
 npm-debug.log*
 *.bak
+
+test-results/
