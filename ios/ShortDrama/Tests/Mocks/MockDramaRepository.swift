@@ -28,6 +28,12 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         case delayed(PagedResult<RankingDrama>, TimeInterval)
     }
 
+    enum TheaterBehavior {
+        case success(TheaterFeedPage)
+        case failure(APIError)
+        case delayed(TheaterFeedPage, TimeInterval)
+    }
+
     enum BookingBehavior {
         case success(BookDramaResult)
         case failure(APIError)
@@ -58,6 +64,11 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     )
     var queuedRankingBehaviors: [RankingBehavior] = []
 
+    var theaterBehavior: TheaterBehavior = .success(
+        TheaterFeedPage(channel: .all, items: [], page: 1, pageSize: 20, total: 0, totalPages: 1)
+    )
+    var queuedTheaterBehaviors: [TheaterBehavior] = []
+
     var bookingBehavior: BookingBehavior = .success(
         BookDramaResult(dramaID: "", booked: true, bookingCount: 0)
     )
@@ -79,6 +90,9 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
 
     private(set) var fetchRankingsCallCount = 0
     private(set) var lastRankingQuery: RankingQuery?
+
+    private(set) var fetchTheaterFeedCallCount = 0
+    private(set) var lastTheaterQuery: TheaterFeedQuery?
 
     private(set) var bookDramaCallCount = 0
     private(set) var lastBookedDramaID: String?
@@ -162,6 +176,25 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         let currentBehavior = queuedRankingBehaviors.isEmpty
             ? rankingBehavior
             : queuedRankingBehaviors.removeFirst()
+
+        switch currentBehavior {
+        case .success(let result):
+            return result
+        case .failure(let error):
+            throw error
+        case .delayed(let result, let delay):
+            try await Task.sleep(for: .seconds(delay))
+            return result
+        }
+    }
+
+    func fetchTheaterFeed(query: TheaterFeedQuery) async throws -> TheaterFeedPage {
+        fetchTheaterFeedCallCount += 1
+        lastTheaterQuery = query
+
+        let currentBehavior = queuedTheaterBehaviors.isEmpty
+            ? theaterBehavior
+            : queuedTheaterBehaviors.removeFirst()
 
         switch currentBehavior {
         case .success(let result):

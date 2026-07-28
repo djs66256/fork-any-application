@@ -11,6 +11,7 @@ import {
   HotSearchListResponseSchema,
   RankingDrama,
   RankingDramaSchema,
+  TheaterDrama,
 } from '@/lib/schemas';
 import {
   AuthContext,
@@ -22,6 +23,7 @@ import {
   PaginationParams,
   RankingParams,
   SearchDramasParams,
+  TheaterFeedParams,
 } from '@/repositories/interfaces/drama.repository.interface';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 import { Errors } from '@/lib/errors';
@@ -318,6 +320,11 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
         total_pages: computeTotalPages(total, params.pageSize),
       },
     };
+  }
+
+  async listTheaterFeed(params: TheaterFeedParams): Promise<PaginatedResult<TheaterDrama>> {
+    void params;
+    throw Errors.serviceUnavailable('theater-feed');
   }
 
   async listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult> {

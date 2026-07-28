@@ -30,6 +30,33 @@ export const DramaSchema = z.object({
 
 export type Drama = z.infer<typeof DramaSchema>;
 
+export const TheaterChannelSchema = z.enum([
+  'all',
+  'real',
+  'anime',
+  'movie',
+  'audio',
+  'novel',
+  'comic',
+  'bigscreen',
+]);
+
+export type TheaterChannel = z.infer<typeof TheaterChannelSchema>;
+
+export const TheaterFeedQuerySchema = z.object({
+  channel: TheaterChannelSchema.default('all'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type TheaterFeedQuery = z.infer<typeof TheaterFeedQuerySchema>;
+
+export const TheaterDramaSchema = DramaSchema.extend({
+  heat: z.number().int().min(0),
+});
+
+export type TheaterDrama = z.infer<typeof TheaterDramaSchema>;
+
 export const RankingTypeSchema = z.enum(['hot', 'recommend', 'booking']);
 export type RankingType = z.infer<typeof RankingTypeSchema>;
 
@@ -74,6 +101,13 @@ export const DramaListResponseSchema = z.object({
 });
 
 export type DramaListResponse = z.infer<typeof DramaListResponseSchema>;
+
+export const TheaterFeedResponseSchema = z.object({
+  data: z.array(TheaterDramaSchema),
+  pagination: PaginationSchema,
+});
+
+export type TheaterFeedResponse = z.infer<typeof TheaterFeedResponseSchema>;
 
 export const RankingListResponseSchema = z.object({
   data: z.array(RankingDramaSchema),

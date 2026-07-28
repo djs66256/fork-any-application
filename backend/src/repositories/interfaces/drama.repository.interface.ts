@@ -7,6 +7,8 @@ import {
   RankingContentType,
   RankingDrama,
   RankingType,
+  TheaterChannel,
+  TheaterDrama,
 } from '@/lib/schemas';
 
 export interface PaginationParams {
@@ -21,6 +23,10 @@ export interface SearchDramasParams extends PaginationParams {
 export interface RankingParams extends PaginationParams {
   type: RankingType;
   contentType: RankingContentType;
+}
+
+export interface TheaterFeedParams extends PaginationParams {
+  channel: TheaterChannel;
 }
 
 export interface ClassificationTagsQuery {
@@ -56,6 +62,7 @@ export interface PaginatedResult<T> {
 export interface DramaRepositoryInterface {
   findMany(params: PaginationParams): Promise<PaginatedResult<Drama>>;
   search(params: SearchDramasParams): Promise<PaginatedResult<Drama>>;
+  listTheaterFeed(params: TheaterFeedParams): Promise<PaginatedResult<TheaterDrama>>;
   listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult>;
   listRankings(params: RankingParams, authContext?: AuthContext): Promise<PaginatedResult<RankingDrama>>;
   listHotSearches(): Promise<HotSearchListResponse>;

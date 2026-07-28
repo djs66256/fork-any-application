@@ -3,9 +3,11 @@ import { DramaService } from './drama.service';
 import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
 import {
   BookDramaResponse,
+  ClassificationDimension,
   Drama,
   HotSearchListResponse,
   RankingDrama,
+  TheaterDrama,
 } from '@/lib/schemas';
 import {
   ClassificationTagsResult,
@@ -55,6 +57,10 @@ class InvalidSearchRepository implements DramaRepositoryInterface {
     };
   }
 
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
+    throw new Error('Method not implemented.');
+  }
+
   async listClassificationTags(): Promise<ClassificationTagsResult> {
     throw new Error('Method not implemented.');
   }
@@ -86,6 +92,81 @@ class InvalidSearchRepository implements DramaRepositoryInterface {
   async delete(): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
+  async count(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
+}
+
+class InvalidTheaterRepository implements DramaRepositoryInterface {
+  async findMany(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
+    return {
+      data: [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          title: 'Broken Theater',
+          description: '',
+          cover_url: null,
+          category: '都市',
+          episode_count: 12,
+          tags: [],
+          rating: 8,
+          created_at: '2026-07-24T00:00:00Z',
+          updated_at: '2026-07-24T00:00:00Z',
+        } as unknown as TheaterDrama,
+      ],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 1,
+        total_pages: 1,
+      },
+    };
+  }
+
+  async listClassificationTags(): Promise<ClassificationTagsResult> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listRankings(): Promise<PaginatedResult<RankingDrama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listHotSearches(): Promise<HotSearchListResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async findById(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async create(): Promise<Drama> {
+    throw new Error('Method not implemented.');
+  }
+
+  async update(): Promise<Drama | null> {
+    throw new Error('Method not implemented.');
+  }
+
+  async delete(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  async count(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
 }
 
 class InvalidClassificationRepository implements DramaRepositoryInterface {
@@ -94,6 +175,10 @@ class InvalidClassificationRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
     throw new Error('Method not implemented.');
   }
 
@@ -134,6 +219,10 @@ class InvalidClassificationRepository implements DramaRepositoryInterface {
   async delete(): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
+  async count(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
 }
 
 class InvalidHotSearchRepository implements DramaRepositoryInterface {
@@ -142,6 +231,10 @@ class InvalidHotSearchRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
     throw new Error('Method not implemented.');
   }
 
@@ -184,6 +277,10 @@ class InvalidHotSearchRepository implements DramaRepositoryInterface {
   async delete(): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
+  async count(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
 }
 
 class InvalidRankingsRepository implements DramaRepositoryInterface {
@@ -192,6 +289,10 @@ class InvalidRankingsRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
     throw new Error('Method not implemented.');
   }
 
@@ -252,6 +353,10 @@ class InvalidRankingsRepository implements DramaRepositoryInterface {
   async delete(): Promise<boolean> {
     throw new Error('Method not implemented.');
   }
+
+  async count(): Promise<number> {
+    throw new Error('Method not implemented.');
+  }
 }
 
 class InvalidBookingRepository implements DramaRepositoryInterface {
@@ -260,6 +365,10 @@ class InvalidBookingRepository implements DramaRepositoryInterface {
   }
 
   async search(): Promise<PaginatedResult<Drama>> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listTheaterFeed(): Promise<PaginatedResult<TheaterDrama>> {
     throw new Error('Method not implemented.');
   }
 
@@ -296,6 +405,10 @@ class InvalidBookingRepository implements DramaRepositoryInterface {
   }
 
   async delete(): Promise<boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  async count(): Promise<number> {
     throw new Error('Method not implemented.');
   }
 }
@@ -367,6 +480,37 @@ describe('DramaService', () => {
       page_size: 10,
       total: 1,
       total_pages: 1,
+    });
+  });
+
+  it('should list theater feed for all channel and preserve heat as integer', async () => {
+    const result = await service.listTheaterFeed({ channel: 'all', page: 1, pageSize: 20 });
+
+    expect(result.data).toHaveLength(12);
+    expect(result.data[0]).toMatchObject({
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      heat: 98210,
+    });
+    expect(result.data.every((item) => Number.isInteger(item.heat) && item.heat >= 0)).toBe(true);
+    expect(result.pagination).toEqual({
+      page: 1,
+      page_size: 20,
+      total: 12,
+      total_pages: 1,
+    });
+  });
+
+  it('should return empty theater feeds for non-all channels', async () => {
+    const result = await service.listTheaterFeed({ channel: 'real', page: 1, pageSize: 20 });
+
+    expect(result).toEqual({
+      data: [],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 0,
+        total_pages: 0,
+      },
     });
   });
 
@@ -454,6 +598,14 @@ describe('DramaService', () => {
     const invalidService = new DramaService(new InvalidSearchRepository());
 
     await expect(invalidService.searchDramas({ q: '逆袭', page: 1, pageSize: 10 })).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
+    });
+  });
+
+  it('should wrap invalid theater feed output as internal error', async () => {
+    const invalidService = new DramaService(new InvalidTheaterRepository());
+
+    await expect(invalidService.listTheaterFeed({ channel: 'all', page: 1, pageSize: 20 })).rejects.toMatchObject({
       code: 'INTERNAL_ERROR',
     });
   });

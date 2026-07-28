@@ -25,6 +25,9 @@ import {
   RankingListResponseSchema,
   RankingQuerySchema,
   SearchDramaQuerySchema,
+  TheaterDramaSchema,
+  TheaterFeedQuerySchema,
+  TheaterFeedResponseSchema,
   UserProfileSchema,
 } from '../schemas';
 
@@ -162,6 +165,30 @@ describe('RankingQuerySchema', () => {
   });
 });
 
+describe('TheaterFeedQuerySchema', () => {
+  it('should apply theater feed defaults', () => {
+    expect(TheaterFeedQuerySchema.parse({})).toEqual({
+      channel: 'all',
+      page: 1,
+      pageSize: 20,
+    });
+  });
+
+  it('should coerce and parse valid theater feed params', () => {
+    expect(TheaterFeedQuerySchema.parse({ channel: 'all', page: '2', pageSize: '20' })).toEqual({
+      channel: 'all',
+      page: 2,
+      pageSize: 20,
+    });
+  });
+
+  it('should reject invalid theater feed params', () => {
+    expect(() => TheaterFeedQuerySchema.parse({ channel: 'foo' })).toThrow();
+    expect(() => TheaterFeedQuerySchema.parse({ page: 0 })).toThrow();
+    expect(() => TheaterFeedQuerySchema.parse({ pageSize: 101 })).toThrow();
+  });
+});
+
 describe('RankingDramaSchema', () => {
   const validRankingDrama = {
     id: '123e4567-e89b-12d3-a456-426614174000',
@@ -224,6 +251,85 @@ describe('RankingListResponseSchema', () => {
 
     expect(result.data).toHaveLength(1);
     expect(result.pagination.total_pages).toBe(1);
+  });
+});
+
+describe('TheaterDramaSchema', () => {
+  it('should parse valid theater drama payloads with heat', () => {
+    const result = TheaterDramaSchema.parse({
+      id: '123e4567-e89b-12d3-a456-426614174000',
+      title: 'Theater Drama',
+      description: '',
+      cover_url: null,
+      category: 'Romance',
+      episode_count: 24,
+      tags: [],
+      rating: null,
+      created_at: '2026-07-24T00:00:00.000Z',
+      updated_at: '2026-07-24T00:00:00.000Z',
+      heat: 98210,
+    });
+
+    expect(result.heat).toBe(98210);
+  });
+
+  it('should reject negative or missing heat', () => {
+    expect(() =>
+      TheaterDramaSchema.parse({
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: 'Theater Drama',
+        description: '',
+        cover_url: null,
+        category: 'Romance',
+        episode_count: 24,
+        tags: [],
+        rating: null,
+        created_at: '2026-07-24T00:00:00.000Z',
+        updated_at: '2026-07-24T00:00:00.000Z',
+        heat: -1,
+      }),
+    ).toThrow();
+
+    expect(() =>
+      TheaterDramaSchema.parse({
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: 'Theater Drama',
+        description: '',
+        cover_url: null,
+        category: 'Romance',
+        episode_count: 24,
+        tags: [],
+        rating: null,
+        created_at: '2026-07-24T00:00:00.000Z',
+        updated_at: '2026-07-24T00:00:00.000Z',
+      }),
+    ).toThrow();
+  });
+});
+
+describe('TheaterFeedResponseSchema', () => {
+  it('should parse canonical theater feed response', () => {
+    const result = TheaterFeedResponseSchema.parse({
+      data: [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          title: 'Theater Drama',
+          description: '',
+          cover_url: null,
+          category: 'Romance',
+          episode_count: 24,
+          tags: [],
+          rating: null,
+          created_at: '2026-07-24T00:00:00.000Z',
+          updated_at: '2026-07-24T00:00:00.000Z',
+          heat: 1,
+        },
+      ],
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
+    });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.pagination.page_size).toBe(20);
   });
 });
 

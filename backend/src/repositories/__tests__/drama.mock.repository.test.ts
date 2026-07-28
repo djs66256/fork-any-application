@@ -111,6 +111,61 @@ describe('DramaMockRepository', () => {
     expect(page999.pagination.total_pages).toBe(2);
   });
 
+  it('should return theater all channel in fixed order with integer heat values', async () => {
+    const result = await repo.listTheaterFeed({ channel: 'all', page: 1, pageSize: 20 });
+
+    expect(result.data).toHaveLength(12);
+    expect(result.data.map((item) => item.id)).toEqual([
+      '550e8400-e29b-41d4-a716-446655440001',
+      '550e8400-e29b-41d4-a716-446655440002',
+      '550e8400-e29b-41d4-a716-446655440003',
+      '550e8400-e29b-41d4-a716-446655440004',
+      '550e8400-e29b-41d4-a716-446655440005',
+      '550e8400-e29b-41d4-a716-446655440006',
+      '550e8400-e29b-41d4-a716-446655440007',
+      '550e8400-e29b-41d4-a716-446655440008',
+      '550e8400-e29b-41d4-a716-446655440009',
+      '550e8400-e29b-41d4-a716-446655440010',
+      '550e8400-e29b-41d4-a716-446655440011',
+      '550e8400-e29b-41d4-a716-446655440012',
+    ]);
+    expect(result.data.every((item) => Number.isInteger(item.heat) && item.heat >= 0)).toBe(true);
+    expect(result.data[0]?.heat).toBe(98210);
+    expect(result.pagination).toEqual({
+      page: 1,
+      page_size: 20,
+      total: 12,
+      total_pages: 1,
+    });
+  });
+
+  it('should return empty theater feeds for non-all channels', async () => {
+    for (const channel of ['real', 'anime', 'movie', 'audio', 'novel', 'comic', 'bigscreen'] as const) {
+      const result = await repo.listTheaterFeed({ channel, page: 1, pageSize: 20 });
+      expect(result).toEqual({
+        data: [],
+        pagination: {
+          page: 1,
+          page_size: 20,
+          total: 0,
+          total_pages: 0,
+        },
+      });
+    }
+  });
+
+  it('should return empty theater feed for oversized all-channel pages with valid pagination', async () => {
+    const result = await repo.listTheaterFeed({ channel: 'all', page: 999, pageSize: 20 });
+
+    expect(result.data).toEqual([]);
+    expect(result.pagination).toEqual({
+      page: 999,
+      page_size: 20,
+      total: 12,
+      total_pages: 1,
+    });
+  });
+
   it('should return fixed dimensions for male classification tags', async () => {
     const result = await repo.listClassificationTags({ gender: 'male' });
 

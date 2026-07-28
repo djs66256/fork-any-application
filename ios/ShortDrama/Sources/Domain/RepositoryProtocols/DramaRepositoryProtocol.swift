@@ -20,6 +20,9 @@ protocol DramaRepositoryProtocol: Sendable {
     /// Fetches ranking data for the given query.
     func fetchRankings(query: RankingQuery) async throws -> PagedResult<RankingDrama>
 
+    /// Fetches theater feed data for the given query.
+    func fetchTheaterFeed(query: TheaterFeedQuery) async throws -> TheaterFeedPage
+
     /// Books a drama for the current user.
     func bookDrama(id: String) async throws -> BookDramaResult
 }

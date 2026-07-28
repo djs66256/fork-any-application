@@ -6,12 +6,13 @@ struct RankingHomeView: View {
     @StateObject private var viewModel: RankingViewModel
     @State private var loginAlertContext: RankingLoginContext?
 
-    init() {
+    init(initialEntryContext: TheaterRankingEntryContext? = nil) {
         let repository: DramaRepositoryProtocol = DramaRepository()
         _viewModel = StateObject(
             wrappedValue: RankingViewModel(
                 fetchRankingsUseCase: FetchRankingsUseCase(repository: repository),
-                bookDramaUseCase: BookDramaUseCase(repository: repository)
+                bookDramaUseCase: BookDramaUseCase(repository: repository),
+                initialEntryContext: initialEntryContext
             )
         )
     }

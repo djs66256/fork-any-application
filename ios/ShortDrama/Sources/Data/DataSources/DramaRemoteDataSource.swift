@@ -91,6 +91,22 @@ struct GetRankingsEndpoint: APIEndpoint {
     }
 }
 
+struct GetTheaterFeedEndpoint: APIEndpoint {
+    typealias Response = TheaterFeedResponseDTO
+
+    let query: TheaterFeedQuery
+
+    var path: String { "/api/dramas/channel" }
+    var method: HTTPMethod { .get }
+    var queryItems: [URLQueryItem]? {
+        [
+            URLQueryItem(name: "channel", value: query.channel.rawValue),
+            URLQueryItem(name: "page", value: String(query.page)),
+            URLQueryItem(name: "pageSize", value: String(query.pageSize))
+        ]
+    }
+}
+
 struct BookDramaEndpoint: APIEndpoint {
     typealias Response = BookDramaResponseDTO
 
@@ -124,6 +140,10 @@ enum DramaEndpoints {
 
     static func getRankings(query: RankingQuery) -> GetRankingsEndpoint {
         GetRankingsEndpoint(query: query)
+    }
+
+    static func getTheaterFeed(query: TheaterFeedQuery) -> GetTheaterFeedEndpoint {
+        GetTheaterFeedEndpoint(query: query)
     }
 
     static func bookDrama(id: String) -> BookDramaEndpoint {
@@ -177,6 +197,12 @@ final class DramaRemoteDataSource: @unchecked Sendable {
     /// Fetches rankings for the given query.
     func fetchRankings(query: RankingQuery) async throws -> RankingListResponseDTO {
         let endpoint = DramaEndpoints.getRankings(query: query)
+        return try await client.request(endpoint)
+    }
+
+    /// Fetches theater feed for the given query.
+    func fetchTheaterFeed(query: TheaterFeedQuery) async throws -> TheaterFeedResponseDTO {
+        let endpoint = DramaEndpoints.getTheaterFeed(query: query)
         return try await client.request(endpoint)
     }
 

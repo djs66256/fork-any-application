@@ -3,6 +3,7 @@ package com.djs66256.short_drama.data.datasource
 import com.djs66256.short_drama.core.network.ApiResult
 import com.djs66256.short_drama.core.network.ApiService
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
+import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -13,7 +14,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DramaRemoteDataSource @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
 ) {
     suspend fun getDramas(page: Int, pageSize: Int): ApiResult<DramaListResponseDto> {
         return try {
@@ -30,6 +31,21 @@ class DramaRemoteDataSource @Inject constructor(
         return try {
             apiService.getDramaDetail(id)
             ApiResult.Success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            ApiResult.Exception(e)
+        }
+    }
+
+    suspend fun getTheaterFeed(
+        channel: String,
+        page: Int,
+        pageSize: Int,
+    ): ApiResult<TheaterFeedResponseDto> {
+        return try {
+            val response = apiService.getDramaChannel(channel, page, pageSize)
+            ApiResult.Success(response)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

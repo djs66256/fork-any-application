@@ -70,6 +70,19 @@ struct NavigationRouterTests {
         #expect(AppRoute.actorHub.owningTab == .home)
     }
 
+    @Test("T-10: theater ranking context is consumed once")
+    func testTheaterRankingContextConsumesOnce() {
+        let router = NavigationRouter()
+        let context = TheaterRankingEntryContext(contentType: .all, rankingType: .booking)
+
+        router.openRanking(from: context)
+
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+        #expect(router.consumeTheaterRankingEntryContext() == context)
+        #expect(router.consumeTheaterRankingEntryContext() == nil)
+    }
+
     @Test("search discovery routes expose canonical public names")
     func testSearchRoutesPublicNames() {
         #expect(AppRoute.searchHome.publicRouteName == "search")

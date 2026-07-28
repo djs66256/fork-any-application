@@ -40,6 +40,7 @@ import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelDrawer
+import com.djs66256.short_drama.feature.theater.ui.TheaterScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelRoute
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
 import com.djs66256.short_drama.feature.ranking.ui.RankingScreen
@@ -304,9 +305,13 @@ fun NavGraph(
                     route = AppDestination.Graph.THEATER,
                 ) {
                     composable(route = AppDestination.Route.THEATER) {
-                        PlaceholderScreen(
-                            title = TopLevelTab.THEATER.label,
-                            description = "剧场频道占位页，后续 PRD 会在这里接入真实内容。",
+                        TheaterScreen(
+                            onNavigateToRoute = { route ->
+                                navigateToHomeOwnedDestination(navController, route)
+                            },
+                            onOpenPlay = { videoId ->
+                                navController.navigate(AppDestination.play(videoId))
+                            },
                         )
                     }
                 }
@@ -414,6 +419,14 @@ internal fun navigateToTopLevelTab(
         launchSingleTop = true
         restoreState = true
     }
+}
+
+internal fun navigateToHomeOwnedDestination(
+    navController: NavHostController,
+    route: String,
+) {
+    navigateToTopLevelTab(navController, TopLevelTab.HOME)
+    navController.navigate(route)
 }
 
 private fun TopLevelTab.icon(): ImageVector = when (this) {

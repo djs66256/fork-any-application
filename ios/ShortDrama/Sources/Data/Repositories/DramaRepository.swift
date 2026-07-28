@@ -41,6 +41,11 @@ struct DramaRepository: DramaRepositoryProtocol, Sendable {
         return response.toEntity()
     }
 
+    func fetchTheaterFeed(query: TheaterFeedQuery) async throws -> TheaterFeedPage {
+        let response = try await dataSource.fetchTheaterFeed(query: query)
+        return response.toEntity(channel: query.channel)
+    }
+
     func bookDrama(id: String) async throws -> BookDramaResult {
         let response = try await dataSource.bookDrama(id: id)
         return response.toEntity()
