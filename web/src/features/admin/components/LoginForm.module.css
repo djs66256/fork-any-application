@@ -3,94 +3,94 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: var(--color-layout-bg);
+  background-color: var(--color-bg-subtle);
 }
 
 .loginCard {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-xl);
+  background-color: var(--color-bg-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  padding: var(--space-5);
   width: 100%;
   max-width: 400px;
 }
 
 .title {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-primary);
+  font-size: var(--font-size-large);
+  font-weight: 600;
+  color: var(--color-fg-default);
   text-align: center;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--space-1);
 }
 
 .subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  color: var(--color-fg-muted);
   text-align: center;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--space-4);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--space-3);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--space-1);
 }
 
 .label {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-text-primary);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--color-fg-default);
 }
 
 .input {
-  height: 40px;
-  padding: 0 var(--spacing-sm);
-  border: 1px solid var(--color-input-border);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-md);
-  color: var(--color-text-primary);
-  background-color: var(--color-input-bg);
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
+  font-size: var(--font-size-body);
+  color: var(--color-fg-default);
+  background-color: var(--color-bg-default);
   outline: none;
 }
 
 .input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-focus-ring);
+  outline: var(--focus-outline);
+  outline-offset: -1px;
 }
 
 .input::placeholder {
-  color: var(--color-text-secondary);
+  color: var(--color-fg-muted);
 }
 
 .errorMessage {
-  font-size: 12px;
-  color: var(--color-error);
-  background-color: var(--color-error-bg);
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-danger);
+  background-color: var(--color-danger-subtle);
+  padding: var(--space-2);
+  border-radius: var(--radius);
   text-align: center;
 }
 
 .submitButton {
-  height: 40px;
-  background-color: var(--color-primary);
+  height: 36px;
+  background-color: var(--color-accent);
   color: #ffffff;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-md);
+  border: 1px solid var(--color-accent-hover);
+  border-radius: var(--radius);
+  font-size: var(--font-size-body);
   font-weight: 600;
   cursor: pointer;
-  margin-top: var(--spacing-sm);
+  margin-top: var(--space-2);
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
+  background-color: var(--color-accent-hover);
 }
 
 .submitButton:disabled {

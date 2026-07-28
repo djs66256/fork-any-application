@@ -14,20 +14,20 @@ export default function NewDramaPage() {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          fontSize: 'var(--font-size-sm)',
-          color: '#2563EB',
+          fontSize: 'var(--font-size-small)',
+          color: 'var(--color-accent)',
           textDecoration: 'none',
-          marginBottom: 'var(--spacing-md)',
+          marginBottom: 'var(--space-3)',
         }}
       >
         &larr; 返回短剧列表
       </Link>
       <h1
         style={{
-          fontSize: 'var(--font-size-lg)',
+          fontSize: 'var(--font-size-body)',
           fontWeight: 600,
-          color: 'var(--color-text-primary)',
-          marginBottom: 'var(--spacing-lg)',
+          color: 'var(--color-fg-default)',
+          marginBottom: 'var(--space-4)',
         }}
       >
         新建短剧
@@ -37,7 +37,7 @@ export default function NewDramaPage() {
           backgroundColor: '#ffffff',
           border: '1px solid #e5e7eb',
           borderRadius: '8px',
-          padding: 'var(--spacing-lg)',
+          padding: 'var(--space-4)',
         }}
       >
         <DramaForm />

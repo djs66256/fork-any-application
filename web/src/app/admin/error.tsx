@@ -21,31 +21,31 @@ export default function AdminError({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '400px',
-        gap: 'var(--spacing-md)',
-        color: 'var(--color-text-secondary)',
+        gap: 'var(--space-3)',
+        color: 'var(--color-fg-muted)',
       }}
     >
       <h2
         style={{
-          fontSize: 'var(--font-size-xl)',
+          fontSize: 'var(--font-size-large)',
           fontWeight: 600,
-          color: 'var(--color-text-primary)',
+          color: 'var(--color-fg-default)',
         }}
       >
         页面出错了
       </h2>
-      <p style={{ fontSize: 'var(--font-size-sm)' }}>
+      <p style={{ fontSize: 'var(--font-size-small)' }}>
         {error.message || '发生了未知错误'}
       </p>
       <button
         onClick={reset}
         style={{
-          padding: 'var(--spacing-sm) var(--spacing-md)',
-          backgroundColor: '#2563EB',
+          padding: 'var(--space-2) var(--space-3)',
+          backgroundColor: 'var(--color-accent)',
           color: '#ffffff',
           border: 'none',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-size-sm)',
+          borderRadius: 'var(--radius)',
+          fontSize: 'var(--font-size-small)',
           cursor: 'pointer',
         }}
       >

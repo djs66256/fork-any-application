@@ -4,7 +4,7 @@ import { Card, Container } from '@/components/ui';
 import { config } from '@/lib/config';
 
 const linkStyle = {
-  color: 'var(--color-primary)',
+  color: 'var(--color-accent)',
   fontWeight: 600,
   textDecoration: 'underline',
 } satisfies CSSProperties;
@@ -12,15 +12,15 @@ const linkStyle = {
 export function HomeScreen() {
   return (
     <Container>
-      <main style={{ paddingBlock: 'var(--spacing-2xl)', textAlign: 'center' }}>
+      <main style={{ paddingBlock: 'var(--space-6)', textAlign: 'center' }}>
         <Card>
-          <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-md)' }}>
+          <h1 style={{ fontSize: 'var(--font-size-title)', marginBottom: 'var(--space-3)' }}>
             {config.app.name}
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
+          <p style={{ color: 'var(--color-fg-muted)', marginBottom: 'var(--space-2)' }}>
             Version: {config.app.version}
           </p>
-          <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+          <p style={{ color: 'var(--color-fg-muted)', marginBottom: 'var(--space-4)' }}>
             Environment: {config.app.env}
           </p>
 
@@ -28,9 +28,9 @@ export function HomeScreen() {
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: 'var(--spacing-md)',
+              gap: 'var(--space-3)',
               justifyContent: 'center',
-              marginTop: 'var(--spacing-lg)',
+              marginTop: 'var(--space-4)',
             }}
           >
             <Link href="/play/sample" style={linkStyle}>

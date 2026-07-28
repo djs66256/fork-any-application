@@ -6,20 +6,20 @@ export default function NotFound() {
     <Container>
       <main
         style={{
-          paddingBlock: 'var(--spacing-2xl)',
+          paddingBlock: 'var(--space-6)',
           textAlign: 'center',
         }}
       >
-        <h1 style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-md)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-title)', marginBottom: 'var(--space-3)' }}>
           页面不存在
         </h1>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+        <p style={{ color: 'var(--color-fg-muted)', marginBottom: 'var(--space-4)' }}>
           您访问的页面不存在或已移除。
         </p>
         <Link
           href="/"
           style={{
-            color: 'var(--color-primary)',
+            color: 'var(--color-accent)',
             fontWeight: 600,
             textDecoration: 'underline',
           }}

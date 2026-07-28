@@ -13,14 +13,14 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       <main
         role="alert"
         style={{
-          paddingBlock: 'var(--spacing-2xl)',
+          paddingBlock: 'var(--space-6)',
           textAlign: 'center',
         }}
       >
-        <h1 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--spacing-md)' }}>
+        <h1 style={{ fontSize: 'var(--font-size-large)', marginBottom: 'var(--space-3)' }}>
           页面出错了
         </h1>
-        <p style={{ color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-lg)' }}>
+        <p style={{ color: 'var(--color-fg-muted)', marginBottom: 'var(--space-4)' }}>
           {error.message}
         </p>
         <Button variant="primary" onClick={reset}>

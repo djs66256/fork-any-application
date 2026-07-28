@@ -77,7 +77,7 @@ export function EpisodeForm({ dramaId, initialData, isEdit, dramaTitle }: Episod
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       {dramaTitle && (
-        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', margin: 0 }}>
+        <p style={{ fontSize: 'var(--font-size-small)', color: 'var(--color-fg-muted)', margin: 0 }}>
           所属短剧：{dramaTitle}
         </p>
       )}

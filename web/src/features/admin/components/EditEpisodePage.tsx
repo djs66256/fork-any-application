@@ -33,7 +33,7 @@ export function EditEpisodePage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-secondary)' }}>
+      <div style={{ padding: 'var(--space-4)', color: 'var(--color-fg-muted)' }}>
         加载中...
       </div>
     );
@@ -41,11 +41,11 @@ export function EditEpisodePage() {
 
   if (error || !episode) {
     return (
-      <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-secondary)' }}>
+      <div style={{ padding: 'var(--space-4)', color: 'var(--color-fg-muted)' }}>
         <p>{error || '剧集不存在'}</p>
         <Link
           href={`/admin/dramas/${dramaId}/episodes`}
-          style={{ color: '#2563EB', fontSize: 'var(--font-size-sm)' }}
+          style={{ color: 'var(--color-accent)', fontSize: 'var(--font-size-small)' }}
         >
           返回剧集列表
         </Link>
@@ -60,20 +60,20 @@ export function EditEpisodePage() {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          fontSize: 'var(--font-size-sm)',
-          color: '#2563EB',
+          fontSize: 'var(--font-size-small)',
+          color: 'var(--color-accent)',
           textDecoration: 'none',
-          marginBottom: 'var(--spacing-md)',
+          marginBottom: 'var(--space-3)',
         }}
       >
         &larr; 返回剧集列表
       </Link>
       <h1
         style={{
-          fontSize: 'var(--font-size-lg)',
+          fontSize: 'var(--font-size-body)',
           fontWeight: 600,
-          color: 'var(--color-text-primary)',
-          marginBottom: 'var(--spacing-lg)',
+          color: 'var(--color-fg-default)',
+          marginBottom: 'var(--space-4)',
         }}
       >
         编辑剧集
@@ -83,7 +83,7 @@ export function EditEpisodePage() {
           backgroundColor: '#ffffff',
           border: '1px solid #e5e7eb',
           borderRadius: '8px',
-          padding: 'var(--spacing-lg)',
+          padding: 'var(--space-4)',
         }}
       >
         <EpisodeForm dramaId={dramaId} initialData={episode} isEdit />

@@ -1,130 +1,139 @@
 /* ============================================================
- * Design System Tokens
+ * Design Tokens — GitHub Primer flavor
  * ============================================================ */
 
 :root {
-  /* ── Colors ─────────────────────────────────────────────── */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-secondary: #a78bfa;
-  --color-background: #ffffff;
-  --color-surface: #f9fafb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
-  --color-error: #ef4444;
+  /* ── Accent ─────────────────────────────────────────────── */
+  --color-accent: #0969da;
+  --color-accent-hover: #0860ca;
+  --color-accent-subtle: #ddf4ff;          /* accent tint for badges etc */
 
-  /* ── Extended Colors ────────────────────────────────────── */
-  --color-error-bg: #fef2f2;
-  --color-sidebar-bg: #f8fafc;
-  --color-sidebar-hover: #e2e8f0;
-  --color-table-header-bg: #f9fafb;
-  --color-input-bg: #ffffff;
-  --color-input-border: #e5e7eb;
-  --color-table-row-hover: #f8fafc;
-  --color-skeleton: #e5e7eb;
+  /* ── Backgrounds ────────────────────────────────────────── */
+  --color-bg-default: #ffffff;
+  --color-bg-subtle: #f6f8fa;
 
-  /* Toast */
-  --color-toast-success-bg: #ecfdf5;
-  --color-toast-success-text: #065f46;
-  --color-toast-success-border: #a7f3d0;
-  --color-toast-error-bg: #fef2f2;
-  --color-toast-error-text: #991b1b;
-  --color-toast-error-border: #fecaca;
-  --color-toast-info-bg: #eff6ff;
-  --color-toast-info-text: #1e40af;
-  --color-toast-info-border: #bfdbfe;
+  /* ── Foregrounds ────────────────────────────────────────── */
+  --color-fg-default: #1f2328;
+  --color-fg-muted: #59636e;
+  --color-fg-on-emphasis: #ffffff;
 
-  /* Primary tint */
-  --color-primary-bg: #dbeafe;
-  --color-primary-text: #6366f1;
+  /* ── Borders ────────────────────────────────────────────── */
+  --color-border-default: #d1d9e0;
+  --color-border-subtle: #d1d9e080;        /* semi-transparent */
 
-  /* Role badges */
-  --color-role-editor-bg: #dcfce7;
-  --color-role-editor-text: #16a34a;
-  --color-role-viewer-bg: #f3f4f6;
-  --color-role-viewer-text: #6b7280;
+  /* ── Danger ─────────────────────────────────────────────── */
+  --color-danger: #d1242f;
+  --color-danger-hover: #cf222e;
+  --color-danger-subtle: #fff1f0;
 
-  /* Layout */
-  --color-layout-bg: #f3f4f6;
+  /* ── Success ────────────────────────────────────────────── */
+  --color-success: #1a7f37;
+  --color-success-subtle: #dafbe1;
 
-  /* Overlay */
-  --color-modal-overlay: rgba(0, 0, 0, 0.4);
+  /* ── Info ───────────────────────────────────────────────── */
+  --color-info: #0969da;
+  --color-info-subtle: #ddf4ff;
 
-  /* Focus */
-  --color-focus-ring: rgba(99, 102, 241, 0.15);
+  /* ── Header (dark) ──────────────────────────────────────── */
+  --color-header-bg: #25292e;
+  --color-sidebar-bg: #f6f8fa;
+  --color-sidebar-hover: #e9ecef;
+
+  /* ── Skeleton ───────────────────────────────────────────── */
+  --color-skeleton: #d1d9e0;
+
+  /* ── Overlay ────────────────────────────────────────────── */
+  --color-overlay: rgba(0, 0, 0, 0.5);
 
   /* ── Spacing ────────────────────────────────────────────── */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
 
-  /* ── Border Radius ──────────────────────────────────────── */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ── Radius ─────────────────────────────────────────────── */
+  --radius: 6px;
+  --radius-pill: 2em;
 
-  /* ── Font Sizes ─────────────────────────────────────────── */
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.25rem;
-  --font-size-xl: 1.5rem;
-  --font-size-2xl: 2rem;
+  /* ── Font ───────────────────────────────────────────────── */
+  --font-size-small: 12px;
+  --font-size-body: 14px;
+  --font-size-large: 20px;
+  --font-size-title: 24px;
+
+  /* ── Focus ──────────────────────────────────────────────── */
+  --focus-outline: 2px solid var(--color-accent);
 }
 
+/* ── Dark Mode ─────────────────────────────────────────────── */
+
+:root[data-theme="dark"] {
+  --color-accent: #58a6ff;
+  --color-accent-hover: #79b8ff;
+  --color-accent-subtle: #0c2d6b;
+
+  --color-bg-default: #0d1117;
+  --color-bg-subtle: #161b22;
+
+  --color-fg-default: #e6edf3;
+  --color-fg-muted: #848d97;
+  --color-fg-on-emphasis: #ffffff;
+
+  --color-border-default: #30363d;
+  --color-border-subtle: #30363d80;
+
+  --color-danger: #f85149;
+  --color-danger-hover: #ff7b72;
+  --color-danger-subtle: #490202;
+
+  --color-success: #3fb950;
+  --color-success-subtle: #051f0e;
+
+  --color-info: #58a6ff;
+  --color-info-subtle: #0c2d6b;
+
+  --color-header-bg: #161b22;
+  --color-sidebar-bg: #0d1117;
+  --color-sidebar-hover: #1c2128;
+
+  --color-skeleton: #30363d;
+  --color-overlay: rgba(0, 0, 0, 0.7);
+}
+
+/* system preference fallback when no explicit theme is set */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary: #818cf8;
-    --color-primary-hover: #6366f1;
-    --color-secondary: #a78bfa;
-    --color-background: #0f172a;
-    --color-surface: #1e293b;
-    --color-text-primary: #f1f5f9;
-    --color-text-secondary: #94a3b8;
-    --color-border: #334155;
-    --color-error: #f87171;
+  :root:not([data-theme]) {
+    --color-accent: #58a6ff;
+    --color-accent-hover: #79b8ff;
+    --color-accent-subtle: #0c2d6b;
 
-    /* ── Extended Colors (dark) ────────────────────────────── */
-    --color-error-bg: #450a0a;
-    --color-sidebar-bg: #1e293b;
-    --color-sidebar-hover: #334155;
-    --color-table-header-bg: #1e293b;
-    --color-input-bg: #1e293b;
-    --color-input-border: #334155;
-    --color-table-row-hover: #1e293b;
-    --color-skeleton: #334155;
+    --color-bg-default: #0d1117;
+    --color-bg-subtle: #161b22;
 
-    /* Toast (dark) */
-    --color-toast-success-bg: #064e3b;
-    --color-toast-success-text: #6ee7b7;
-    --color-toast-success-border: #047857;
-    --color-toast-error-bg: #450a0a;
-    --color-toast-error-text: #fca5a5;
-    --color-toast-error-border: #7f1d1d;
-    --color-toast-info-bg: #1e3a5f;
-    --color-toast-info-text: #93c5fd;
-    --color-toast-info-border: #1e40af;
+    --color-fg-default: #e6edf3;
+    --color-fg-muted: #848d97;
+    --color-fg-on-emphasis: #ffffff;
 
-    /* Primary tint (dark) */
-    --color-primary-bg: #1e3a5f;
-    --color-primary-text: #818cf8;
+    --color-border-default: #30363d;
+    --color-border-subtle: #30363d80;
 
-    /* Role badges (dark) */
-    --color-role-editor-bg: #064e3b;
-    --color-role-editor-text: #6ee7b7;
-    --color-role-viewer-bg: #1e293b;
-    --color-role-viewer-text: #94a3b8;
+    --color-danger: #f85149;
+    --color-danger-hover: #ff7b72;
+    --color-danger-subtle: #490202;
 
-    /* Layout (dark) */
-    --color-layout-bg: #0f172a;
+    --color-success: #3fb950;
+    --color-success-subtle: #051f0e;
 
-    /* Overlay (dark) */
-    --color-modal-overlay: rgba(0, 0, 0, 0.6);
+    --color-info: #58a6ff;
+    --color-info-subtle: #0c2d6b;
 
-    /* Focus (dark) */
-    --color-focus-ring: rgba(129, 140, 248, 0.25);
+    --color-header-bg: #161b22;
+    --color-sidebar-bg: #0d1117;
+    --color-sidebar-hover: #1c2128;
+
+    --color-skeleton: #30363d;
+    --color-overlay: rgba(0, 0, 0, 0.7);
   }
 }

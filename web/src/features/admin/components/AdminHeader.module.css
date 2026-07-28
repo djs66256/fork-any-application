@@ -1,51 +1,68 @@
 .header {
-  height: 56px;
-  background-color: var(--color-background);
-  border-bottom: 1px solid var(--color-border);
+  height: 48px;
+  background-color: var(--color-header-bg);
+  border-bottom: 1px solid var(--color-border-default);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--space-3);
   flex-shrink: 0;
 }
 
 .logo {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-  color: var(--color-primary-text);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .userSection {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--space-2);
+}
+
+.themeToggle {
+  font-size: var(--font-size-body);
+  line-height: 1;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  color: #8b949e;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-right: var(--space-2);
+}
+
+.themeToggle:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .userEmail {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  color: #8b949e;
 }
 
 .roleBadge {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background-color: var(--color-primary-bg);
-  color: var(--color-primary-text);
+  font-size: var(--font-size-small);
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   font-weight: 500;
 }
 
 .logoutButton {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: var(--font-size-small);
+  color: #8b949e;
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
 }
 
 .logoutButton:hover {
-  color: var(--color-error);
-  background-color: var(--color-error-bg);
+  color: var(--color-danger);
+  background-color: rgba(255, 255, 255, 0.08);
 }

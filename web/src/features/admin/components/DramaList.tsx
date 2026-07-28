@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { DataTable } from '@/features/admin/components/DataTable';
 import { ConfirmModal } from '@/features/admin/components/ConfirmModal';
 import { useDramas } from '@/features/admin/hooks/useDramas';
 import { adminApi } from '@/features/admin/api/client';
-import { getSupabaseBrowserClient } from '@/lib/supabase';
+import { useAuth } from '@/features/admin/contexts/AuthContext';
 import type { AdminDrama } from '@/features/admin/api/types';
 import styles from './DramaList.module.css';
 
@@ -15,16 +15,7 @@ export function DramaList() {
   const { dramas, pagination, isLoading, error, refetch } = useDramas(page, 20);
   const [deleteTarget, setDeleteTarget] = useState<AdminDrama | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [role, setRole] = useState<string>('viewer');
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (s) {
-        setRole(s.user.app_metadata?.role ?? 'viewer');
-      }
-    });
-  }, []);
+  const { role } = useAuth();
 
   const isViewer = role === 'viewer';
 

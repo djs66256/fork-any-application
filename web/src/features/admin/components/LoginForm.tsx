@@ -1,17 +1,25 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/admin/hooks/useAuth';
 import styles from './LoginForm.module.css';
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading: authLoading, isAuthenticated, error } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+
+  // Redirect when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/admin');
+    }
+  }, [isAuthenticated, router]);
 
   const validate = (): boolean => {
     const errors: { email?: string; password?: string } = {};
@@ -29,19 +37,18 @@ export function LoginForm() {
     e.preventDefault();
     if (!validate()) return;
 
+    setIsSubmitting(true);
     try {
       await login(email, password);
-      // login() is synchronous in terms of session state — check after completion
-      const supabase = (await import('@/lib/supabase')).getSupabaseBrowserClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        router.push('/admin');
-      }
+      // onAuthStateChange in AuthProvider will flip isAuthenticated → useEffect redirects
     } catch {
-      // Login error is already handled by useAuth hook via error state
+      // Error is already set in AuthContext
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const isLoading = authLoading || isSubmitting;
   const isFormDisabled = isLoading || !email.trim() || !password;
 
   return (
@@ -67,7 +74,7 @@ export function LoginForm() {
               autoComplete="email"
             />
             {fieldErrors.email && (
-              <span style={{ fontSize: 12, color: 'var(--color-error)' }}>
+              <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>
                 {fieldErrors.email}
               </span>
             )}
@@ -90,7 +97,7 @@ export function LoginForm() {
               autoComplete="current-password"
             />
             {fieldErrors.password && (
-              <span style={{ fontSize: 12, color: 'var(--color-error)' }}>
+              <span style={{ fontSize: 12, color: 'var(--color-danger)' }}>
                 {fieldErrors.password}
               </span>
             )}

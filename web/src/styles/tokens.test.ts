@@ -14,24 +14,29 @@ function readTokens(): string {
 }
 
 describe('tokens.css', () => {
-  it('should define --color-primary', () => {
+  it('should define --color-accent', () => {
     const content = readTokens();
-    expect(content).toContain('--color-primary');
+    expect(content).toContain('--color-accent');
   });
 
-  it('should define --spacing-md', () => {
+  it('should define --color-bg-default', () => {
     const content = readTokens();
-    expect(content).toContain('--spacing-md');
+    expect(content).toContain('--color-bg-default');
   });
 
-  it('should define --radius-md', () => {
+  it('should define --color-fg-default', () => {
     const content = readTokens();
-    expect(content).toContain('--radius-md');
+    expect(content).toContain('--color-fg-default');
   });
 
-  it('should define --font-size-md', () => {
+  it('should define --radius', () => {
     const content = readTokens();
-    expect(content).toContain('--font-size-md');
+    expect(content).toContain('--radius');
+  });
+
+  it('should define --font-size-body', () => {
+    const content = readTokens();
+    expect(content).toContain('--font-size-body');
   });
 
   it('should include dark mode media query', () => {
@@ -39,35 +44,34 @@ describe('tokens.css', () => {
     expect(content).toContain('prefers-color-scheme: dark');
   });
 
-  it('should define all required color tokens', () => {
+  it('should define all core color tokens', () => {
     const content = readTokens();
-    const colorTokens = [
-      '--color-primary',
-      '--color-primary-hover',
-      '--color-secondary',
-      '--color-background',
-      '--color-surface',
-      '--color-text-primary',
-      '--color-text-secondary',
-      '--color-border',
-      '--color-error',
+    const tokens = [
+      '--color-accent',
+      '--color-accent-hover',
+      '--color-bg-default',
+      '--color-bg-subtle',
+      '--color-fg-default',
+      '--color-fg-muted',
+      '--color-border-default',
+      '--color-danger',
     ];
-    for (const token of colorTokens) {
+    for (const token of tokens) {
       expect(content).toContain(token);
     }
   });
 
-  it('should define all spacing tokens', () => {
+  it('should define spacing tokens', () => {
     const content = readTokens();
-    const spacingTokens = [
-      '--spacing-xs',
-      '--spacing-sm',
-      '--spacing-md',
-      '--spacing-lg',
-      '--spacing-xl',
-      '--spacing-2xl',
+    const tokens = [
+      '--space-1',
+      '--space-2',
+      '--space-3',
+      '--space-4',
+      '--space-5',
+      '--space-6',
     ];
-    for (const token of spacingTokens) {
+    for (const token of tokens) {
       expect(content).toContain(token);
     }
   });

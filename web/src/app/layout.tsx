@@ -27,6 +27,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var theme = localStorage.getItem('admin-theme');
+                if (theme === 'dark' || theme === 'light') {
+                  document.documentElement.setAttribute('data-theme', theme);
+                }
+              })()
+            `,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

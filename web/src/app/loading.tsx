@@ -5,9 +5,9 @@ export default function Loading() {
     <Container>
       <main
         style={{
-          paddingBlock: 'var(--spacing-2xl)',
+          paddingBlock: 'var(--space-6)',
           textAlign: 'center',
-          color: 'var(--color-text-secondary)',
+          color: 'var(--color-fg-muted)',
         }}
       >
         <p>加载中...</p>

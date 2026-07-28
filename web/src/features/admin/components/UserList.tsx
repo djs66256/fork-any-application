@@ -1,30 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DataTable } from '@/features/admin/components/DataTable';
 import { useUsers } from '@/features/admin/hooks/useUsers';
 import { adminApi } from '@/features/admin/api/client';
-import { getSupabaseBrowserClient } from '@/lib/supabase';
+import { useAuth } from '@/features/admin/contexts/AuthContext';
 import type { AdminUser } from '@/features/admin/api/types';
 import styles from './DramaList.module.css';
 
 export function UserList() {
   const [page, setPage] = useState(1);
   const { users, pagination, isLoading, error, refetch } = useUsers(page, 20);
-  const [role, setRole] = useState<string>('viewer');
-  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const { user, role } = useAuth();
+  const currentUserId = user?.id ?? '';
   const [savingUserId, setSavingUserId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (s) {
-        setRole(s.user.app_metadata?.role ?? 'viewer');
-        setCurrentUserId(s.user.id);
-      }
-    });
-  }, []);
 
   const isAdmin = role === 'admin';
 
@@ -93,7 +83,7 @@ export function UserList() {
         const isSelf = row.id === currentUserId;
         if (isSelf) {
           return (
-            <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--color-fg-muted)' }}>
               当前用户
             </span>
           );
@@ -123,11 +113,11 @@ export function UserList() {
       {saveError && (
         <div
           style={{
-            fontSize: 'var(--font-size-sm)',
-            color: 'var(--color-error)',
-            backgroundColor: 'var(--color-error-bg)',
-            padding: 'var(--spacing-sm)',
-            borderRadius: 'var(--radius-sm)',
+            fontSize: 'var(--font-size-small)',
+            color: 'var(--color-danger)',
+            backgroundColor: 'var(--color-danger-subtle)',
+            padding: 'var(--space-2)',
+            borderRadius: 'var(--radius)',
           }}
         >
           {saveError}

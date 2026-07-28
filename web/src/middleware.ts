@@ -9,6 +9,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Start with a next() response so supabase cookie changes are always
+  // attached to the final response — even when we redirect later.
+  let response = NextResponse.next({ request });
+
   // Create a Supabase client for server-side auth check
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,7 +24,7 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
+            response.cookies.set(name, value, options);
           });
         },
       },
@@ -34,16 +38,18 @@ export async function middleware(request: NextRequest) {
   // Not logged in and trying to access admin pages (not login)
   if (!session && !isLoginPage) {
     const loginUrl = new URL('/admin/login', request.url);
-    return NextResponse.redirect(loginUrl);
+    response = NextResponse.redirect(loginUrl);
+    return response;
   }
 
-  // Logged in and trying to access login page
+  // Already logged in and trying to access login page
   if (session && isLoginPage) {
     const adminUrl = new URL('/admin', request.url);
-    return NextResponse.redirect(adminUrl);
+    response = NextResponse.redirect(adminUrl);
+    return response;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

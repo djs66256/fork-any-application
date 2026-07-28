@@ -23,7 +23,7 @@ export function EditDramaPage() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-secondary)' }}>
+      <div style={{ padding: 'var(--space-4)', color: 'var(--color-fg-muted)' }}>
         加载中...
       </div>
     );
@@ -31,11 +31,11 @@ export function EditDramaPage() {
 
   if (error || !drama) {
     return (
-      <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-secondary)' }}>
+      <div style={{ padding: 'var(--space-4)', color: 'var(--color-fg-muted)' }}>
         <p>{error || '短剧不存在'}</p>
         <Link
           href="/admin/dramas"
-          style={{ color: '#2563EB', fontSize: 'var(--font-size-sm)' }}
+          style={{ color: 'var(--color-accent)', fontSize: 'var(--font-size-small)' }}
         >
           返回短剧列表
         </Link>
@@ -50,20 +50,20 @@ export function EditDramaPage() {
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          fontSize: 'var(--font-size-sm)',
-          color: '#2563EB',
+          fontSize: 'var(--font-size-small)',
+          color: 'var(--color-accent)',
           textDecoration: 'none',
-          marginBottom: 'var(--spacing-md)',
+          marginBottom: 'var(--space-3)',
         }}
       >
         &larr; 返回短剧列表
       </Link>
       <h1
         style={{
-          fontSize: 'var(--font-size-lg)',
+          fontSize: 'var(--font-size-body)',
           fontWeight: 600,
-          color: 'var(--color-text-primary)',
-          marginBottom: 'var(--spacing-lg)',
+          color: 'var(--color-fg-default)',
+          marginBottom: 'var(--space-4)',
         }}
       >
         编辑短剧
@@ -73,7 +73,7 @@ export function EditDramaPage() {
           backgroundColor: '#ffffff',
           border: '1px solid #e5e7eb',
           borderRadius: '8px',
-          padding: 'var(--spacing-lg)',
+          padding: 'var(--space-4)',
         }}
       >
         <DramaForm initialData={drama} isEdit />

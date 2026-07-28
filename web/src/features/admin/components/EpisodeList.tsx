@@ -7,7 +7,7 @@ import { DataTable } from '@/features/admin/components/DataTable';
 import { ConfirmModal } from '@/features/admin/components/ConfirmModal';
 import { useEpisodes } from '@/features/admin/hooks/useEpisodes';
 import { adminApi } from '@/features/admin/api/client';
-import { getSupabaseBrowserClient } from '@/lib/supabase';
+import { useAuth } from '@/features/admin/contexts/AuthContext';
 import type { AdminEpisode } from '@/features/admin/api/types';
 import styles from './DramaList.module.css';
 
@@ -17,16 +17,10 @@ export function EpisodeList() {
   const { episodes, isLoading, error, refetch } = useEpisodes(dramaId);
   const [deleteTarget, setDeleteTarget] = useState<AdminEpisode | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [role, setRole] = useState<string>('viewer');
+  const { role } = useAuth();
   const [dramaTitle, setDramaTitle] = useState<string>('');
 
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (s) {
-        setRole(s.user.app_metadata?.role ?? 'viewer');
-      }
-    });
     // Fetch drama title
     adminApi
       .getDrama(dramaId)
@@ -69,7 +63,7 @@ export function EpisodeList() {
       header: '视频 URL',
       render: (row: AdminEpisode) =>
         row.video_url ? (
-          <span style={{ fontSize: '12px', color: 'var(--color-text-secondary)', maxWidth: '200px', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: '12px', color: 'var(--color-fg-muted)', maxWidth: '200px', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {row.video_url}
           </span>
         ) : (

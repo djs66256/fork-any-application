@@ -1,44 +1,39 @@
 .card {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
+  padding: var(--space-3) 0;
   flex: 1;
-  min-width: 180px;
+  min-width: 140px;
 }
 
 .label {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-small);
+  color: var(--color-fg-muted);
+  margin-bottom: var(--space-1);
 }
 
 .value {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--color-text-primary);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  line-height: 1;
 }
 
 .skeleton {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
+  padding: var(--space-3) 0;
   flex: 1;
-  min-width: 180px;
+  min-width: 140px;
 }
 
 .skeletonLabel {
   width: 60px;
   height: 14px;
   background-color: var(--color-skeleton);
-  border-radius: 4px;
-  margin-bottom: var(--spacing-sm);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-2);
 }
 
 .skeletonValue {
   width: 80px;
-  height: 28px;
+  height: 32px;
   background-color: var(--color-skeleton);
-  border-radius: 4px;
+  border-radius: var(--radius);
 }
