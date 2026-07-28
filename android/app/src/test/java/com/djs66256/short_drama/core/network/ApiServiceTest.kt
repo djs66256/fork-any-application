@@ -2,6 +2,8 @@ package com.djs66256.short_drama.core.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -71,6 +73,32 @@ class ApiServiceTest {
 
         assertEquals("dramas/{id}/book", postAnnotation.value)
         assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
+    }
+
+    @Test
+    fun `T-11 auth api routes use canonical contracts`() {
+        val sendOtpMethod = ApiService::class.java.declaredMethods.single { it.name == "sendOtpRequest" }
+        val sendOtpAnnotation = sendOtpMethod.getAnnotation(POST::class.java)
+        assertEquals("auth/otp-requests", sendOtpAnnotation.value)
+        assertEquals(1, sendOtpMethod.parameterAnnotations[0].filterIsInstance<Body>().size)
+
+        val createSessionMethod = ApiService::class.java.declaredMethods.single { it.name == "createAuthSession" }
+        val createSessionAnnotation = createSessionMethod.getAnnotation(POST::class.java)
+        assertEquals("auth/sessions", createSessionAnnotation.value)
+        assertEquals(1, createSessionMethod.parameterAnnotations[0].filterIsInstance<Body>().size)
+
+        val refreshMethod = ApiService::class.java.declaredMethods.single { it.name == "refreshAuthSession" }
+        val refreshAnnotation = refreshMethod.getAnnotation(POST::class.java)
+        assertEquals("auth/session-refreshes", refreshAnnotation.value)
+        assertEquals(1, refreshMethod.parameterAnnotations[0].filterIsInstance<Body>().size)
+
+        val meMethod = ApiService::class.java.declaredMethods.single { it.name == "getCurrentUser" }
+        val meAnnotation = meMethod.getAnnotation(GET::class.java)
+        assertEquals("users/me", meAnnotation.value)
+
+        val logoutMethod = ApiService::class.java.declaredMethods.single { it.name == "logout" }
+        val logoutAnnotation = logoutMethod.getAnnotation(DELETE::class.java)
+        assertEquals("auth/session", logoutAnnotation.value)
     }
 
     @Test

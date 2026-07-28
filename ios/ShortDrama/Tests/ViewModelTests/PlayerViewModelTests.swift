@@ -176,6 +176,7 @@ struct PlayerViewModelTests {
         viewModel.updateCurrentProgress(75)
         viewModel.handleBack()
         await Task.yield()
+        await Task.yield()
 
         #expect(router.pathsByTab[.home]?.isEmpty == true)
         #expect(repository.calls.contains(.stop(

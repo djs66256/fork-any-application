@@ -7,13 +7,11 @@ import {
   AdminEpisodeUpdate,
   AdminUserProfile,
   AdminUserListResponseSchema,
-  AdminRoleUpdate,
   Drama,
   DramaSchema,
   DramaListResponseSchema,
   Episode,
   EpisodeSchema,
-  PaginationSchema,
 } from '@/lib/schemas';
 import { DramaSupabaseRepository } from '@/repositories/supabase/drama.supabase.repository';
 import { EpisodeSupabaseRepository } from '@/repositories/supabase/episode.supabase.repository';

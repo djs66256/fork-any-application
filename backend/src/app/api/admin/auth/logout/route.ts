@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withErrorHandler } from '@/middleware/error-handler';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 
-export const POST = withErrorHandler(async (request: NextRequest) => {
+export const POST = withErrorHandler(async () => {
   const supabase = getSupabaseAdmin();
   await supabase.auth.signOut();
 

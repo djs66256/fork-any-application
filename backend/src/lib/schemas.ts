@@ -284,6 +284,112 @@ export const UserProfileSchema = z.object({
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
+export const CountryCodeSchema = z.string().trim().regex(/^\+[1-9]\d{0,3}$/);
+export type CountryCode = z.infer<typeof CountryCodeSchema>;
+
+export const PhoneSchema = z.string().trim().regex(/^1\d{10}$/);
+export type Phone = z.infer<typeof PhoneSchema>;
+
+export const OtpCodeSchema = z.string().trim().regex(/^\d{6}$/);
+export type OtpCode = z.infer<typeof OtpCodeSchema>;
+
+export const AuthSceneSchema = z.enum(['login']);
+export type AuthScene = z.infer<typeof AuthSceneSchema>;
+
+export const SendOtpRequestSchema = z.object({
+  countryCode: CountryCodeSchema.default('+86'),
+  phone: PhoneSchema,
+  scene: AuthSceneSchema.default('login'),
+});
+export type SendOtpRequest = z.infer<typeof SendOtpRequestSchema>;
+
+export const SendOtpResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.object({
+    requestId: z.string().trim().min(1),
+    cooldownSeconds: z.number().int().min(0),
+    expiresInSeconds: z.number().int().min(0),
+  }),
+  message: z.string(),
+});
+export type SendOtpResponse = z.infer<typeof SendOtpResponseSchema>;
+
+export const CreateAuthSessionRequestSchema = z.object({
+  countryCode: CountryCodeSchema.default('+86'),
+  phone: PhoneSchema,
+  code: OtpCodeSchema,
+});
+export type CreateAuthSessionRequest = z.infer<typeof CreateAuthSessionRequestSchema>;
+
+export const RefreshAuthSessionRequestSchema = z.object({
+  refreshToken: z.string().trim().min(1),
+});
+export type RefreshAuthSessionRequest = z.infer<typeof RefreshAuthSessionRequestSchema>;
+
+export const AuthUserSchema = z.object({
+  id: z.string().uuid(),
+  phone: z.string().trim().min(1),
+  display_name: z.string().trim().min(1).nullable().optional(),
+  avatar_url: z.string().url().nullable().optional(),
+  role: z.enum(['admin', 'editor', 'viewer']).default('viewer'),
+  is_new_user: z.boolean(),
+});
+export type AuthUser = z.infer<typeof AuthUserSchema>;
+
+export const AuthSessionSchema = z.object({
+  access_token: z.string().trim().min(1),
+  refresh_token: z.string().trim().min(1),
+  expires_at: z.string(),
+  user: AuthUserSchema,
+});
+export type AuthSession = z.infer<typeof AuthSessionSchema>;
+
+export const AuthSessionPayloadSchema = z.object({
+  accessToken: z.string().trim().min(1),
+  refreshToken: z.string().trim().min(1),
+  expiresAt: z.string(),
+  user: z.object({
+    id: z.string().uuid(),
+    phone: z.string().trim().min(1),
+    displayName: z.string().trim().min(1).nullable().optional(),
+    avatarUrl: z.string().url().nullable().optional(),
+    role: z.enum(['admin', 'editor', 'viewer']).default('viewer'),
+    isNewUser: z.boolean(),
+  }),
+});
+export type AuthSessionPayload = z.infer<typeof AuthSessionPayloadSchema>;
+
+export const AuthSessionResponseSchema = z.object({
+  code: z.literal(0),
+  data: AuthSessionPayloadSchema,
+  message: z.string(),
+});
+export type AuthSessionResponse = z.infer<typeof AuthSessionResponseSchema>;
+
+export const CurrentUserPayloadSchema = z.object({
+  id: z.string().uuid(),
+  phone: z.string().trim().min(1),
+  displayName: z.string().trim().min(1).nullable().optional(),
+  avatarUrl: z.string().url().nullable().optional(),
+  role: z.enum(['admin', 'editor', 'viewer']).default('viewer'),
+  isNewUser: z.boolean(),
+});
+export type CurrentUserPayload = z.infer<typeof CurrentUserPayloadSchema>;
+
+export const CurrentUserResponseSchema = z.object({
+  code: z.literal(0),
+  data: CurrentUserPayloadSchema,
+  message: z.string(),
+});
+export type CurrentUserResponse = z.infer<typeof CurrentUserResponseSchema>;
+
+export const EmptySuccessResponseSchema = z.object({
+  code: z.literal(0),
+  data: z.null(),
+  message: z.string(),
+});
+export type EmptySuccessResponse = z.infer<typeof EmptySuccessResponseSchema>;
+
 // ============================================================
 // Admin Panel Schemas
 // ============================================================

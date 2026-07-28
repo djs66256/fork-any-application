@@ -7,6 +7,7 @@ struct PlaybackSessionStoreTests {
         var storedValue: String?
         private(set) var readCallCount = 0
         private(set) var writeCallCount = 0
+        private(set) var deleteCallCount = 0
 
         func read(service: String, account: String, accessGroup: String?) throws -> String? {
             readCallCount += 1
@@ -16,6 +17,11 @@ struct PlaybackSessionStoreTests {
         func write(value: String, service: String, account: String, accessGroup: String?) throws {
             writeCallCount += 1
             storedValue = value
+        }
+
+        func delete(service: String, account: String, accessGroup: String?) throws {
+            deleteCallCount += 1
+            storedValue = nil
         }
     }
 

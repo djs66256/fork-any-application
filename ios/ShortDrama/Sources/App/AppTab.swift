@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum AppTab: String, CaseIterable, Hashable, Identifiable {
+enum AppTab: String, CaseIterable, Hashable, Identifiable, Sendable {
     case home
     case theater
     case mall

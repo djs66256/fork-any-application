@@ -68,6 +68,15 @@ struct APIErrorTests {
         #expect(a == b)
     }
 
+    @Test("business errors preserve status code, code and message")
+    func testBusinessErrorProperties() {
+        let error = APIError.business(statusCode: 401, businessCode: "AUTH_UNAUTHORIZED", message: "登录已失效")
+
+        #expect(error.errorDescription == "登录已失效")
+        #expect(error.statusCode == 401)
+        #expect(error.businessCode == "AUTH_UNAUTHORIZED")
+    }
+
     @Test("T-05: server errorDescription returns the message")
     func testServerErrorDescription() {
         let error = APIError.server(code: 500, message: "boom")

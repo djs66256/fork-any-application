@@ -1,6 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+const mockGetUser = vi.fn();
+
+vi.mock('@/infrastructure/supabase', () => ({
+  getSupabaseAdmin: () => ({
+    auth: {
+      getUser: mockGetUser,
+    },
+    from: vi.fn(),
+  }),
+}));
+
+vi.mock('@/repositories/supabase/drama.supabase.repository', () => ({
+  DramaSupabaseRepository: vi.fn(),
+}));
+
 vi.mock('@/services/drama/drama.service', () => ({
   DramaService: vi.fn().mockImplementation(() => ({
     listRankings: vi.fn().mockResolvedValue({
@@ -67,10 +82,20 @@ describe('GET /api/dramas/rankings', () => {
     );
   });
 
-  it('should forward optional authenticated context to the service', async () => {
+  it('should forward optional authenticated context to the service when bearer token is valid', async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: {
+        user: {
+          id: '550e8400-e29b-41d4-a716-446655440099',
+          app_metadata: { role: 'viewer' },
+        },
+      },
+      error: null,
+    });
+
     const request = new NextRequest('https://localhost:3001/api/dramas/rankings', {
       headers: {
-        'x-user-id': 'user-1',
+        Authorization: 'Bearer valid-token',
       },
     });
     const response = await GET(request, undefined);
@@ -83,7 +108,32 @@ describe('GET /api/dramas/rankings', () => {
         page: 1,
         pageSize: 10,
       },
-      { userId: 'user-1' },
+      { userId: '550e8400-e29b-41d4-a716-446655440099' },
+    );
+  });
+
+  it('should downgrade invalid bearer token to anonymous context', async () => {
+    mockGetUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: 'invalid token' },
+    });
+
+    const request = new NextRequest('https://localhost:3001/api/dramas/rankings', {
+      headers: {
+        Authorization: 'Bearer invalid-token',
+      },
+    });
+    const response = await GET(request, undefined);
+
+    expect(response.status).toBe(200);
+    expect(vi.mocked(DramaService).mock.results[0]?.value.listRankings).toHaveBeenCalledWith(
+      {
+        type: 'hot',
+        contentType: 'all',
+        page: 1,
+        pageSize: 10,
+      },
+      undefined,
     );
   });
 

@@ -24,4 +24,10 @@ class NavGraphTest {
         assertTrue(shouldShowBottomBar(AppDestination.Route.DETAIL))
         assertTrue(shouldShowBottomBar(null))
     }
+
+    @Test
+    fun `T-10 login and settings routes hide bottom bar`() {
+        assertFalse(shouldShowBottomBar(AppDestination.Route.LOGIN))
+        assertFalse(shouldShowBottomBar(AppDestination.Route.SETTINGS))
+    }
 }

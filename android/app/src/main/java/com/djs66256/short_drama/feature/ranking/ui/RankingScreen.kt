@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.domain.model.RankingContentType
 import com.djs66256.short_drama.domain.model.RankingType
+import kotlinx.coroutines.flow.collect
 import com.djs66256.short_drama.feature.ranking.model.RankingDramaItemUiModel
 import com.djs66256.short_drama.feature.ranking.viewmodel.RankingEffect
 import com.djs66256.short_drama.feature.ranking.viewmodel.RankingUiState

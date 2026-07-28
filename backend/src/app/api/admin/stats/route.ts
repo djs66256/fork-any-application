@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withErrorHandler } from '@/middleware/error-handler';
 import { requireRole } from '@/middleware/auth';
 import { AdminService } from '@/services/admin/admin.service';
 
 export const GET = requireRole(
   ['admin', 'editor', 'viewer'],
-  withErrorHandler(async (request: NextRequest) => {
+  withErrorHandler(async () => {
     const service = new AdminService();
     const stats = await service.getStats();
 

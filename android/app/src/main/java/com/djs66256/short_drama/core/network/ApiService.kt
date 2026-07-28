@@ -1,7 +1,11 @@
 package com.djs66256.short_drama.core.network
 
+import com.djs66256.short_drama.data.dto.ApiEnvelopeDto
+import com.djs66256.short_drama.data.dto.AuthSessionPayloadDto
+import com.djs66256.short_drama.data.dto.AuthUserDto
 import com.djs66256.short_drama.data.dto.BookDramaResponseDto
 import com.djs66256.short_drama.data.dto.ClassificationTagsResponseDto
+import com.djs66256.short_drama.data.dto.CreateAuthSessionRequestDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.EpisodeListResponseDto
 import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
@@ -11,7 +15,11 @@ import com.djs66256.short_drama.data.dto.PlayerStartResponseDto
 import com.djs66256.short_drama.data.dto.PlayerStopRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStopResponseDto
 import com.djs66256.short_drama.data.dto.RankingListResponseDto
+import com.djs66256.short_drama.data.dto.RefreshAuthSessionRequestDto
+import com.djs66256.short_drama.data.dto.SendOtpPayloadDto
+import com.djs66256.short_drama.data.dto.SendOtpRequestDto
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -91,4 +99,25 @@ interface ApiService {
         @Header("X-Playback-Session-Id") playbackSessionId: String,
         @Body body: PlayerStopRequestDto,
     ): PlayerStopResponseDto
+
+    @POST("auth/otp-requests")
+    suspend fun sendOtpRequest(
+        @Body body: SendOtpRequestDto,
+    ): ApiEnvelopeDto<SendOtpPayloadDto>
+
+    @POST("auth/sessions")
+    suspend fun createAuthSession(
+        @Body body: CreateAuthSessionRequestDto,
+    ): ApiEnvelopeDto<AuthSessionPayloadDto>
+
+    @POST("auth/session-refreshes")
+    suspend fun refreshAuthSession(
+        @Body body: RefreshAuthSessionRequestDto,
+    ): ApiEnvelopeDto<AuthSessionPayloadDto>
+
+    @GET("users/me")
+    suspend fun getCurrentUser(): ApiEnvelopeDto<AuthUserDto>
+
+    @DELETE("auth/session")
+    suspend fun logout(): Unit
 }

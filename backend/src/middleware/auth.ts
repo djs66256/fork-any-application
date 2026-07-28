@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Errors, formatErrorResponse } from '@/lib/errors';
+import { AppError, Errors, formatErrorResponse } from '@/lib/errors';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
+import { getLocalAuthSessionByAccessToken, isLocalAccessToken } from '@/services/auth/local-auth-session.store';
 import type { RouteHandler } from './error-handler';
 
 function extractBearerToken(request: NextRequest): string | null {
@@ -12,24 +13,6 @@ function extractBearerToken(request: NextRequest): string | null {
 
   const token = authHeader.slice('Bearer '.length).trim();
   return token.length > 0 ? token : null;
-}
-
-export function getOptionalUserId(request: NextRequest): string | undefined {
-  const explicitUserId = request.headers.get('x-user-id')?.trim();
-  if (explicitUserId) {
-    return explicitUserId;
-  }
-
-  return extractBearerToken(request) ?? undefined;
-}
-
-export function getAuthenticatedUserId(request: NextRequest): string {
-  const userId = getOptionalUserId(request);
-  if (!userId) {
-    throw Errors.unauthorized();
-  }
-
-  return userId;
 }
 
 export interface AuthContext {
@@ -45,6 +28,18 @@ export async function verifyJwt(request: NextRequest): Promise<AuthContext | nul
   const token = extractBearerToken(request);
   if (!token) return null;
 
+  if (isLocalAccessToken(token)) {
+    const localSession = getLocalAuthSessionByAccessToken(token);
+    if (!localSession) {
+      return null;
+    }
+
+    return {
+      userId: localSession.userId,
+      role: localSession.role,
+    };
+  }
+
   try {
     const supabase = getSupabaseAdmin();
     const { data: { user }, error } = await supabase.auth.getUser(token);
@@ -55,7 +50,6 @@ export async function verifyJwt(request: NextRequest): Promise<AuthContext | nul
 
     const role = user.app_metadata?.role as string || 'viewer';
 
-    // Log warning for unknown role values
     if (!['admin', 'editor', 'viewer'].includes(role)) {
       console.warn(`[Auth] Unknown role '${role}' for user ${user.id}, treating as viewer`);
       return { userId: user.id, role: 'viewer' };
@@ -68,18 +62,42 @@ export async function verifyJwt(request: NextRequest): Promise<AuthContext | nul
   }
 }
 
+export async function resolveOptionalAuthContext(request: NextRequest): Promise<AuthContext | null> {
+  return verifyJwt(request);
+}
+
+export async function resolveRequiredAuthContext(request: NextRequest): Promise<AuthContext> {
+  const auth = await verifyJwt(request);
+  if (!auth) {
+    throw Errors.authUnauthorized('请先登录');
+  }
+
+  return auth;
+}
+
 /**
- * Skeleton auth wrapper. In the skeleton phase, it validates the
- * Authorization header format but does not enforce authentication.
- * Future implementation will verify the JWT via Supabase.
+ * Skeleton auth wrapper retained for compatibility.
+ * It now validates through the canonical auth contract.
  */
 export function requireAuth(handler: RouteHandler): RouteHandler {
   return async (request: NextRequest, context: unknown) => {
-    if (!extractBearerToken(request)) {
-      const err = Errors.unauthorized();
-      return NextResponse.json(formatErrorResponse(err), { status: err.statusCode });
+    try {
+      const auth = await resolveRequiredAuthContext(request);
+      (request as unknown as Record<string, unknown>).auth = auth;
+      return handler(request, context);
+    } catch (err) {
+      if (err instanceof AppError) {
+        return NextResponse.json(formatErrorResponse(err), { status: err.statusCode });
+      }
+      throw err;
     }
+  };
+}
 
+export function requireAuthContext(handler: RouteHandler): RouteHandler {
+  return async (request: NextRequest, context: unknown) => {
+    const auth = await resolveRequiredAuthContext(request);
+    (request as unknown as Record<string, unknown>).auth = auth;
     return handler(request, context);
   };
 }
@@ -93,22 +111,15 @@ export function requireRole(roles: string[], handler: RouteHandler): RouteHandle
     const auth = await verifyJwt(request);
 
     if (!auth) {
-      const err = Errors.unauthorized('请先登录');
-      return NextResponse.json(
-        { code: err.statusCode, data: null, message: err.message },
-        { status: err.statusCode },
-      );
+      const err = Errors.authUnauthorized('请先登录');
+      return NextResponse.json(formatErrorResponse(err), { status: err.statusCode });
     }
 
     if (!roles.includes(auth.role)) {
       const err = Errors.forbidden('无权访问');
-      return NextResponse.json(
-        { code: err.statusCode, data: null, message: err.message },
-        { status: err.statusCode },
-      );
+      return NextResponse.json(formatErrorResponse(err), { status: err.statusCode });
     }
 
-    // Inject auth context into request
     (request as unknown as Record<string, unknown>).auth = auth;
 
     return handler(request, context);
@@ -116,12 +127,12 @@ export function requireRole(roles: string[], handler: RouteHandler): RouteHandle
 }
 
 /**
- * Extract AuthContext from request (set by requireRole middleware).
+ * Extract AuthContext from request (set by middleware helpers).
  */
 export function getAuth(request: NextRequest): AuthContext {
   const auth = (request as unknown as Record<string, unknown>).auth as AuthContext | undefined;
   if (!auth) {
-    throw Errors.unauthorized('Auth context not found');
+    throw Errors.authUnauthorized('Auth context not found');
   }
   return auth;
 }

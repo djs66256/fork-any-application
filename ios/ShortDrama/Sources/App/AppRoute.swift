@@ -1,7 +1,7 @@
 import Foundation
 
 /// Navigation destinations within the app.
-enum AppRoute: Hashable {
+enum AppRoute: Hashable, Sendable {
     /// The main home screen.
     case home
     /// Search discovery home.
@@ -20,6 +20,8 @@ enum AppRoute: Hashable {
     case player(videoId: String)
     /// Detail screen for a specific drama.
     case dramaDetail(dramaId: String)
+    /// Settings screen under profile tab.
+    case settings
 
     var owningTab: AppTab {
         switch self {
@@ -33,6 +35,8 @@ enum AppRoute: Hashable {
              .player,
              .dramaDetail:
             return .home
+        case .settings:
+            return .profile
         }
     }
 
@@ -56,6 +60,8 @@ enum AppRoute: Hashable {
             return "play"
         case .dramaDetail:
             return "detail"
+        case .settings:
+            return "profile/settings"
         }
     }
 }

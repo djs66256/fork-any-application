@@ -10,6 +10,7 @@ final class NavigationRouter: ObservableObject {
     }
     @Published private(set) var pendingRoute: AppRoute?
     @Published private(set) var containerReady = false
+    @Published private(set) var presentedLoginContext: LoginInterceptionContext?
 
     func pathBinding(for tab: AppTab) -> Binding<NavigationPath> {
         Binding(
@@ -36,7 +37,8 @@ final class NavigationRouter: ObservableObject {
              .newReleases,
              .actorHub,
              .player,
-             .dramaDetail:
+             .dramaDetail,
+             .settings:
             var path = pathsByTab[tab] ?? NavigationPath()
             path.append(route)
             pathsByTab[tab] = path
@@ -54,6 +56,41 @@ final class NavigationRouter: ObservableObject {
         if let pendingRoute {
             self.pendingRoute = nil
             navigate(to: pendingRoute)
+        }
+    }
+
+    func presentLogin(context: LoginInterceptionContext?) {
+        presentedLoginContext = context ?? LoginInterceptionContext(source: .unknown)
+    }
+
+    func cancelLogin() {
+        presentedLoginContext = nil
+    }
+
+    func completeLogin() {
+        let context = presentedLoginContext
+        presentedLoginContext = nil
+
+        guard let returnRoute = context?.returnRoute else {
+            select(tab: .profile)
+            return
+        }
+
+        switch returnRoute {
+        case .home:
+            popToRoot(of: .home)
+        case .settings:
+            select(tab: .profile)
+            navigate(to: .settings)
+        case .searchHome,
+             .searchResult,
+             .rankingHome,
+             .classificationHome,
+             .newReleases,
+             .actorHub,
+             .player,
+             .dramaDetail:
+            select(tab: returnRoute.owningTab)
         }
     }
 

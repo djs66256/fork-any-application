@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RankingQuerySchema } from '@/lib/schemas';
-import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
 import { DramaService } from '@/services/drama/drama.service';
 import { withErrorHandler } from '@/middleware/error-handler';
-import { getOptionalUserId } from '@/middleware/auth';
+import { resolveOptionalAuthContext } from '@/middleware/auth';
+import { DramaSupabaseRepository } from '@/repositories/supabase/drama.supabase.repository';
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
@@ -14,11 +14,10 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     pageSize: searchParams.get('pageSize') ?? undefined,
   });
 
-  const repository = new DramaMockRepository();
+  const repository = new DramaSupabaseRepository();
   const service = new DramaService(repository);
-  const userId = getOptionalUserId(request);
-  const authContext = userId ? { userId } : undefined;
-  const result = await service.listRankings(query, authContext);
+  const authContext = await resolveOptionalAuthContext(request) ?? undefined;
+  const result = await service.listRankings(query, authContext ? { userId: authContext.userId } : undefined);
 
   return NextResponse.json(result);
 });

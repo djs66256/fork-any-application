@@ -8,6 +8,7 @@ protocol PlaybackSessionStore: Sendable {
 protocol KeychainClient: Sendable {
     func read(service: String, account: String, accessGroup: String?) throws -> String?
     func write(value: String, service: String, account: String, accessGroup: String?) throws
+    func delete(service: String, account: String, accessGroup: String?) throws
 }
 
 struct SystemKeychainClient: KeychainClient {
@@ -53,6 +54,14 @@ struct SystemKeychainClient: KeychainClient {
         addQuery[kSecValueData as String] = data
         let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
         guard addStatus == errSecSuccess else {
+            throw APIError.invalidResponse
+        }
+    }
+
+    func delete(service: String, account: String, accessGroup: String?) throws {
+        let query = baseQuery(service: service, account: account, accessGroup: accessGroup)
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
             throw APIError.invalidResponse
         }
     }

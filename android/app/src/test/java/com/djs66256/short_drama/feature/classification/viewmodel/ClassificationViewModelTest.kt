@@ -135,7 +135,6 @@ class ClassificationViewModelTest {
         advanceUntilIdle()
 
         viewModel.effects.test {
-            skipItems(1)
             viewModel.onGenderSelected(ClassificationGender.MALE)
             advanceUntilIdle()
 
