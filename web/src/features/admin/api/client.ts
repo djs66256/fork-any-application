@@ -12,7 +12,10 @@ import type {
 import { AdminApiError } from './types';
 
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_API_URL ?? '';
+  }
+  return process.env.NEXT_PUBLIC_API_URL ?? `http://localhost:${process.env.PORT ?? '3001'}`;
 }
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -113,7 +116,8 @@ export const adminApi = {
 
   // Episodes
   async listEpisodes(dramaId: string): Promise<AdminEpisode[]> {
-    return adminFetch<AdminEpisode[]>(`/api/admin/dramas/${dramaId}/episodes`);
+    const result = await adminFetch<{ drama_id: string; items: AdminEpisode[] }>(`/api/admin/dramas/${dramaId}/episodes`);
+    return result.items ?? [];
   },
 
   async createEpisode(dramaId: string, data: AdminEpisodeFormData): Promise<AdminEpisode> {

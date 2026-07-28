@@ -125,7 +125,7 @@ export function UserList() {
           style={{
             fontSize: 'var(--font-size-sm)',
             color: 'var(--color-error)',
-            backgroundColor: '#fef2f2',
+            backgroundColor: 'var(--color-error-bg)',
             padding: 'var(--spacing-sm)',
             borderRadius: 'var(--radius-sm)',
           }}

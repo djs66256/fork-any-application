@@ -3,17 +3,16 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: #f3f4f6;
+  background-color: var(--color-layout-bg);
 }
 
 .loginCard {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: var(--spacing-xl);
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .title {
@@ -52,27 +51,27 @@
 .input {
   height: 40px;
   padding: 0 var(--spacing-sm);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-input-border);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
-  background-color: #ffffff;
+  background-color: var(--color-input-bg);
   outline: none;
 }
 
 .input:focus {
-  border-color: #2563EB;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
 }
 
 .input::placeholder {
-  color: #9ca3af;
+  color: var(--color-text-secondary);
 }
 
 .errorMessage {
   font-size: 12px;
   color: var(--color-error);
-  background-color: #fef2f2;
+  background-color: var(--color-error-bg);
   padding: var(--spacing-sm);
   border-radius: var(--radius-sm);
   text-align: center;
@@ -80,7 +79,7 @@
 
 .submitButton {
   height: 40px;
-  background-color: #2563EB;
+  background-color: var(--color-primary);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
@@ -91,7 +90,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  background-color: var(--color-primary-hover);
 }
 
 .submitButton:disabled {

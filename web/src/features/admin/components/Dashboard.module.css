@@ -32,7 +32,7 @@
 }
 
 .retryButton {
-  background-color: #2563EB;
+  background-color: var(--color-primary);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
@@ -42,5 +42,5 @@
 }
 
 .retryButton:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-primary-hover);
 }

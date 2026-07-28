@@ -4,7 +4,9 @@ import { requireRole } from '@/middleware/auth';
 import { AdminDramaCreateSchema } from '@/lib/schemas';
 import { AdminService } from '@/services/admin/admin.service';
 
-export const GET = requireRole(
+import { withCors } from '@/middleware/cors';
+
+export const GET = withCors(requireRole(
   ['admin', 'editor', 'viewer'],
   withErrorHandler(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
@@ -20,9 +22,9 @@ export const GET = requireRole(
       message: 'ok',
     });
   }),
-);
+));
 
-export const POST = requireRole(
+export const POST = withCors(requireRole(
   ['admin', 'editor'],
   withErrorHandler(async (request: NextRequest) => {
     const body = await request.json();
@@ -40,4 +42,4 @@ export const POST = requireRole(
       { status: 201 },
     );
   }),
-);
+));

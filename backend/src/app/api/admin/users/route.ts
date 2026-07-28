@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandler } from '@/middleware/error-handler';
+import { withCors } from '@/middleware/cors';
 import { requireRole } from '@/middleware/auth';
 import { AdminService } from '@/services/admin/admin.service';
 
-export const GET = requireRole(
+export const GET = withCors(requireRole(
   ['admin'],
   withErrorHandler(async (request: NextRequest) => {
     const { searchParams } = new URL(request.url);
@@ -19,4 +20,4 @@ export const GET = requireRole(
       message: 'ok',
     });
   }),
-);
+));

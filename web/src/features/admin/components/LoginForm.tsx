@@ -29,13 +29,16 @@ export function LoginForm() {
     e.preventDefault();
     if (!validate()) return;
 
-    await login(email, password);
-
-    // Check if login succeeded (no error)
-    const supabase = (await import('@/lib/supabase')).getSupabaseBrowserClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      router.push('/admin');
+    try {
+      await login(email, password);
+      // login() is synchronous in terms of session state — check after completion
+      const supabase = (await import('@/lib/supabase')).getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push('/admin');
+      }
+    } catch {
+      // Login error is already handled by useAuth hook via error state
     }
   };
 

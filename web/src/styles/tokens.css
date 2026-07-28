@@ -14,6 +14,46 @@
   --color-border: #e5e7eb;
   --color-error: #ef4444;
 
+  /* ── Extended Colors ────────────────────────────────────── */
+  --color-error-bg: #fef2f2;
+  --color-sidebar-bg: #f8fafc;
+  --color-sidebar-hover: #e2e8f0;
+  --color-table-header-bg: #f9fafb;
+  --color-input-bg: #ffffff;
+  --color-input-border: #e5e7eb;
+  --color-table-row-hover: #f8fafc;
+  --color-skeleton: #e5e7eb;
+
+  /* Toast */
+  --color-toast-success-bg: #ecfdf5;
+  --color-toast-success-text: #065f46;
+  --color-toast-success-border: #a7f3d0;
+  --color-toast-error-bg: #fef2f2;
+  --color-toast-error-text: #991b1b;
+  --color-toast-error-border: #fecaca;
+  --color-toast-info-bg: #eff6ff;
+  --color-toast-info-text: #1e40af;
+  --color-toast-info-border: #bfdbfe;
+
+  /* Primary tint */
+  --color-primary-bg: #dbeafe;
+  --color-primary-text: #6366f1;
+
+  /* Role badges */
+  --color-role-editor-bg: #dcfce7;
+  --color-role-editor-text: #16a34a;
+  --color-role-viewer-bg: #f3f4f6;
+  --color-role-viewer-text: #6b7280;
+
+  /* Layout */
+  --color-layout-bg: #f3f4f6;
+
+  /* Overlay */
+  --color-modal-overlay: rgba(0, 0, 0, 0.4);
+
+  /* Focus */
+  --color-focus-ring: rgba(99, 102, 241, 0.15);
+
   /* ── Spacing ────────────────────────────────────────────── */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -46,5 +86,45 @@
     --color-text-secondary: #94a3b8;
     --color-border: #334155;
     --color-error: #f87171;
+
+    /* ── Extended Colors (dark) ────────────────────────────── */
+    --color-error-bg: #450a0a;
+    --color-sidebar-bg: #1e293b;
+    --color-sidebar-hover: #334155;
+    --color-table-header-bg: #1e293b;
+    --color-input-bg: #1e293b;
+    --color-input-border: #334155;
+    --color-table-row-hover: #1e293b;
+    --color-skeleton: #334155;
+
+    /* Toast (dark) */
+    --color-toast-success-bg: #064e3b;
+    --color-toast-success-text: #6ee7b7;
+    --color-toast-success-border: #047857;
+    --color-toast-error-bg: #450a0a;
+    --color-toast-error-text: #fca5a5;
+    --color-toast-error-border: #7f1d1d;
+    --color-toast-info-bg: #1e3a5f;
+    --color-toast-info-text: #93c5fd;
+    --color-toast-info-border: #1e40af;
+
+    /* Primary tint (dark) */
+    --color-primary-bg: #1e3a5f;
+    --color-primary-text: #818cf8;
+
+    /* Role badges (dark) */
+    --color-role-editor-bg: #064e3b;
+    --color-role-editor-text: #6ee7b7;
+    --color-role-viewer-bg: #1e293b;
+    --color-role-viewer-text: #94a3b8;
+
+    /* Layout (dark) */
+    --color-layout-bg: #0f172a;
+
+    /* Overlay (dark) */
+    --color-modal-overlay: rgba(0, 0, 0, 0.6);
+
+    /* Focus (dark) */
+    --color-focus-ring: rgba(129, 140, 248, 0.25);
   }
 }

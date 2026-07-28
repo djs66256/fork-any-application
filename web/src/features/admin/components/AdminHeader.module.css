@@ -1,7 +1,7 @@
 .header {
   height: 56px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -12,7 +12,7 @@
 .logo {
   font-size: var(--font-size-lg);
   font-weight: 700;
-  color: #2563EB;
+  color: var(--color-primary-text);
 }
 
 .userSection {
@@ -30,8 +30,8 @@
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 12px;
-  background-color: #dbeafe;
-  color: #2563EB;
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary-text);
   font-weight: 500;
 }
 
@@ -47,5 +47,5 @@
 
 .logoutButton:hover {
   color: var(--color-error);
-  background-color: #fef2f2;
+  background-color: var(--color-error-bg);
 }

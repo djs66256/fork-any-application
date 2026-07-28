@@ -312,7 +312,7 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 export const AdminLoginRequestSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8).max(72),
+  password: z.string().min(6).max(72),
 });
 
 export type AdminLoginRequest = z.infer<typeof AdminLoginRequestSchema>;

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandler } from '@/middleware/error-handler';
+import { withCors } from '@/middleware/cors';
 import { AdminLoginRequestSchema } from '@/lib/schemas';
 import { getSupabaseAdmin } from '@/infrastructure/supabase';
 import { Errors } from '@/lib/errors';
 
-export const POST = withErrorHandler(async (request: NextRequest) => {
+export const POST = withCors(withErrorHandler(async (request: NextRequest) => {
   const body = await request.json();
   const { email, password } = AdminLoginRequestSchema.parse(body);
 
@@ -32,4 +33,4 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     },
     message: 'ok',
   });
-});
+}));
