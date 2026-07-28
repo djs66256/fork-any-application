@@ -1,14 +1,14 @@
 # 排行体系 (Ranking)
 
-> 最后更新：2026-07-27
+> 最后更新：2026-07-28
 > 覆盖端：Android / iOS / Backend（Web 本期不实现）
 
 ## 功能概述
 
-排行体系在既有搜索发现快捷入口和移动端 Native 路由承接页之上，补齐了“按榜单集中发现内容”的浏览链路。当前 Android 与 iOS 都会从搜索页“排行”入口进入真实排行页，默认请求 `contentType=all&type=hot&page=1&pageSize=10`，并通过 Backend `GET /api/dramas/rankings` 返回分页榜单；用户可在“全部 / 真人 / AI”与“热榜 / 推荐榜 / 预约榜”两个维度间切换，排行项继续复用现有 canonical `play` 路由语义进入播放器承接页。商城（mall）与赚钱（earn）仍按 H5 承载，不属于本期排行实现范围（`PRODUCT.md:22-25`）。
+排行体系在既有搜索发现快捷入口和移动端 Native 路由承接页之上，补齐了“按榜单集中发现内容”的浏览链路。当前 Android 与 iOS 已同时从搜索页“排行”入口和剧场频道快捷入口进入真实排行页：普通“排行”默认请求 `contentType=all&type=hot&page=1&pageSize=10`，而剧场“预约”快捷入口会直接把排行页初始化到 `all + booking` 上下文，并通过 Backend `GET /api/dramas/rankings` 返回分页榜单；用户可在“全部 / 真人 / AI”与“热榜 / 推荐榜 / 预约榜”两个维度间切换，排行项继续复用现有 canonical `play` 路由语义进入播放器承接页。商城（mall）与赚钱（earn）仍按 H5 承载，不属于本期排行实现范围（`PRODUCT.md:22-25`）。
 
-- **核心价值**：为热门、推荐与预约内容提供结构化聚合入口，补齐搜索发现页到内容消费的主路径
-- **覆盖范围**：Backend 排行与预约接口、Android 排行页、iOS 排行页、搜索页快捷入口到播放页的导航链路
+- **核心价值**：为热门、推荐与预约内容提供结构化聚合入口，补齐搜索发现页和剧场频道到内容消费的主路径
+- **覆盖范围**：Backend 排行与预约接口、Android 排行页、iOS 排行页、搜索页/剧场快捷入口到播放页的导航链路
 - **当前状态**：Android / iOS / Backend 已落地；Web 仅保留 `/rankings` 占位页，不实现真实榜单（`web/src/app/rankings/page.tsx:1-9`）
 
 ## 入口与路由
@@ -16,8 +16,10 @@
 | 端 | 入口 | 路由 / 触发方式 | 源文件 |
 |----|------|----------------|--------|
 | Android | 搜索发现快捷入口“排行” | `AppDestination.ranking()`，默认生成 `ranking?contentType=all&type=hot` | `android/app/src/main/java/com/djs66256/short_drama/feature/search/model/SearchQuickEntry.kt:18-39`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:48-50,106-110` |
+| Android | 剧场快捷入口“排行 / 预约” | `ranking?contentType=all&type=hot` / `ranking?contentType=all&type=booking`，先切回 `HOME` tab 再承载 | `android/app/src/main/java/com/djs66256/short_drama/navigation/TheaterShortcutRoute.kt:8-23`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:428-433` |
 | Android | Deeplink | `djsdrama://ranking`，进入 `PendingRoute.Ranking` 后导航至默认排行页 | `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt:33-41`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:89-92` |
 | iOS | 搜索发现快捷入口“排行” | `QuickEntryType.ranking -> .rankingHome` | `ios/ShortDrama/Sources/Domain/Entities/QuickEntry.swift:20-26`, `ios/ShortDrama/Sources/Features/Search/ViewModels/SearchHomeViewModel.swift:76-87` |
+| iOS | 剧场快捷入口“排行 / 预约” | `.openRanking(TheaterRankingEntryContext(rankingType: .hot/.booking))` | `ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:57-63` |
 | iOS | Deeplink | `djsdrama://ranking`，解析为 `.rankingHome` | `ios/ShortDrama/Sources/App/DeeplinkHandler.swift:26-45` |
 | Android / iOS | 排行项播放入口 | 点击排行项后复用 `play` 语义进入播放页；Android 兼容 `player` 历史别名，iOS 仅公开 `play` | `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:44-50,94-109`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:200-208`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:3-8`, `ios/ShortDrama/Sources/App/AppRoute.swift:39-60` |
 | Backend | 排行 / 预约接口 | `GET /api/dramas/rankings`、`POST /api/dramas/:id/book` | `backend/src/app/api/dramas/rankings/route.ts:8-24`, `backend/src/app/api/dramas/[id]/book/route.ts:16-28` |
@@ -166,6 +168,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：补充 PRD-12 剧场“排行 / 预约”快捷入口会复用排行页，并分别记录 Android `ranking?contentType=all&type=booking` 与 iOS `TheaterRankingEntryContext` 的首屏上下文注入方案 |
 | 2026-07-27 | 初始创建：收录 PRD-05 排行体系的搜索入口、双层 Tab、分页、预约拦截、`play` 路由复用、Backend 排行/预约接口与多端范围边界 |
 
 ---

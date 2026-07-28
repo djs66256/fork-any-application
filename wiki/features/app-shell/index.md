@@ -4,11 +4,11 @@
 
 ## 功能概述
 
-应用壳负责承载各端应用的启动入口、路由容器与基础页面骨架。PRD-01 已将移动端应用从单页占位结构演进为 5 个一级频道的底部导航容器；PRD-02 让首页频道从“应用信息占位页”演进为 Native 首页 Feed 首屏；PRD-05 把排行能力挂载到首页频道所属的搜索发现链路下；PRD-06 则继续把分类浏览能力挂载到同一条发现链路中，用真实 Native 分类页替换 Android / iOS 既有分类占位承接页；PRD-07 再在首页根页左上角补充汉堡菜单触发的左侧抽屉式菜单面板，由 App Shell 统一承载 overlay/menu state，并在关闭动画完成后再执行菜单内导航。Web 端继续维持 SSR-first 的 Next.js App Router 结构，本期没有落地对应菜单面板；商城（mall）与赚钱（earn）继续由 H5 承载，不属于本期菜单面板范围（`PRODUCT.md:22-25`）。
+应用壳负责承载各端应用的启动入口、路由容器与基础页面骨架。PRD-01 已将移动端应用从单页占位结构演进为 5 个一级频道的底部导航容器；PRD-02 让首页频道从“应用信息占位页”演进为 Native 首页 Feed 首屏；PRD-05 把排行能力挂载到首页频道所属的搜索发现链路下；PRD-06 则继续把分类浏览能力挂载到同一条发现链路中，用真实 Native 分类页替换 Android / iOS 既有分类占位承接页；PRD-07 再在首页根页左上角补充汉堡菜单触发的左侧抽屉式菜单面板，由 App Shell 统一承载 overlay/menu state，并在关闭动画完成后再执行菜单内导航；PRD-12 则把“剧场”从占位一级频道推进为真实 Native 内容入口，并明确剧场内搜索/分类/排行/新剧会切回首页所属导航栈复用既有页面，只有剧场 feed 本身留在 theater tab 内承载。Web 端继续维持 SSR-first 的 Next.js App Router 结构，本期没有落地对应菜单面板或剧场频道；商城（mall）与赚钱（earn）继续由 H5 承载（`PRODUCT.md:22-25`）。
 
 - **覆盖端**：Web、Android、iOS、Backend
-- **核心价值**：为首页 Feed、菜单抽屉、搜索发现、排行页、分类页、播放页和详情页提供统一承载容器
-- **当前状态**：移动端导航骨架已落地，其中首页频道已接入 Feed、左侧菜单抽屉、搜索发现、排行与分类等真实 Native 子页面；其余频道仍以占位实现为主
+- **核心价值**：为首页 Feed、剧场频道、菜单抽屉、搜索发现、排行页、分类页、播放页和详情页提供统一承载容器
+- **当前状态**：移动端导航骨架已落地，其中首页频道已接入 Feed、左侧菜单抽屉、搜索发现、排行与分类等真实 Native 子页面，剧场频道也已接入真实 feed；商城、赚钱、我的仍以占位实现为主
 
 ## 入口与路由
 
@@ -53,7 +53,7 @@
 ### Backend 端
 1. 服务首页继续作为运行信息与入口页，不参与移动端首页容器渲染。
 2. `/api/health` 继续提供健康检查。
-3. `GET /api/dramas` 继续承载首页 Feed 数据，`GET /api/dramas/search` / `GET /api/dramas/hot-search` 继续承载搜索发现链路，`GET /api/dramas/tags` 继续承载分类页标签矩阵，`GET /api/dramas/rankings` / `POST /api/dramas/:id/book` 继续承载排行浏览与预约能力（`backend/src/app/api/dramas/route.ts:8-24`, `backend/src/app/api/dramas/search/route.ts:7-19`, `backend/src/app/api/dramas/hot-search/route.ts:6-11`, `backend/src/app/api/dramas/tags/route.ts:7-18`, `backend/src/app/api/dramas/rankings/route.ts:8-24`, `backend/src/app/api/dramas/[id]/book/route.ts:16-28`）。
+3. `GET /api/dramas` 继续承载首页 Feed 数据，`GET /api/dramas/channel` 新增承载剧场 Feed，`GET /api/dramas/search` / `GET /api/dramas/hot-search` 继续承载搜索发现链路，`GET /api/dramas/tags` 继续承载分类页标签矩阵，`GET /api/dramas/rankings` / `POST /api/dramas/:id/book` 继续承载排行浏览与预约能力（`backend/src/app/api/dramas/route.ts:8-24`, `backend/src/app/api/dramas/channel/route.ts:1-17`, `backend/src/app/api/dramas/search/route.ts:7-19`, `backend/src/app/api/dramas/hot-search/route.ts:6-11`, `backend/src/app/api/dramas/tags/route.ts:7-18`, `backend/src/app/api/dramas/rankings/route.ts:8-24`, `backend/src/app/api/dramas/[id]/book/route.ts:16-28`）。
 4. `GET /api/player/recently-viewed` 已成为首页菜单“最近在看”的统一数据源；`progress/start/stop` 继续与其共享 `X-Playback-Session-Id`，由播放器历史链路提供菜单候选记录（`backend/src/app/api/player/recently-viewed/route.ts:1-21`, `backend/src/app/api/player/parse-playback-session-id.ts:1-17`, `backend/src/services/player/player.service.ts:100-142`, `backend/src/app/api/player/start/route.ts:1-47`, `backend/src/app/api/player/stop/route.ts:1-48`）。
 
 ### Android 端
@@ -62,14 +62,14 @@
 3. 首页 graph 当前承载真实 `HomeScreen` Feed、`SearchHomeScreen`、`SearchResultScreen`、`RankingScreen`、`ClassificationScreen`、`new-releases` / `actors` 占位页，以及 `menu/login`、`menu/messages`、`menu/booking`、`menu/downloads` 等菜单承接页（`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:172-258`）。
 4. `MainNavigationViewModel` 额外维护 `menuPanelState`、`pendingMenuRoute` 与 `pendingRoute`；菜单打开只允许发生在首页 Tab，菜单关闭后才会把首个待跳转目标转交导航层消费，避免 closing 阶段重复点击导致多次跳转（`android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt:21-116`）。
 5. `MenuPanelDrawer` 通过左侧 0.78 屏宽抽屉、0.42 alpha 背景遮罩与 240ms 动画渲染 overlay，并在 `BackHandler` 中优先消费返回动作；`MenuPanelRoute` 则负责最近在看加载、静态区块交互、游戏中心 snackbar 反馈与菜单内播放器跳转（`android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelDrawer.kt:27-106`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelScreen.kt:31-123`）。
-6. 剧场、商城、赚钱、我的仍渲染共享 `PlaceholderScreen`，避免同构占位实现重复（`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:302-347`）。
+6. 剧场已切换为真实 `TheaterScreen`；商城、赚钱、我的仍复用共享 `PlaceholderScreen`，避免同构占位实现重复（`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:271-347`）。
 7. `LaunchedEffect(uiState.pendingRoute)` 在导航容器 ready 后消费待执行路由，实现冷启动 deeplink 延迟跳转；其中菜单承接页、最近在看播放页、排行页与分类页都复用同一套 pending route 消费机制（`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:61-129`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:142-155`）。
 
 ### iOS 端
 1. `ShortDramaApp` 持有单例 `NavigationRouter` 并通过 `.environmentObject(router)` 注入全局导航状态（`ios/ShortDrama/Sources/App/ShortDramaApp.swift:7-23`）。
 2. `AppShellView` 以 `TabView` 渲染 5 个一级频道，并在最外层 `ZStack` 中叠加 `MenuPanelContainerView`；当菜单可见时会禁用底层 `TabView` 交互，并在 `.task` 中调用 `router.markContainerReady()` 标记容器可导航（`ios/ShortDrama/Sources/App/AppShellView.swift:10-31`）。
 3. `NavigationRouter` 为每个 Tab 维护独立 `NavigationPath`，并新增 `menuPanelState`、`pendingMenuNavigation` 与 `isMenuPanelVisible`；菜单只允许在 home Tab 打开，关闭动画结束后才会真正执行菜单内导航（`ios/ShortDrama/Sources/App/NavigationRouter.swift:15-145`, `ios/ShortDrama/Sources/App/AppRoute.swift:23-39`）。
-4. `TabNavigationHostView` 为每个 Tab 提供独立 `NavigationStack`，首页注册 `HomeView`、`SearchHomeView`、`SearchResultView`、`RankingHomeView`、`ClassificationHomeView`、`MenuPlaceholderView`、`PlayerView`、`DramaDetailView`，其余频道复用 `PlaceholderTabView`（`ios/ShortDrama/Sources/App/TabNavigationHostView.swift:9-45`）。
+4. `TabNavigationHostView` 为每个 Tab 提供独立 `NavigationStack`，首页注册 `HomeView`、`SearchHomeView`、`SearchResultView`、`RankingHomeView`、`ClassificationHomeView`、`MenuPlaceholderView`、`PlayerView`、`DramaDetailView`，剧场 tab 直接渲染 `TheaterView()`，仅商城、赚钱、我的继续复用 `PlaceholderTabView`（`ios/ShortDrama/Sources/App/TabNavigationHostView.swift:9-47`）。
 5. `HomeView` 左上角 toolbar 汉堡按钮调用 `router.openMenuPanel()`；`MenuPanelContainerView` 负责最近在看加载、登录/消息/预约/下载先关菜单再导航，以及游戏中心 `Alert` 本地反馈（`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:41-59`, `ios/ShortDrama/Sources/Features/MenuPanel/Views/MenuPanelContainerView.swift:12-71`）。
 6. `ClassificationHomeView` 仍在首页 Tab 的子路径中默认加载分类标签矩阵，请求成功后渲染左侧维度 rail 与右侧标签分组，而不是旧的占位承接页（`ios/ShortDrama/Sources/Features/Classification/Views/ClassificationHomeView.swift:18-69`）。
 
@@ -171,7 +171,7 @@
 
 ## 已知限制
 
-- 除首页、搜索发现、排行、分类与菜单面板承接页外，剧场、商城、赚钱、我的在 iOS/Android 仍为占位页，真实业务内容尚未接入。
+- 除首页、剧场、搜索发现、排行、分类与菜单面板承接页外，商城、赚钱、我的在 iOS/Android 仍为占位页，真实业务内容尚未接入。
 - Web 端当前只补齐路由骨架，没有实现移动端同等的底部导航 UI，也没有实现首页汉堡菜单或对应抽屉面板。
 - 商城（mall）与赚钱（earn）保持 H5 承载，但当前移动端代码仍是 placeholder tab，尚未接入真实 H5 容器（`PRODUCT.md:22-25`）。
 - 菜单中的登录、消息、预约、下载仍是 Native 占位承接页；游戏中心仅提供“即将上线”本地反馈，不导航到真实页面。
@@ -183,6 +183,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：同步 PRD-12 剧场频道落地结果，补充剧场一级 tab、`GET /api/dramas/channel`、剧场到首页拥有页面的跨 tab 复用策略，并修正文档中剧场仍为占位页的过时描述 |
 | 2026-07-28 | 更新：同步 PRD-07 菜单面板落地结果，补充首页左上角汉堡菜单触发的抽屉 overlay、菜单承接页路由、最近在看状态与关闭后导航时序，并明确 Web 不涉及本期菜单面板 |
 | 2026-07-27 | 更新：同步 PRD-06 后首页频道进一步承载真实分类页，补充 Backend 搜索/热搜/分类 tags 接口、移动端 classification 子路由与 Web 仍无真实分类页的现状 |
 | 2026-07-27 | 更新：同步 PRD-05 后首页频道承载搜索发现与真实排行页，补充 Backend 排行/预约接口、移动端排行子路由与 Web 仍为占位页的现状 |

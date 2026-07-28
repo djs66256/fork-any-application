@@ -1,11 +1,11 @@
 # 搜索发现 (Search Discovery)
 
-> 最后更新：2026-07-27
+> 最后更新：2026-07-28
 > 覆盖端：Android / iOS / Backend（Web 本期不实现）
 
 ## 功能概述
 
-搜索发现能力在 PRD-02 首页信息流与 PRD-03 播放主链路之上，补齐“主动找内容”和“探索式发现”的二级入口。当前 Android 与 iOS 都已从首页右上角接入搜索入口，并落地搜索发现页、搜索结果页、快捷入口承接页、本地搜索历史与热搜榜；Backend 同步提供 `GET /api/dramas/search` 与 `GET /api/dramas/hot-search` 两个接口，搜索结果继续复用首页 `Drama` 列表契约与播放/详情路由语义。Web 仍保持 `/search`、`/rankings` 占位页，不属于本期真实交付范围（`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:41-49`、`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:92-111`、`backend/src/app/api/dramas/search/route.ts:7-19`、`backend/src/app/api/dramas/hot-search/route.ts:6-11`、`web/src/app/search/page.tsx:1-10`、`web/src/app/rankings/page.tsx:1-10`）。
+搜索发现能力在 PRD-02 首页信息流与 PRD-03 播放主链路之上，补齐“主动找内容”和“探索式发现”的二级入口。当前 Android 与 iOS 已同时从首页右上角和剧场频道顶部搜索框接入搜索入口，并落地搜索发现页、搜索结果页、快捷入口承接页、本地搜索历史与热搜榜；Backend 同步提供 `GET /api/dramas/search` 与 `GET /api/dramas/hot-search` 两个接口，搜索结果继续复用首页 `Drama` 列表契约与播放/详情路由语义。剧场内触发搜索时会直接切回首页所属导航栈复用既有搜索页，而不会在剧场 tab 内再实现一套搜索页面。Web 仍保持 `/search`、`/rankings` 占位页，不属于本期真实交付范围（`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:41-49`、`ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift`、`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:92-111`、`android/app/src/main/java/com/djs66256/short_drama/feature/theater/viewmodel/TheaterViewModel.kt`、`backend/src/app/api/dramas/search/route.ts:7-19`、`backend/src/app/api/dramas/hot-search/route.ts:6-11`、`web/src/app/search/page.tsx:1-10`、`web/src/app/rankings/page.tsx:1-10`）。
 
 - **核心价值**：让用户可以从首页主动搜索短剧、查看热搜和通过排行/分类/新剧/演员入口继续探索内容
 - **覆盖范围**：Backend 搜索接口与热搜接口、Android 搜索发现页/搜索结果页/本地历史、iOS 搜索发现页/搜索结果页/本地历史
@@ -164,6 +164,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：补充 PRD-12 剧场频道顶部搜索框会切回首页所属导航栈复用既有搜索发现页，不在剧场 tab 内重复实现搜索页面 |
 | 2026-07-27 | 初始创建：收录 PRD-04 搜索发现的首页搜索入口、搜索发现页/结果页、快捷入口承接页、本地历史、热搜榜、deeplink 扩展与 Backend 搜索/热搜接口 |
 
 ---

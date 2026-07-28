@@ -1,11 +1,11 @@
 # 分类浏览 (Classification)
 
-> 最后更新：2026-07-27
+> 最后更新：2026-07-28
 > 覆盖端：Android / iOS / Backend（Web 本期不实现）
 
 ## 功能概述
 
-分类浏览能力在 PRD-04 搜索发现与 PRD-05 排行体系之后，继续补齐“按题材标签结构化找内容”的探索链路。当前 Android 与 iOS 都已从搜索发现快捷入口进入真实分类页；用户可在 `全部 / 男频 / 女频` 三个性别维度下浏览固定三组分类维度——`时代背景`、`主题情节`、`角色设定`——点击任一标签后不新建独立结果页，而是直接复用既有搜索结果页与 `GET /api/dramas/search` 主链路。Backend 同步提供 `GET /api/dramas/tags` 作为分类页唯一数据源，并把搜索命中规则从 `title + category` 扩展为 `title + category + tags`。Web 继续保持搜索相关占位页，不在本期实现真实分类浏览（`backend/src/app/api/dramas/tags/route.ts:7-18`、`backend/src/app/api/dramas/search/route.ts:7-19`、`android/app/src/main/java/com/djs66256/short_drama/feature/search/model/SearchQuickEntry.kt:18-39`、`android/app/src/main/java/com/djs66256/short_drama/feature/classification/ui/ClassificationScreen.kt:58-127`、`ios/ShortDrama/Sources/Domain/Entities/QuickEntry.swift:20-27`、`ios/ShortDrama/Sources/Features/Classification/Views/ClassificationHomeView.swift:18-69`、`web/src/app/search/page.tsx:1-10`）。
+分类浏览能力在 PRD-04 搜索发现与 PRD-05 排行体系之后，继续补齐“按题材标签结构化找内容”的探索链路。当前 Android 与 iOS 已同时从搜索发现快捷入口和剧场频道快捷入口进入真实分类页；用户可在 `全部 / 男频 / 女频` 三个性别维度下浏览固定三组分类维度——`时代背景`、`主题情节`、`角色设定`——点击任一标签后不新建独立结果页，而是直接复用既有搜索结果页与 `GET /api/dramas/search` 主链路。Backend 同步提供 `GET /api/dramas/tags` 作为分类页唯一数据源，并把搜索命中规则从 `title + category` 扩展为 `title + category + tags`。剧场内点击“分类”时会直接切回首页所属导航栈承载该页面，不在剧场 tab 内重复实现分类页。Web 继续保持搜索相关占位页，不在本期实现真实分类浏览（`backend/src/app/api/dramas/tags/route.ts:7-18`、`backend/src/app/api/dramas/search/route.ts:7-19`、`android/app/src/main/java/com/djs66256/short_drama/feature/search/model/SearchQuickEntry.kt:18-39`、`android/app/src/main/java/com/djs66256/short_drama/navigation/TheaterShortcutRoute.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/classification/ui/ClassificationScreen.kt:58-127`、`ios/ShortDrama/Sources/Domain/Entities/QuickEntry.swift:20-27`、`ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift`、`ios/ShortDrama/Sources/Features/Classification/Views/ClassificationHomeView.swift:18-69`、`web/src/app/search/page.tsx:1-10`）。
 
 - **核心价值**：把搜索发现从“输入关键词找内容”扩展为“按分类标签结构化浏览并继续进入搜索结果”
 - **覆盖范围**：Backend 分类标签接口与 tags 搜索扩展、Android 分类页、iOS 分类页、搜索发现快捷入口到搜索结果页的导航链路
@@ -177,6 +177,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：补充 PRD-12 剧场“分类”快捷入口会切回首页所属导航栈复用既有分类页，而不是在剧场 tab 内重复实现分类页面 |
 | 2026-07-27 | 初始创建：收录 PRD-06 分类浏览的搜索发现入口、固定三维度标签矩阵、`GET /api/dramas/tags`、tags 搜索扩展、两端分类页状态机与搜索结果页复用策略 |
 
 ---

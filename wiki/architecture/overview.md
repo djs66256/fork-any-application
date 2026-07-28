@@ -4,7 +4,7 @@
 
 ## 概述
 
-项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 进一步把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口作为首页首屏数据源；PRD-05 则在首页频道下落地搜索发现与排行浏览链路；PRD-06 继续补齐分类浏览链路；PRD-07 再把首页左上角汉堡菜单扩展为由应用壳统一承载的左侧抽屉式菜单面板，并新增 `GET /api/player/recently-viewed` 作为 Android / iOS 菜单中“最近在看”的统一数据源。Web 端继续保持路由骨架与首页壳，不在本期实现真实菜单面板；商城（mall）与赚钱（earn）继续由 H5 承载，不属于本期菜单范围（`PRODUCT.md:22-25`）。
+项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 进一步把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口作为首页首屏数据源；PRD-05 则在首页频道下落地搜索发现与排行浏览链路；PRD-06 继续补齐分类浏览链路；PRD-07 再把首页左上角汉堡菜单扩展为由应用壳统一承载的左侧抽屉式菜单面板，并新增 `GET /api/player/recently-viewed` 作为 Android / iOS 菜单中“最近在看”的统一数据源；PRD-12 则把剧场频道从占位一级 tab 推进为真实 Native 内容入口，并新增 `GET /api/dramas/channel`、8 个剧场子频道、剧场快捷入口与到首页拥有页面的跨 tab 复用策略。Web 端继续保持路由骨架与首页壳，不在本期实现真实菜单面板或剧场频道；商城（mall）与赚钱（earn）继续由 H5 承载（`PRODUCT.md:22-25`）。
 
 - **产品信息来源**：`PRODUCT.md`
 - **仓库结构**：monorepo，按 `web/`、`android/`、`ios/`、`backend/` 分目录维护
@@ -32,6 +32,7 @@
 │  Next.js App Router Route Handlers                                           │
 │  ├── /api/health                           已实现                              │
 │  ├── /api/dramas                           已实现：首页 Feed 列表接口            │
+│  ├── /api/dramas/channel                   已实现：剧场 Feed 列表接口            │
 │  ├── /api/dramas/search                    已实现：搜索结果接口                 │
 │  ├── /api/dramas/hot-search                已实现：热搜接口                     │
 │  ├── /api/dramas/tags                      已实现：分类标签接口                 │
@@ -46,9 +47,9 @@
 | 端 | 一级容器 | 首页 / 发现链路承载 | 数据来源 / 入口 | 当前状态 |
 |----|---------|--------------------|----------------|---------|
 | Web | Next.js App Router 页面树 | 应用信息首页壳 + `/search` / `/rankings` 占位页 | 本地静态 UI + 代表性链接 | 首页、搜索、榜单都不实现真实数据，也不涉及菜单面板 |
-| Android | `Scaffold` + `NavigationBar` + nested `NavHost` + `MenuPanelDrawer` | `HomeScreen` Feed + 首页菜单抽屉 + 搜索发现 + `RankingScreen` + `ClassificationScreen` | `GET /api/dramas` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` | 已实现首页状态机、菜单 overlay、分类/排行真实页面与最近在看到播放页复用 |
-| iOS | `TabView` + per-tab `NavigationStack` + `MenuPanelContainerView` | `HomeView` Feed + 首页菜单抽屉 + 搜索发现 + `RankingHomeView` + `ClassificationHomeView` | `GET /api/dramas` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` | 已实现首页状态机、菜单 overlay、分类/排行真实页面与最近在看到播放页复用 |
-| Backend | Route Handlers | 首页 Feed + 最近在看 + 搜索 + 热搜 + 分类 tags + 排行 + 预约接口 | `DramaService / PlayerService -> mock repositories` | 已提供最近在看过滤逻辑、固定分类 seed、搜索 tags 命中与排行/预约 mock 能力 |
+| Android | `Scaffold` + `NavigationBar` + nested `NavHost` + `MenuPanelDrawer` | `HomeScreen` Feed + `TheaterScreen` + 首页菜单抽屉 + 搜索发现 + `RankingScreen` + `ClassificationScreen` | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` | 已实现首页状态机、剧场真实页面、菜单 overlay、分类/排行真实页面与最近在看到播放页复用 |
+| iOS | `TabView` + per-tab `NavigationStack` + `MenuPanelContainerView` | `HomeView` Feed + `TheaterView` + 首页菜单抽屉 + 搜索发现 + `RankingHomeView` + `ClassificationHomeView` | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` | 已实现首页状态机、剧场真实页面、菜单 overlay、分类/排行真实页面与最近在看到播放页复用 |
+| Backend | Route Handlers | 首页 Feed + 剧场 Feed + 最近在看 + 搜索 + 热搜 + 分类 tags + 排行 + 预约接口 | `DramaService / PlayerService -> mock repositories` | 已提供剧场空态语义、最近在看过滤逻辑、固定分类 seed、搜索 tags 命中与排行/预约 mock 能力 |
 
 ### 核心流程调用栈
 
@@ -109,26 +110,27 @@ iOS
 
 | 端 | 相关模块/文件 | 说明 |
 |----|-------------|------|
-| Web | `web/src/app/layout.tsx`, `web/src/app/page.tsx`, `web/src/features/home/HomeScreen.tsx`, `web/src/app/search/page.tsx`, `web/src/app/rankings/page.tsx` | 首页与搜索都仍为壳，仅保留 canonical 页面语义，不承载菜单面板 |
-| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`, `android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelScreen.kt`, `android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt` | 首页 Tab 已接入菜单抽屉 overlay、最近在看加载、先关菜单再导航与占位入口承接 |
-| iOS | `ios/ShortDrama/Sources/App/AppShellView.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift`, `ios/ShortDrama/Sources/Features/MenuPanel/Views/MenuPanelContainerView.swift`, `ios/ShortDrama/Sources/Data/DataSources/PlayerRemoteDataSource.swift` | 首页 Tab 已接入菜单 overlay、最近在看加载、先关菜单再导航与占位入口承接 |
-| Backend | `backend/src/app/api/player/recently-viewed/route.ts`, `backend/src/app/api/player/parse-playback-session-id.ts`, `backend/src/services/player/player.service.ts`, `backend/src/lib/player.ts`, `backend/src/lib/schemas.ts` | 提供最近在看接口、header 校验、固定候选窗口过滤逻辑与响应约束 |
+| Web | `web/src/app/layout.tsx`, `web/src/app/page.tsx`, `web/src/features/home/HomeScreen.tsx`, `web/src/app/search/page.tsx`, `web/src/app/rankings/page.tsx` | 首页与搜索都仍为壳，仅保留 canonical 页面语义，不承载菜单面板或剧场频道 |
+| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/theater/viewmodel/TheaterViewModel.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt`, `android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt` | 已同时接入剧场一级 tab、首页菜单 overlay、跨 tab 复用到搜索/排行/分类页，以及最近在看与剧场卡片到播放页的主路径复用 |
+| iOS | `ios/ShortDrama/Sources/App/AppShellView.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift`, `ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift`, `ios/ShortDrama/Sources/Data/DataSources/DramaRemoteDataSource.swift`, `ios/ShortDrama/Sources/Data/DataSources/PlayerRemoteDataSource.swift` | 已同时接入剧场一级 tab、首页菜单 overlay、剧场到首页拥有页面的跨 tab 复用，以及最近在看与剧场卡片到播放页的主路径复用 |
+| Backend | `backend/src/app/api/dramas/channel/route.ts`, `backend/src/repositories/repository-registry.ts`, `backend/src/app/api/player/recently-viewed/route.ts`, `backend/src/app/api/player/parse-playback-session-id.ts`, `backend/src/services/drama/drama.service.ts`, `backend/src/services/player/player.service.ts`, `backend/src/lib/schemas.ts` | 提供剧场 feed 接口、repository registry 注入、最近在看接口、header 校验、剧场空态与固定候选窗口过滤逻辑 |
 
 ## 技术栈总览
 
 | 层级 | Web | Backend | Android | iOS |
 |------|-----|---------|---------|-----|
 | 语言 | TypeScript | TypeScript | Kotlin 2.0.21 | Swift 6 |
-| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose + drawer overlay | SwiftUI + TabView + NavigationStack + ZStack overlay |
-| 状态管理 | 路由参数 + React 组件状态 | Route Handler 请求级状态 | `StateFlow` + `NavController` + 首页/菜单/排行/分类状态机 | `ObservableObject` + `@Published` + 首页/菜单/排行/分类状态机 |
+| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose + drawer overlay + theater graph | SwiftUI + TabView + NavigationStack + ZStack overlay + dedicated theater tab |
+| 状态管理 | 路由参数 + React 组件状态 | Route Handler 请求级状态 | `StateFlow` + `NavController` + 首页/剧场/菜单/排行/分类状态机 | `ObservableObject` + `@Published` + 首页/剧场/菜单/排行/分类状态机 |
 | 构建工具 | next build | next build | AGP 8.7.0 + Gradle | XcodeGen + Xcode 27 |
 | 测试 | Vitest + Testing Library | Vitest | JUnit4 + Turbine + Compose testing helpers | Swift Testing |
-| 首页 / 菜单 / 发现契约 | 首页壳 + 搜索占位页 | `GET /api/dramas` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + `POST /api/dramas/:id/book` + `POST /api/player/start|stop` | `page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize` query + `X-Playback-Session-Id` | `page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize` query + `X-Playback-Session-Id` |
+| 首页 / 菜单 / 剧场 / 发现契约 | 首页壳 + 搜索占位页 | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + `POST /api/dramas/:id/book` + `POST /api/player/start|stop` | `channel/page/pageSize`、`page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize` query + `X-Playback-Session-Id` | `channel/page/pageSize`、`page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize` query + `X-Playback-Session-Id` |
 
 ## 已知限制
 
-- Web 端当前未实现与移动端对等的首页 Feed、菜单面板、搜索发现或真实分类页，只提供页面骨架和 canonical route。
-- Android 与 iOS 的剧场、商城、赚钱、我的仍是占位页，真实业务会在后续 PRD 接入。
+- Web 端当前未实现与移动端对等的首页 Feed、剧场频道、菜单面板、搜索发现或真实分类页，只提供页面骨架和 canonical route。
+- Android 与 iOS 的商城、赚钱、我的仍是占位页；剧场已从占位页演进为真实 Native 一级频道。
+- 剧场 feed 当前只有 `all` 频道返回真实内容，其余 7 个频道都还是合法空态。
 - 商城（mall）与赚钱（earn）按产品策略应由 H5 承载，但当前移动端代码仍未接入真实 H5 容器。
 - 菜单中的登录、消息、预约、下载仍是 Native 占位承接页；游戏中心仅提供本地“即将上线”反馈，不进入真实业务页面。
 - 最近在看接口只从固定候选窗口中返回最多 3 条合法记录；过滤脏数据后允许不足 3 条，也不承诺继续向更老历史补足。
@@ -140,6 +142,7 @@ iOS
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：系统总览同步 PRD-12 剧场频道落地结果，补充剧场一级 tab、`GET /api/dramas/channel`、剧场到首页拥有页面的跨 tab 复用、合法空态与播放器主路径复用 |
 | 2026-07-28 | 更新：系统总览同步 PRD-07 菜单面板落地结果，补充首页汉堡菜单抽屉、关闭后导航时序、`GET /api/player/recently-viewed` 与 Web 不在本期范围的边界 |
 | 2026-07-27 | 更新：系统总览同步 PRD-06 分类浏览落地结果，补充搜索发现到分类页的移动端链路、Backend 搜索/热搜/分类 tags 接口与 Native / Web / H5 的范围边界 |
 | 2026-07-27 | 更新：系统总览同步 PRD-05 排行体系落地结果，补充搜索发现到排行页的移动端链路、Backend 排行/预约接口与 Native / Web / H5 的范围边界 |

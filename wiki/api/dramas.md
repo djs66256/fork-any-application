@@ -1,6 +1,6 @@
 # Dramas API 文档
 
-> 最后更新：2026-07-27
+> 最后更新：2026-07-28
 
 ---
 
@@ -90,6 +90,99 @@
 | 200 | — | 成功（含空列表和大页码空结果） |
 | 400 | `VALIDATION_ERROR` | 分页参数非法，例如 `page=0` 或 `pageSize=101` |
 | 500 | `INTERNAL_ERROR` | 服务内部错误 |
+
+---
+
+## GET /api/dramas/channel
+
+### 功能简介
+
+获取剧场频道 feed 列表。该接口是 Android / iOS 剧场一级频道的唯一数据源，支持 `channel/page/pageSize` 三个 query 参数；当前运行时只有 `channel=all` 返回真实内容，其余 `real / anime / movie / audio / novel / comic / bigscreen` 都返回合法空分页，用于承接剧场子频道空态而不是错误页。响应结构沿用统一的 `{ data, pagination }` 形式，但每个列表项在基础 `Drama` 字段之上额外增加 `heat` 整数字段，供客户端自行格式化显示（`backend/src/app/api/dramas/channel/route.ts:1-17`、`backend/src/lib/schemas.ts:175-194`、`backend/src/repositories/mock/drama.mock.repository.ts`）。
+
+### 代码文件路径
+
+- Route：`backend/src/app/api/dramas/channel/route.ts:1-17`
+- Service：`backend/src/services/drama/drama.service.ts`
+- Repository Contract：`backend/src/repositories/interfaces/drama.repository.interface.ts:14-30,62-66`
+- Repository Registry：`backend/src/repositories/repository-registry.ts`
+- Mock Repository：`backend/src/repositories/mock/drama.mock.repository.ts`
+- Schema：`backend/src/lib/schemas.ts`
+- Route 测试：`backend/src/app/api/__tests__/dramas-channel.test.ts:1-139`
+- Service 测试：`backend/src/services/drama/drama.service.test.ts:101-133`
+
+### path / method
+
+`GET /api/dramas/channel`
+
+### Query 参数
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `channel` | enum | 否 | `all` | `all` / `real` / `anime` / `movie` / `audio` / `novel` / `comic` / `bigscreen` |
+| `page` | number | 否 | 1 | 页码（int，min 1） |
+| `pageSize` | number | 否 | 20 | 每页数量（int，min 1，max 100） |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "title": "逆袭归来后我成了豪门团宠",
+      "description": "落魄千金重回豪门，在误会与守护中逆风翻盘。",
+      "cover_url": "https://example.com/dramas/001.jpg",
+      "category": "都市",
+      "episode_count": 68,
+      "tags": ["逆袭", "豪门"],
+      "rating": 8.9,
+      "created_at": "2026-07-25T00:00:00Z",
+      "updated_at": "2026-07-25T00:00:00Z",
+      "heat": 98210
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data[].id` | string | 短剧 UUID |
+| `data[].title` | string | 标题 |
+| `data[].description` | string | 描述 |
+| `data[].cover_url` | string \| null | 封面图 URL |
+| `data[].category` | string | 分类 |
+| `data[].episode_count` | number | 集数 |
+| `data[].tags` | string[] | 标签列表 |
+| `data[].rating` | number \| null | 评分 |
+| `data[].created_at` | string | 创建时间 |
+| `data[].updated_at` | string | 更新时间 |
+| `data[].heat` | number | 剧场热度原始整数值；客户端负责格式化显示 |
+| `pagination.page` | number | 当前页码 |
+| `pagination.page_size` | number | 每页数量 |
+| `pagination.total` | number | 总记录数 |
+| `pagination.total_pages` | number | 总页数 |
+
+### 当前行为说明
+
+- Route 使用 `TheaterFeedQuerySchema` 解析 query，默认收口为 `channel=all&page=1&pageSize=20`。
+- Route 不直接实例化 mock repository，而是通过 `getDramaRepository()` 走 registry 注入，便于测试时替换仓库实现。
+- 当前默认仓库中，`channel=all` 会把排行 mock 数据映射为剧场卡片列表，并将 `play_count` 映射为 `heat`。
+- `real / anime / movie / audio / novel / comic / bigscreen` 当前都返回 `200 + data=[]` 与 `total_pages=0`，用于承接合法空态。
+- 若 repository 返回缺失 `heat` 等关键字段的非法内部数据，Service 会把它包装为 500 `INTERNAL_ERROR`。
+
+### Error Code
+
+| 状态码 | 错误码 | 说明 |
+|--------|--------|------|
+| 200 | — | 成功（含非 `all` 频道空列表） |
+| 400 | `VALIDATION_ERROR` | `channel` / `page` / `pageSize` 非法 |
+| 500 | `INTERNAL_ERROR` | 服务内部错误或 repository 返回非法结构 |
 
 ---
 
@@ -519,6 +612,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-28 | 更新：新增 `GET /api/dramas/channel` 文档，补充剧场 feed query、`heat` 字段、非 `all` 频道合法空态、repository registry 注入与服务端内部数据校验语义 |
 | 2026-07-27 | 更新：新增 `GET /api/dramas/search`、`GET /api/dramas/hot-search`、`GET /api/dramas/tags` 文档，补充 `tags` 字段在首页/搜索/分类中的共享事实，并将搜索命中规则明确为 `title + category + tags` |
 | 2026-07-27 | 更新：新增 `GET /api/dramas/rankings` 与 `POST /api/dramas/:id/book` 文档，补充排行 query、扩展字段、可选 auth 上下文、预约幂等行为与当前骨架态认证约束 |
 | 2026-07-26 | 更新：`GET /api/dramas` 从空骨架修正为首页 Feed 列表接口，补充 canonical query、首页卡片字段、mock 数据分页行为与 `VALIDATION_ERROR` 校验错误码 |
