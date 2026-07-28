@@ -111,7 +111,9 @@ class SearchHomeViewModelTest {
 
             viewModel.openQuickEntry(SearchQuickEntryType.RANKING)
             when (val quickEntryEvent = awaitItem()) {
-                is SearchHomeEvent.OpenQuickEntry -> assertEquals("ranking", quickEntryEvent.route)
+                is SearchHomeEvent.OpenQuickEntry -> {
+                    assertEquals("ranking?contentType=all&type=hot", quickEntryEvent.route)
+                }
                 else -> fail("Expected quick entry event")
             }
 

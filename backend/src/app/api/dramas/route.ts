@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { DramaService } from '@/services/drama/drama.service';
-import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
+import { getDramaRepository } from '@/repositories/repository-registry';
 import { withErrorHandler } from '@/middleware/error-handler';
 import { Errors } from '@/lib/errors';
 
@@ -17,8 +17,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     pageSize: searchParams.get('pageSize') ?? undefined,
   });
 
-  const repository = new DramaMockRepository();
-  const service = new DramaService(repository);
+  const service = new DramaService(getDramaRepository());
   const result = await service.listDramas({ page, pageSize });
 
   return NextResponse.json(result);

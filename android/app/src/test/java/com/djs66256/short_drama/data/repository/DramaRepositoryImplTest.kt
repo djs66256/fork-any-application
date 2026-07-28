@@ -5,6 +5,10 @@ import com.djs66256.short_drama.data.datasource.DramaRemoteDataSource
 import com.djs66256.short_drama.data.dto.DramaDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.PaginationDto
+import com.djs66256.short_drama.data.dto.TheaterDramaDto
+import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
+import com.djs66256.short_drama.domain.model.TheaterChannel
+import com.djs66256.short_drama.domain.model.TheaterQuery
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -53,5 +57,49 @@ class DramaRepositoryImplTest {
         assertEquals(12, dramas.single().episodeCount)
         assertEquals(listOf("逆袭", "甜宠"), dramas.single().tags)
         assertEquals(8.6, dramas.single().rating, 0.0)
+    }
+
+    @Test
+    fun `T-12 getTheaterFeed maps dto fields and pagination`() = runTest {
+        val query = TheaterQuery(channel = TheaterChannel.ALL, page = 1, pageSize = 20)
+        val response = TheaterFeedResponseDto(
+            data = listOf(
+                TheaterDramaDto(
+                    id = "theater-1",
+                    title = "剧场首屏短剧",
+                    description = "剧场卡片描述",
+                    coverUrl = null,
+                    category = "都市",
+                    episodeCount = 66,
+                    tags = listOf("逆袭", "豪门"),
+                    rating = 8.8,
+                    createdAt = "2026-07-25T00:00:00Z",
+                    updatedAt = "2026-07-25T00:00:00Z",
+                    heat = 45678,
+                ),
+            ),
+            pagination = PaginationDto(
+                page = 1,
+                pageSize = 20,
+                total = 35,
+                totalPages = 2,
+            ),
+        )
+        coEvery { remoteDataSource.getTheaterFeed("all", 1, 20) } returns ApiResult.Success(response)
+
+        val result = repository.getTheaterFeed(query)
+
+        assertTrue(result is ApiResult.Success)
+        val page = (result as ApiResult.Success).data
+        assertEquals(TheaterChannel.ALL, page.channel)
+        assertEquals(1, page.items.size)
+        assertEquals("theater-1", page.items.single().id)
+        assertEquals("", page.items.single().coverUrl)
+        assertEquals(45678, page.items.single().heat)
+        assertEquals(1, page.page)
+        assertEquals(20, page.pageSize)
+        assertEquals(35, page.total)
+        assertEquals(2, page.totalPages)
+        assertTrue(page.hasNextPage)
     }
 }

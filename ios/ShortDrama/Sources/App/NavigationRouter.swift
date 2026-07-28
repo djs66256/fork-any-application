@@ -26,6 +26,8 @@ final class NavigationRouter: ObservableObject {
     @Published private(set) var menuPanelState: MenuPanelPresentationState = .closed
     @Published private(set) var pendingMenuNavigation: AppRoute?
 
+    private var pendingTheaterRankingEntryContext: TheaterRankingEntryContext?
+
     var isMenuPanelVisible: Bool {
         switch menuPanelState {
         case .opening, .open, .closing:
@@ -110,6 +112,16 @@ final class NavigationRouter: ObservableObject {
         guard let route = pendingMenuNavigation else { return }
         pendingMenuNavigation = nil
         navigate(to: route)
+    }
+
+    func openRanking(from context: TheaterRankingEntryContext) {
+        pendingTheaterRankingEntryContext = context
+        navigate(to: .rankingHome)
+    }
+
+    func consumeTheaterRankingEntryContext() -> TheaterRankingEntryContext? {
+        defer { pendingTheaterRankingEntryContext = nil }
+        return pendingTheaterRankingEntryContext
     }
 
     func enqueueDeepLink(_ route: AppRoute) {

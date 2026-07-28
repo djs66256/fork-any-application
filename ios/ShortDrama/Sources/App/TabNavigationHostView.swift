@@ -17,7 +17,7 @@ struct TabNavigationHostView: View {
                     case .searchResult(let query):
                         SearchResultView(query: query)
                     case .rankingHome:
-                        RankingHomeView()
+                        RankingHomeView(initialEntryContext: router.consumeTheaterRankingEntryContext())
                     case .classificationHome:
                         ClassificationHomeView()
                     case .newReleases:
@@ -40,7 +40,9 @@ struct TabNavigationHostView: View {
         switch tab {
         case .home:
             HomeView()
-        case .theater, .mall, .earn, .profile:
+        case .theater:
+            TheaterView()
+        case .mall, .earn, .profile:
             PlaceholderTabView(tab: tab)
         }
     }

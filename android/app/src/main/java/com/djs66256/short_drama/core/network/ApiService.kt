@@ -12,6 +12,7 @@ import com.djs66256.short_drama.data.dto.PlayerStopRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStopResponseDto
 import com.djs66256.short_drama.data.dto.RankingListResponseDto
 import com.djs66256.short_drama.data.dto.RecentlyViewedResponseDto
+import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -34,6 +35,13 @@ interface ApiService {
         @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 10,
     ): DramaListResponseDto
+
+    @GET("dramas/channel")
+    suspend fun getDramaChannel(
+        @Query("channel") channel: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+    ): TheaterFeedResponseDto
 
     @GET("dramas/search")
     suspend fun searchDramas(

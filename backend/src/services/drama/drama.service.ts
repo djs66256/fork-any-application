@@ -9,6 +9,8 @@ import {
   HotSearchListResponseSchema,
   RankingDrama,
   RankingListResponseSchema,
+  TheaterDrama,
+  TheaterFeedResponseSchema,
 } from '@/lib/schemas';
 import {
   AuthContext,
@@ -19,6 +21,7 @@ import {
   PaginationParams,
   RankingParams,
   SearchDramasParams,
+  TheaterFeedParams,
 } from '@/repositories/interfaces/drama.repository.interface';
 import { Errors } from '@/lib/errors';
 
@@ -41,6 +44,17 @@ export class DramaService {
         throw error;
       }
       throw Errors.internal('Invalid drama search result');
+    }
+  }
+
+  async listTheaterFeed(params: TheaterFeedParams): Promise<PaginatedResult<TheaterDrama>> {
+    try {
+      return TheaterFeedResponseSchema.parse(await this.dramaRepository.listTheaterFeed(params));
+    } catch (error) {
+      if (isAppError(error)) {
+        throw error;
+      }
+      throw Errors.internal('Invalid theater feed result');
     }
   }
 

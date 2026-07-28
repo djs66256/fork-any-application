@@ -52,11 +52,13 @@ struct RankingViewModelTests {
 
     private func makeViewModel(
         repository: MockDramaRepository,
+        initialContext: TheaterRankingEntryContext? = nil,
         isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
     ) -> RankingViewModel {
         RankingViewModel(
             fetchRankingsUseCase: FetchRankingsUseCase(repository: repository),
             bookDramaUseCase: BookDramaUseCase(repository: repository),
+            initialEntryContext: initialContext,
             isUserLoggedIn: isUserLoggedIn
         )
     }
@@ -82,6 +84,24 @@ struct RankingViewModelTests {
                 pageSize: 10
             )
         )
+    }
+
+    @Test("T-10: ranking consumes theater booking entry context on first load")
+    func testInitialBookingContextOverridesDefaults() async {
+        let repository = MockDramaRepository()
+        let bookingPage = makePage(items: [makeRankingDrama(id: "booking-001")], totalPages: 1)
+        repository.rankingBehavior = .success(bookingPage)
+        let viewModel = makeViewModel(
+            repository: repository,
+            initialContext: TheaterRankingEntryContext(contentType: .all, rankingType: .booking)
+        )
+
+        await viewModel.loadIfNeeded()
+
+        #expect(viewModel.selectedContentType == .all)
+        #expect(viewModel.selectedRankingType == .booking)
+        #expect(repository.lastRankingQuery == RankingQuery(type: .booking, contentType: .all, page: 1, pageSize: 10))
+        #expect(viewModel.viewState == .content(bookingPage.items))
     }
 
     @Test("switching primary tab preserves secondary tab and reloads first page")
@@ -207,7 +227,7 @@ struct RankingViewModelTests {
         let repository = MockDramaRepository()
         let page = makePage(items: [makeRankingDrama(id: "booking-1")])
         repository.queuedRankingBehaviors = [
-            .success(makePage(items: [makeRankingDrama(id: "initial")])) ,
+            .success(makePage(items: [makeRankingDrama(id: "initial")])),
             .success(page)
         ]
         let viewModel = makeViewModel(repository: repository, isUserLoggedIn: { false })
@@ -228,7 +248,7 @@ struct RankingViewModelTests {
         let repository = MockDramaRepository()
         let drama = makeRankingDrama(id: "booking-1", bookingCount: 20)
         repository.queuedRankingBehaviors = [
-            .success(makePage(items: [makeRankingDrama(id: "initial")])) ,
+            .success(makePage(items: [makeRankingDrama(id: "initial")])),
             .success(makePage(items: [drama]))
         ]
         repository.bookingBehavior = .success(
@@ -255,7 +275,7 @@ struct RankingViewModelTests {
         let repository = MockDramaRepository()
         let drama = makeRankingDrama(id: "booking-401")
         repository.queuedRankingBehaviors = [
-            .success(makePage(items: [makeRankingDrama(id: "initial")])) ,
+            .success(makePage(items: [makeRankingDrama(id: "initial")])),
             .success(makePage(items: [drama]))
         ]
         repository.bookingBehavior = .failure(.server(code: 401, message: "请先登录后再预约"))
@@ -276,7 +296,7 @@ struct RankingViewModelTests {
         let repository = MockDramaRepository()
         let drama = makeRankingDrama(id: "booking-slow")
         repository.queuedRankingBehaviors = [
-            .success(makePage(items: [makeRankingDrama(id: "initial")])) ,
+            .success(makePage(items: [makeRankingDrama(id: "initial")])),
             .success(makePage(items: [drama]))
         ]
         repository.bookingBehavior = .delayed(

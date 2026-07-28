@@ -20,8 +20,8 @@ final class RankingViewModel: ObservableObject {
         static let pageSize = 10
     }
 
-    @Published private(set) var selectedContentType: RankingContentType = .all
-    @Published private(set) var selectedRankingType: RankingType = .hot
+    @Published private(set) var selectedContentType: RankingContentType
+    @Published private(set) var selectedRankingType: RankingType
     @Published private(set) var viewState: ViewState = .loading
     @Published private(set) var isAppending = false
     @Published private(set) var appendErrorMessage: String?
@@ -43,11 +43,14 @@ final class RankingViewModel: ObservableObject {
     init(
         fetchRankingsUseCase: FetchRankingsUseCase,
         bookDramaUseCase: BookDramaUseCase,
+        initialEntryContext: TheaterRankingEntryContext? = nil,
         isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
     ) {
         self.fetchRankingsUseCase = fetchRankingsUseCase
         self.bookDramaUseCase = bookDramaUseCase
         self.isUserLoggedIn = isUserLoggedIn
+        self.selectedContentType = initialEntryContext?.contentType ?? .all
+        self.selectedRankingType = initialEntryContext?.rankingType ?? .hot
     }
 
     func loadIfNeeded() async {

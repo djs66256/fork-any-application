@@ -10,6 +10,9 @@ import {
   HotSearchListResponseSchema,
   RankingDrama,
   RankingDramaSchema,
+  TheaterChannel,
+  TheaterDrama,
+  TheaterDramaSchema,
 } from '@/lib/schemas';
 import {
   AuthContext,
@@ -21,6 +24,7 @@ import {
   PaginationParams,
   RankingParams,
   SearchDramasParams,
+  TheaterFeedParams,
 } from '@/repositories/interfaces/drama.repository.interface';
 import { Errors } from '@/lib/errors';
 
@@ -296,6 +300,13 @@ function cloneDrama(drama: Drama): Drama {
   };
 }
 
+function cloneTheaterDrama(drama: TheaterDrama): TheaterDrama {
+  return {
+    ...drama,
+    tags: [...drama.tags],
+  };
+}
+
 function cloneDimension(dimension: ClassificationDimension): ClassificationDimension {
   return {
     ...dimension,
@@ -324,6 +335,32 @@ function toDrama(drama: RankingDrama): Drama {
     updated_at: drama.updated_at,
   });
 }
+
+function toTheaterDrama(drama: RankingDrama): TheaterDrama {
+  return TheaterDramaSchema.parse({
+    id: drama.id,
+    title: drama.title,
+    description: drama.description,
+    cover_url: drama.cover_url,
+    category: drama.category,
+    episode_count: drama.episode_count,
+    tags: drama.tags,
+    rating: drama.rating,
+    created_at: drama.created_at,
+    updated_at: drama.updated_at,
+    heat: drama.play_count,
+  });
+}
+
+const THEATER_SUPPORTED_EMPTY_CHANNELS: TheaterChannel[] = [
+  'real',
+  'anime',
+  'movie',
+  'audio',
+  'novel',
+  'comic',
+  'bigscreen',
+];
 
 function normalizeSearchValue(value: string): string {
   return value.trim().toLocaleLowerCase();
@@ -437,6 +474,19 @@ export class DramaMockRepository implements DramaRepositoryInterface {
       .map((drama) => cloneDrama(toDrama(drama)));
 
     return paginate(matched, params);
+  }
+
+  async listTheaterFeed(params: TheaterFeedParams): Promise<PaginatedResult<TheaterDrama>> {
+    if (params.channel !== 'all') {
+      if (!THEATER_SUPPORTED_EMPTY_CHANNELS.includes(params.channel)) {
+        throw Errors.internal(`Unsupported theater channel: ${params.channel}`);
+      }
+
+      return paginate([], params);
+    }
+
+    const allChannelItems = Array.from(this.data.values()).map((drama) => cloneTheaterDrama(toTheaterDrama(drama)));
+    return paginate(allChannelItems, params);
   }
 
   async listClassificationTags(params: ClassificationTagsQuery): Promise<ClassificationTagsResult> {
