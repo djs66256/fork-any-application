@@ -4,12 +4,12 @@
 
 ## 概述
 
-项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 进一步把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口作为首页首屏数据源；PRD-05 在首页频道下落地搜索发现与排行浏览链路；PRD-06 继续补齐分类浏览链路；PRD-07 再把首页左上角汉堡菜单扩展为由应用壳统一承载的左侧抽屉式菜单面板，并新增 `GET /api/player/recently-viewed` 作为 Android / iOS 菜单中“最近在看”的统一数据源；PRD-08 再把“我的”频道从占位容器推进为真实账号承载入口，补齐手机号验证码登录、自动注册、会话恢复 / refresh / logout，以及排行预约登录拦截；PRD-12 则把剧场频道从占位一级 tab 推进为真实 Native 内容入口，并新增 `GET /api/dramas/channel`、8 个剧场子频道、剧场快捷入口与到首页拥有页面的跨 tab 复用策略。当前移动端已经形成“首页发现 + 菜单承载 + 剧场入口 + 认证闭环 + 预约鉴权”的主路径；Web 端继续保持路由骨架与管理后台，不在本期实现与移动端对等的用户端登录、菜单、剧场、排行或分类体验；商城（mall）与赚钱（earn）继续由 H5 承载，不属于本期 Native 能力范围（`PRODUCT.md:22-25`）。
+项目是一个多端短剧内容应用的 harness 仓库，覆盖 Web、Android、iOS 三端界面与 Backend 服务端骨架。PRD-01 已完成移动端 5 Tab 导航容器；PRD-02 进一步把 Android / iOS 首页从应用信息占位页推进为 Native 首页信息流，并让 Backend 提供 canonical `GET /api/dramas` 列表接口作为首页首屏数据源；PRD-05 在首页频道下落地搜索发现与排行浏览链路；PRD-06 继续补齐分类浏览链路；PRD-07 再把首页左上角汉堡菜单扩展为由应用壳统一承载的左侧抽屉式菜单面板，并新增 `GET /api/player/recently-viewed` 作为 Android / iOS 菜单中“最近在看”的统一数据源；PRD-08 再把“我的”频道从占位容器推进为真实账号承载入口，补齐手机号验证码登录、自动注册、会话恢复 / refresh / logout，以及排行预约登录拦截；PRD-12 则把剧场频道从占位一级 tab 推进为真实 Native 内容入口，并新增 `GET /api/dramas/channel`、8 个剧场子频道、剧场快捷入口与到首页拥有页面的跨 tab 复用策略；PRD-14 进一步把“赚钱”频道从占位 tab 推进为 Native 容器承载的 H5 页面，并补齐 `GET /api/earn/overview`、`POST /api/earn/complete-task`、earn 专属 bridge / host sync、Native 登录承接、播放器任务承接与回流结算顺序。当前移动端已经形成“首页发现 + 菜单承载 + 剧场入口 + 认证闭环 + 预约鉴权 + 赚钱 H5 容器接入”的主路径；Web 端继续保持路由骨架与管理后台，不在本期实现与移动端对等的用户端登录、菜单、剧场、排行或分类体验；商城（mall）继续由 H5 承载且移动端仍未接入真实容器，赚钱（earn）虽然保持 H5 页面实现，但 Android / iOS 已接入真实 WebView/WKWebView 容器（`PRODUCT.md:22-25`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:416-570`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:53-82`, `backend/src/app/api/earn/overview/route.ts:7-12`, `backend/src/app/api/earn/complete-task/route.ts:8-15`）。
 
 - **产品信息来源**：`PRODUCT.md`
 - **仓库结构**：monorepo，按 `web/`、`android/`、`ios/`、`backend/` 分目录维护
 - **技术标识**：Android/iOS 继续使用 `com.djs66256.short_drama`，移动端 deeplink scheme 为 `djsdrama://`
-- **当前版本**：移动端首页已具备 Feed、菜单面板、剧场频道、搜索发现、排行浏览、分类浏览与“我的”登录 / 设置承载能力；Backend 已补齐真实认证闭环与排行预约鉴权；Web 仍以路由壳与管理后台为主
+- **当前版本**：移动端首页已具备 Feed、菜单面板、剧场频道、搜索发现、排行浏览、分类浏览、“我的”登录 / 设置承载，以及赚钱 H5 容器接入能力；Backend 已补齐真实认证闭环、排行预约鉴权与赚钱 overview / complete-task；Web 仍以路由壳与管理后台为主
 
 ## 架构设计
 
@@ -22,11 +22,11 @@
 │   Web 前端   │            Android App             │                 iOS App                  │
 │ Next.js 16   │ Kotlin + Compose                   │ SwiftUI                                  │
 │ App Router   │ Navigation Compose                 │ TabView + NavigationStack                │
-│ 首页/用户端壳 │ 首页Feed + 菜单 + 剧场 + 搜索/排行/分类 │ 首页Feed + 菜单 + 剧场 + 搜索/排行/分类   │
-│ 管理后台已落地 │ 登录路由 + 设置页 + Deeplink       │ Login fullScreenCover + 设置页 + Deeplink │
+│ 首页/用户端壳 │ 首页Feed + 菜单 + 剧场 + 搜索/排行/分类 + 赚钱H5 │ 首页Feed + 菜单 + 剧场 + 搜索/排行/分类 + 赚钱H5 │
+│ 管理后台已落地 │ 登录路由 + 设置页 + Earn WebView + Deeplink │ Login fullScreenCover + Earn WKWebView + 设置页 + Deeplink │
 └──────┬───────┴─────────────────┬──────────────────┴─────────────────┬────────────────────┘
        │                         │                                      │
-       │ 页面语义 / 管理后台        │ 内容发现 / 菜单 / 登录 / 预约 contract  │ 内容发现 / 菜单 / 登录 / 预约 contract
+       │ 页面语义 / 管理后台        │ 内容发现 / 菜单 / 登录 / 预约 / 赚钱 contract  │ 内容发现 / 菜单 / 登录 / 预约 / 赚钱 contract
        ▼                         ▼                                      ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                  Backend API 服务层                                         │
@@ -45,7 +45,9 @@
 │  ├── /api/auth/session-refreshes                  已实现：refresh                            │
 │  ├── /api/users/me                                已实现：当前用户                           │
 │  ├── /api/auth/session                            已实现：幂等 logout                        │
-│  └── /api/player/start|stop                       501 占位                                   │
+│  ├── /api/earn/overview                           已实现：赚钱首页聚合数据                   │
+│  ├── /api/earn/complete-task                      已实现：代表性任务奖励结算                 │
+│  └── /api/player/start|stop                       已实现：原生播放器历史链路                 │
 └────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -53,10 +55,10 @@
 
 | 端 | 一级容器 | 首页 / 发现 / 账号承载 | 数据来源 / 入口 | 当前状态 |
 |----|---------|----------------------|----------------|---------|
-| Web | Next.js App Router 页面树 | 应用信息首页壳 + `/search` / `/rankings` 占位页 + 管理后台登录 | 本地静态 UI + 代表性链接 + admin routes | 用户端首页、搜索、排行、分类与“我的”都不实现真实数据 |
-| Android | `Scaffold` + `NavigationBar` + nested `NavHost` + `MenuPanelDrawer` | `HomeScreen` Feed + `TheaterScreen` + 搜索发现 + `RankingScreen` + `ClassificationScreen` + `ProfileScreen` / `SettingsScreen` / `LoginScreen` + 首页菜单抽屉 | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + Auth API | 已实现首页发现链路、剧场真实页面、菜单 overlay、“我的”真实登录 / 设置承载与排行预约登录拦截 |
-| iOS | `TabView` + per-tab `NavigationStack` + `MenuPanelContainerView` + `fullScreenCover` | `HomeView` Feed + `TheaterView` + `SearchHomeView` + `SearchResultView` + `RankingHomeView` + `ClassificationHomeView` + `ProfileHomeView` / `SettingsView` / 登录弹层 + 首页菜单抽屉 | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + Auth API | 已实现首页发现链路、剧场真实页面、菜单 overlay、“我的”真实登录 / 设置承载与排行预约登录拦截 |
-| Backend | Route Handlers | 首页 Feed + 剧场 Feed + 最近在看 + 搜索 + 热搜 + 分类 tags + 排行 + 预约 + auth | 首页 / 剧场 / 搜索 / 热搜 / 分类仍以 `DramaMockRepository` 为主；排行 / 预约走 `DramaSupabaseRepository`；认证走 `AuthService + verifyJwt()`；最近在看走 `PlayerService + PlaybackHistoryRepository` | 已形成“发现接口 + 菜单数据 + 认证接口 + 预约鉴权”混合可运行结构 |
+| Web | Next.js App Router 页面树 | 应用信息首页壳 + `/search` / `/rankings` 占位页 + `/earn` H5 页面 + 管理后台登录 | 本地静态 UI + 代表性链接 + Earn API + admin routes | 用户端首页、搜索、排行、分类与“我的”都不实现真实数据，但 `/earn` 已提供真实 H5 页面与 bridge 降级逻辑 |
+| Android | `Scaffold` + `NavigationBar` + nested `NavHost` + `MenuPanelDrawer` | `HomeScreen` Feed + `TheaterScreen` + 搜索发现 + `RankingScreen` + `ClassificationScreen` + `EarnScreen` / `EarnLoginScreen` / earn task player + `ProfileScreen` / `SettingsScreen` / `LoginScreen` + 首页菜单抽屉 | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + Auth API + Earn API | 已实现首页发现链路、剧场真实页面、菜单 overlay、“我的”真实登录 / 设置承载、排行预约登录拦截，以及 earn WebView 容器 / 登录承接 / 任务回流 |
+| iOS | `TabView` + per-tab `NavigationStack` + `MenuPanelContainerView` + `fullScreenCover` | `HomeView` Feed + `TheaterView` + `SearchHomeView` + `SearchResultView` + `RankingHomeView` + `ClassificationHomeView` + `EarnContainerView` / `.earnLogin` / `.earnPlayer` + `ProfileHomeView` / `SettingsView` / 登录弹层 + 首页菜单抽屉 | `GET /api/dramas` + `GET /api/dramas/channel` + `GET /api/player/recently-viewed` + `GET /api/dramas/search` + `GET /api/dramas/hot-search` + `GET /api/dramas/tags` + `GET /api/dramas/rankings` + Auth API + Earn API | 已实现首页发现链路、剧场真实页面、菜单 overlay、“我的”真实登录 / 设置承载、排行预约登录拦截，以及 earn WKWebView 容器 / 登录承接 / 任务回流 |
+| Backend | Route Handlers | 首页 Feed + 剧场 Feed + 最近在看 + 搜索 + 热搜 + 分类 tags + 排行 + 预约 + auth + earn | 首页 / 剧场 / 搜索 / 热搜 / 分类仍以 `DramaMockRepository` 为主；排行 / 预约走 `DramaSupabaseRepository`；认证走 `AuthService + verifyJwt()`；最近在看走 `PlayerService + PlaybackHistoryRepository`；赚钱走 `EarnService + EarnMockRepository` | 已形成“发现接口 + 菜单数据 + 认证接口 + 预约鉴权 + 赚钱接口”混合可运行结构 |
 
 ### 核心流程调用栈
 
@@ -153,6 +155,27 @@ Android / iOS
 | Backend | Backend | `backend/src/app/api/dramas/route.ts:8-24`, `backend/src/app/api/dramas/channel/route.ts:1-17`, `backend/src/app/api/dramas/search/route.ts:7-19`, `backend/src/app/api/dramas/hot-search/route.ts:6-11`, `backend/src/app/api/dramas/tags/route.ts:7-18`, `backend/src/app/api/dramas/rankings/route.ts:8-24` | 提供首页 Feed、剧场 Feed、搜索、热搜、分类 tags 与排行数据 |
 | Repository | Backend | `backend/src/repositories/mock/drama.mock.repository.ts:387-468`, `backend/src/repositories/supabase/drama.supabase.repository.ts:330-459` | 首页 / 剧场 / 搜索 / 热搜 / 分类仍以 mock 数据为主；排行 / 预约走 Supabase 持久化路径 |
 
+#### 流程：赚钱 H5 通过 Native 容器完成登录承接、播放器承接与奖励结算
+
+```text
+Web / Android / iOS / Backend
+1. Web /earn 首屏调用 GET /api/earn/overview 获取匿名或已登录视角数据
+2. Native 容器在页面加载成功后向 H5 注入 earn.syncAuthState
+3. 未登录用户点击任务时，H5 发出 earn.requestLogin，请求 Native 拉起 earn 专属登录承接页
+4. 登录完成后，Native 先回传 earn.syncAuthState，再回传 earn.restoreContext(reason=login-return)
+5. 已登录用户点击代表性任务时，H5 发出 earn.openTaskPlayer，请求 Native 打开原生播放器承接页
+6. 只有原生播放器自然播放结束时，Native 才回传 completed=true 的 earn.completeTask
+7. H5 收到 completed=true 后，携带内存态 bearer token 调用 POST /api/earn/complete-task
+8. Native 随后回传 earn.restoreContext(reason=task-return)，H5 恢复赚钱页上下文
+```
+
+| 调用层级 | 平台 | 文件 | 职责 |
+|---------|------|------|------|
+| H5 页面 | Web | `web/src/features/earn/hooks/useEarnPage.ts:263-417`, `web/src/features/earn/bridge/earn-bridge.ts:15-72`, `web/src/features/earn/bridge/earn-host-sync.ts:14-49` | 拉取 overview、发起登录/播放 bridge、消费宿主 auth sync / task completion / restore 消息 |
+| Android 容器 | Android | `android/app/src/main/java/com/djs66256/short_drama/feature/earn/viewmodel/EarnViewModel.kt:91-258`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:416-570` | 承载 earn WebView、登录返回、任务播放器返回与 host message 顺序控制 |
+| iOS 容器 | iOS | `ios/ShortDrama/Sources/Features/Earn/ViewModels/EarnContainerViewModel.swift:48-185`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:264-293`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:53-82` | 承载 earn WKWebView、earn 登录承接、earn 播放器承接与 complete-then-restore 顺序控制 |
+| Backend Earn | Backend | `backend/src/app/api/earn/overview/route.ts:7-12`, `backend/src/app/api/earn/complete-task/route.ts:8-15`, `backend/src/services/earn/earn.service.ts:15-47`, `backend/src/repositories/mock/earn.mock.repository.ts:18-195` | 提供赚钱首页聚合数据、代表性任务 Bearer-only 结算与幂等奖励语义 |
+
 ### 设计决策
 
 | 决策 | 原因 | 影响 |
@@ -166,45 +189,50 @@ Android / iOS
 | PRD-08 的认证统一走 Backend RESTful API，不让移动端直连 Supabase Auth SDK | 收敛跨端 contract，统一 test OTP、本地 session、真实 bearer 校验与错误映射 | Android / iOS 都围绕 `POST /api/auth/*`、`GET /api/users/me`、`DELETE /api/auth/session` 实现登录闭环 |
 | “我的”频道从占位页升级为真实账号承载入口 | 登录、恢复、登出、设置与排行预约拦截都需要统一宿主 | Android 引入 `ProfileScreen / SettingsScreen / LoginScreen`；iOS 引入 `ProfileHomeView / SettingsView / fullScreenCover` |
 | 排行列表使用可选鉴权，预约使用强制鉴权 | 未登录也需要浏览榜单，但预约必须绑定真实用户 | `GET /api/dramas/rankings` 可补充 `is_booked`；`POST /api/dramas/:id/book` 必须要求 bearer access token |
-| Backend 运行时采用“发现接口 mock、排行/预约 Supabase、认证 Supabase Auth、最近在看 in-memory history”混合策略 | 在真实内容后台尚未完备前，优先保证首页发现、菜单和 PRD-08 登录 / 预约闭环可验证 | 首页 / 剧场 / 搜索 / 热搜 / 分类仍受 seed 数据限制，但 auth、bookings 与最近在看已具备明确运行语义 |
-| 商城（mall）与赚钱（earn）继续按 H5 承载 | 产品策略已明确这些页面不按 Native 首批实现 | 当前移动端仍以 placeholder tab 代替真实 WebView/WKWebView |
+| Backend 运行时采用“发现接口 mock、排行/预约 Supabase、认证 Supabase Auth、最近在看 in-memory history、赚钱 mock repository”混合策略 | 在真实内容后台尚未完备前，优先保证首页发现、菜单、登录、预约和赚钱闭环可验证 | 首页 / 剧场 / 搜索 / 热搜 / 分类仍受 seed 数据限制，但 auth、bookings、recently viewed 与 earn 已具备明确运行语义 |
+| 商城（mall）继续按 H5 承载且移动端仍未接入真实容器 | 产品策略已明确商城不按 Native 首批实现 | 当前移动端仍以 placeholder tab 代替真实 WebView/WKWebView |
+| 赚钱（earn）保持 H5 页面实现，但由 Native 容器接入 | 既遵循产品策略，又允许复用 Native 登录、播放器与任务回流能力 | Android/iOS 已接入真实 WebView/WKWebView，并通过 `earn.hostMessage` 与 H5 协作 |
+| Native 到赚钱 H5 的唯一宿主同步通道是 `CustomEvent('earn.hostMessage', { detail })` | 统一跨端 bridge transport，避免 Android/iOS 分别定义不同注入协议 | Web 只需要消费一个 host message schema，Android / iOS 都要按同一消息模型注入 |
+| 赚钱奖励只在 Native 播放承接层自然播放结束后结算 | 避免 H5 自行伪造“完成任务”，把奖励判定收敛到原生承接层 | 只有 `completed=true` 时才触发 `earn.completeTask`，然后再 `earn.restoreContext(reason=task-return)` |
 
 ## 跨端涉及
 
 | 端 | 相关模块/文件 | 说明 |
 |----|-------------|------|
-| Web | `web/src/app/layout.tsx`, `web/src/app/page.tsx`, `web/src/features/home/HomeScreen.tsx`, `web/src/app/search/page.tsx`, `web/src/app/rankings/page.tsx`, `web/src/features/admin/**` | 用户端首页与发现页仍为壳；已落地重点在管理后台而非移动端登录闭环、菜单或剧场 |
-| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/home/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/theater/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/search/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/classification/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/profile/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/auth/**`, `android/app/src/main/java/com/djs66256/short_drama/core/auth/**` | 已同时接入首页发现、菜单 overlay、剧场一级 tab、账号承载、登录恢复与排行预约拦截 |
-| iOS | `ios/ShortDrama/Sources/App/AppShellView.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift`, `ios/ShortDrama/Sources/Features/Home/**`, `ios/ShortDrama/Sources/Features/MenuPanel/**`, `ios/ShortDrama/Sources/Features/Theater/**`, `ios/ShortDrama/Sources/Features/Search/**`, `ios/ShortDrama/Sources/Features/Ranking/**`, `ios/ShortDrama/Sources/Features/Classification/**`, `ios/ShortDrama/Sources/Features/Profile/**`, `ios/ShortDrama/Sources/Features/Auth/**` | 已同时接入首页发现、菜单 overlay、剧场一级 tab、账号承载、登录恢复与排行预约拦截 |
-| Backend | `backend/src/app/api/dramas/**`, `backend/src/app/api/player/recently-viewed/route.ts`, `backend/src/app/api/player/parse-playback-session-id.ts`, `backend/src/app/api/auth/**`, `backend/src/app/api/users/me/route.ts`, `backend/src/services/auth/**`, `backend/src/services/drama/**`, `backend/src/services/player/**`, `backend/src/middleware/auth.ts`, `backend/src/repositories/mock/**`, `backend/src/repositories/supabase/**` | 提供首页发现、剧场、最近在看、认证闭环、排行预约鉴权与混合 repository 运行结构 |
+| Web | `web/src/app/layout.tsx`, `web/src/app/page.tsx`, `web/src/features/home/HomeScreen.tsx`, `web/src/app/search/page.tsx`, `web/src/app/rankings/page.tsx`, `web/src/app/earn/page.tsx`, `web/src/features/earn/**`, `web/src/features/admin/**` | 用户端首页与发现页仍为壳；已落地重点在管理后台与赚钱 H5 页面，而非移动端对等的登录闭环、菜单或剧场 |
+| Android | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`, `android/app/src/main/java/com/djs66256/short_drama/feature/home/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/theater/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/search/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/classification/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/profile/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/auth/**`, `android/app/src/main/java/com/djs66256/short_drama/feature/earn/**`, `android/app/src/main/java/com/djs66256/short_drama/core/auth/**` | 已同时接入首页发现、菜单 overlay、剧场一级 tab、账号承载、登录恢复、排行预约拦截，以及 earn WebView 容器与任务回流 |
+| iOS | `ios/ShortDrama/Sources/App/AppShellView.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift`, `ios/ShortDrama/Sources/Features/Home/**`, `ios/ShortDrama/Sources/Features/MenuPanel/**`, `ios/ShortDrama/Sources/Features/Theater/**`, `ios/ShortDrama/Sources/Features/Search/**`, `ios/ShortDrama/Sources/Features/Ranking/**`, `ios/ShortDrama/Sources/Features/Classification/**`, `ios/ShortDrama/Sources/Features/Profile/**`, `ios/ShortDrama/Sources/Features/Auth/**`, `ios/ShortDrama/Sources/Features/Earn/**`, `ios/ShortDrama/Sources/Features/Player/**` | 已同时接入首页发现、菜单 overlay、剧场一级 tab、账号承载、登录恢复、排行预约拦截，以及 earn WKWebView 容器与任务回流 |
+| Backend | `backend/src/app/api/dramas/**`, `backend/src/app/api/player/recently-viewed/route.ts`, `backend/src/app/api/player/parse-playback-session-id.ts`, `backend/src/app/api/auth/**`, `backend/src/app/api/users/me/route.ts`, `backend/src/app/api/earn/**`, `backend/src/services/auth/**`, `backend/src/services/drama/**`, `backend/src/services/player/**`, `backend/src/services/earn/**`, `backend/src/middleware/auth.ts`, `backend/src/repositories/mock/**`, `backend/src/repositories/supabase/**` | 提供首页发现、剧场、最近在看、认证闭环、排行预约鉴权、赚钱首页聚合与奖励结算，以及混合 repository 运行结构 |
 
 ## 技术栈总览
 
 | 层级 | Web | Backend | Android | iOS |
 |------|-----|---------|---------|-----|
 | 语言 | TypeScript | TypeScript | Kotlin 2.0.21 | Swift 6 |
-| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose + drawer overlay | SwiftUI + TabView + NavigationStack + ZStack overlay + fullScreenCover |
-| 状态管理 | 路由参数 + React 组件状态 | Route Handler 请求级状态 + middleware `request.auth` | `StateFlow` + `NavController` + `MainNavigationViewModel` + `AuthStateHolder` + 各页面 ViewModel | `ObservableObject` + `@Published` + `NavigationRouter` + `AuthStore` |
+| UI / 路由框架 | React 19 + Next.js 16 App Router | Next.js 16 Route Handlers | Jetpack Compose + Material3 + Navigation Compose + drawer overlay + WebView 容器 | SwiftUI + TabView + NavigationStack + ZStack overlay + fullScreenCover + WKWebView 容器 |
+| 状态管理 | 路由参数 + React 组件状态 / reducer | Route Handler 请求级状态 + middleware `request.auth` | `StateFlow` + `NavController` + `MainNavigationViewModel` + `AuthStateHolder` + 各页面 ViewModel | `ObservableObject` + `@Published` + `NavigationRouter` + `AuthStore` |
 | 构建工具 | next build | next build | AGP 8.7.0 + Gradle | XcodeGen + Xcode 27 |
 | 测试 | Vitest + Testing Library | Vitest | JUnit4 + Turbine + Compose testing helpers | Swift Testing |
-| 关键 contract | 用户端多为路由壳，管理后台接口另行维护 | `GET /api/dramas` / `channel` / `search` / `hot-search` / `tags` / `rankings` / `POST /api/dramas/:id/book` / `GET /api/player/recently-viewed` / Auth API | `channel/page/pageSize`、`page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize`、`X-Playback-Session-Id`、`AuthSession` payload | 同 Android，共享 Backend RESTful contract |
+| 关键 contract | 用户端多为路由壳；赚钱页额外消费 `earn.requestLogin` / `earn.openTaskPlayer` 与 `earn.hostMessage` | `GET /api/dramas` / `channel` / `search` / `hot-search` / `tags` / `rankings` / `POST /api/dramas/:id/book` / `GET /api/player/recently-viewed` / Auth API / Earn API | `channel/page/pageSize`、`page/pageSize`、`q/page/pageSize`、`gender`、`type/contentType/page/pageSize`、`X-Playback-Session-Id`、`AuthSession` payload、`earn.hostMessage` | 同 Android，共享 Backend RESTful contract 与 earn host message 语义 |
 
 ## 已知限制
 
 - Web 端当前未实现与移动端对等的首页 Feed、菜单面板、剧场频道、搜索发现、真实排行 / 分类页或“我的”登录页；其主要已落地能力仍是管理后台。
-- Android 与 iOS 的“我的”频道已接入真实登录 / 设置承载，但商城、赚钱仍是占位页，真实业务内容尚未接入。
-- 商城（mall）与赚钱（earn）按产品策略应由 H5 承载，但当前移动端代码仍未接入真实 H5 容器。
+- Android 与 iOS 的“我的”频道已接入真实登录 / 设置承载；赚钱也已接入真实 H5 容器，但商城仍是占位页，真实业务内容尚未接入。
+- 商城（mall）按产品策略应由 H5 承载，但当前移动端代码仍未接入真实 H5 容器；赚钱（earn）已接入真实容器，不过其业务范围仍限于首页概览、登录承接与单个代表性任务闭环。
 - 菜单中的登录、消息、预约、下载仍是 Native 占位承接页；游戏中心仅提供本地“即将上线”反馈，不进入真实业务页面。
 - 最近在看接口只从固定候选窗口中返回最多 3 条合法记录；过滤脏数据后允许不足 3 条，也不承诺继续向更老历史补足。
-- 播放页与详情页跨端都还是占位实现，仅展示路由参数，不包含真实业务数据。
-- Backend 当前首页 / 剧场 / 搜索 / 热搜 / 分类数据仍主要来自 `DramaMockRepository`；最近在看基于 in-memory history；只有排行 / 预约与 auth 已切到真实 Supabase 路径。
-- iOS 排行登录成功后只回到 `.rankingHome`，不显式恢复更细粒度的 `contentType/rankingType` 语义；Android 会保留完整 `ranking?...` returnRoute。
-- 设备级黑盒验证在本轮 workflow 中按规范降级，当前跨端结论主要来自代码、自动化测试与 QA 文档（`docs/specs/2026-07-28-prd-08-login/qa-test.md:1-40`）。
+- 播放页与详情页跨端都还是占位实现，仅展示路由参数，不包含真实业务数据；赚钱任务只是复用原生播放器承接结果，不代表播放器内容域已完整落地。
+- Backend 当前首页 / 剧场 / 搜索 / 热搜 / 分类数据仍主要来自 `DramaMockRepository`；最近在看基于 in-memory history；排行 / 预约与 auth 已切到真实 Supabase 路径，赚钱则仍使用 `EarnMockRepository`。
+- 赚钱奖励当前只允许代表性任务完成，且必须依赖 Native 播放承接层自然结束后才会结算；真实提现、账本、连续看剧福利发奖与多任务并发尚未实现。
+- iOS 排行登录成功后只回到 `.rankingHome`，不显式恢复更细粒度的 `contentType/rankingType` 语义；Android 会保留完整 `ranking?...` returnRoute；赚钱 task-return 的 `preserveScroll` 在 Android/iOS 之间也尚未统一。
+- 设备级黑盒验证在本轮 workflow 中按规范降级，当前跨端结论主要来自代码、自动化测试与 QA 文档（`docs/specs/2026-07-29-prd-14-earn/qa-test.md:1-601`）。
 
 ## 修订历史
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-29 | 更新：系统总览同步 PRD-14 赚钱中心落地结果，补充 earn H5 容器接入、Earn API、Native 登录 / 播放承接、`earn.hostMessage` 宿主同步通道、代表性任务奖励结算顺序，以及 Backend 的 earn 混合运行结构 |
 | 2026-07-29 | 更新：系统总览同步 PRD-08 登录闭环落地结果，补充“我的”频道真实登录 / 设置承载、Auth API、会话恢复 / refresh / logout、排行预约登录拦截，以及 Backend 发现接口与 auth / bookings 的混合运行结构 |
 | 2026-07-28 | 更新：系统总览同步 PRD-12 剧场频道落地结果，补充剧场一级 tab、`GET /api/dramas/channel`、剧场到首页拥有页面的跨 tab 复用与播放器主路径复用 |
 | 2026-07-28 | 更新：系统总览同步 PRD-07 菜单面板落地结果，补充首页汉堡菜单抽屉、关闭后导航时序、`GET /api/player/recently-viewed` 与 Web 不在本期范围的边界 |
