@@ -9,7 +9,6 @@ import com.djs66256.short_drama.core.di.AppPreferencesDataStore
 import com.djs66256.short_drama.domain.model.SearchHistoryItem
 import com.djs66256.short_drama.domain.model.normalizeSearchQueryOrNull
 import javax.inject.Inject
-import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch

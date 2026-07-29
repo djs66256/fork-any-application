@@ -35,6 +35,8 @@ object Arg {
     const val TYPE = "type"
     const val RETURN_ROUTE = "returnRoute"
     const val SOURCE = "source"
+    const val PRODUCT_ID = "productId"
+    const val RETURN_TARGET = "returnTarget"
 }
 
 object Route {
@@ -55,6 +57,7 @@ object Route {
     const val CLASSIFICATION = "classification"
     const val NEW_RELEASES = "new-releases"
     const val ACTORS = "actors"
+    const val MALL_LOGIN = "mall/login?productId={productId}&returnTarget={returnTarget}"
     const val MENU_LOGIN = "menu/login"
     const val MENU_MESSAGES = "menu/messages"
     const val MENU_BOOKING = "menu/booking"
@@ -88,6 +91,7 @@ object AppDestination {
         const val CLASSIFICATION = com.djs66256.short_drama.navigation.Route.CLASSIFICATION
         const val NEW_RELEASES = com.djs66256.short_drama.navigation.Route.NEW_RELEASES
         const val ACTORS = com.djs66256.short_drama.navigation.Route.ACTORS
+        const val MALL_LOGIN = com.djs66256.short_drama.navigation.Route.MALL_LOGIN
         const val MENU_LOGIN = com.djs66256.short_drama.navigation.Route.MENU_LOGIN
         const val MENU_MESSAGES = com.djs66256.short_drama.navigation.Route.MENU_MESSAGES
         const val MENU_BOOKING = com.djs66256.short_drama.navigation.Route.MENU_BOOKING
@@ -103,6 +107,8 @@ object AppDestination {
         const val TYPE = com.djs66256.short_drama.navigation.Arg.TYPE
         const val RETURN_ROUTE = com.djs66256.short_drama.navigation.Arg.RETURN_ROUTE
         const val SOURCE = com.djs66256.short_drama.navigation.Arg.SOURCE
+        const val PRODUCT_ID = com.djs66256.short_drama.navigation.Arg.PRODUCT_ID
+        const val RETURN_TARGET = com.djs66256.short_drama.navigation.Arg.RETURN_TARGET
     }
 
     val topLevelTabs = TopLevelTab.entries
@@ -138,6 +144,10 @@ object AppDestination {
     fun newReleases(): String = Route.NEW_RELEASES
 
     fun actors(): String = Route.ACTORS
+
+    fun mallLogin(productId: String, returnTarget: String): String {
+        return "mall/login?productId=${encodeRouteParam(productId)}&returnTarget=${encodeRouteParam(returnTarget)}"
+    }
 
     fun menuLogin(): String = Route.MENU_LOGIN
 

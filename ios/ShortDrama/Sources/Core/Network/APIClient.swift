@@ -24,7 +24,7 @@ final class APIClient: @unchecked Sendable {
     }
 
     /// Internal initializer for testing with custom URLSession.
-    init(session: URLSession, baseURL: String = "https://api.example.com") {
+    init(session: URLSession, baseURL: String) {
         self.session = session
         self.baseURL = baseURL
     }

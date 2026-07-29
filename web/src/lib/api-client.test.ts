@@ -8,7 +8,10 @@ describe('apiFetch', () => {
   });
 
   describe('T-05: Successful GET request', () => {
-    it('should construct URL with baseUrl and endpoint', async () => {
+    it('should construct URL with configured baseUrl and endpoint', async () => {
+      const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+      process.env.NEXT_PUBLIC_API_URL = 'https://api.example.com';
+
       const mockData = { ok: true };
       vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,
@@ -21,10 +24,20 @@ describe('apiFetch', () => {
       expect(result).toEqual(mockData);
       expect(fetch).toHaveBeenCalledTimes(1);
       const callUrl = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
-      expect(callUrl).toContain('/api/health');
+      expect(callUrl).toBe('https://api.example.com/api/health');
+
+      process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
     });
 
     it('should append query params to URL', async () => {
+      const originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          origin: 'https://web.example.com',
+        },
+      });
+
       vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -38,6 +51,42 @@ describe('apiFetch', () => {
       const callUrl = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
       expect(callUrl).toContain('page=1');
       expect(callUrl).toContain('size=10');
+
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+
+    it('should use window origin when NEXT_PUBLIC_API_URL is not set', async () => {
+      const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const originalLocation = window.location;
+      delete process.env.NEXT_PUBLIC_API_URL;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          origin: 'https://web.example.com',
+        },
+      });
+
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ ok: true }),
+      } as Response);
+
+      await apiFetch('/api/health');
+
+      expect(fetch).toHaveBeenCalledWith(
+        'https://web.example.com/api/health',
+        expect.any(Object),
+      );
+
+      process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
     });
 
     it('should return parsed JSON response', async () => {
@@ -73,7 +122,7 @@ describe('apiFetch', () => {
       expect(caught!.status).toBe(500);
     });
 
-    it('should include error body message in ApiError', async () => {
+    it('should include top-level error body message in ApiError', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: false,
         status: 400,
@@ -84,6 +133,25 @@ describe('apiFetch', () => {
       await expect(apiFetch('/api/test')).rejects.toMatchObject({
         status: 400,
         message: 'Validation failed',
+      });
+    });
+
+    it('should include nested error body message in ApiError', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: () => Promise.resolve({
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: '服务暂不可用，请稍后重试',
+          },
+        }),
+      } as Response);
+
+      await expect(apiFetch('/api/test')).rejects.toMatchObject({
+        status: 503,
+        message: '服务暂不可用，请稍后重试',
       });
     });
 
@@ -109,20 +177,33 @@ describe('apiFetch', () => {
 
       await expect(apiFetch('/api/test', { timeoutMs: 1 })).rejects.toThrow(TimeoutError);
     });
+
+    it('should require NEXT_PUBLIC_API_URL when no window origin is available', async () => {
+      const originalApiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const originalWindow = global.window;
+      delete process.env.NEXT_PUBLIC_API_URL;
+      // @ts-expect-error test-only override
+      delete global.window;
+
+      await expect(apiFetch('/api/test')).rejects.toThrow(
+        'NEXT_PUBLIC_API_URL is required when window origin is unavailable',
+      );
+
+      process.env.NEXT_PUBLIC_API_URL = originalApiUrl;
+      global.window = originalWindow;
+    });
   });
 
   describe('Network error handling', () => {
     it('should throw NetworkError on TypeError (e.g. offline)', async () => {
-      vi.spyOn(global, 'fetch').mockRejectedValueOnce(
-        new TypeError('Failed to fetch'),
-      );
+      vi.spyOn(global, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
       await expect(apiFetch('/api/test')).rejects.toThrow(NetworkError);
     });
   });
 
   describe('Convenience methods', () => {
-    it('api.get should use GET method', async () => {
+    it('api.get should use GET method without forcing json content type', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -133,6 +214,7 @@ describe('apiFetch', () => {
 
       const init = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][1] as RequestInit;
       expect(init.method).toBe('GET');
+      expect(init.headers).toEqual({});
     });
 
     it('api.post should use POST method with body', async () => {

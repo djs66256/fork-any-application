@@ -2,6 +2,7 @@ import Foundation
 
 /// Application configuration, reading values from Info.plist.
 enum AppConfig {
+    private static let mallHomePath = "/mall"
 
     /// Display name from CFBundleDisplayName or CFBundleName.
     static func appName(bundle: Bundle = .main) -> String {
@@ -22,8 +23,32 @@ enum AppConfig {
     }
 
     /// API base URL injected via Info.plist key API_BASE_URL.
-    /// Falls back to localhost debug endpoint when not set.
     static func apiBaseURL(bundle: Bundle = .main) -> String {
-        bundle.infoDictionary?["API_BASE_URL"] as? String ?? "http://localhost:3001"
+        bundle.infoDictionary?["API_BASE_URL"] as? String ?? ""
+    }
+
+    /// Mall H5 base URL injected via Info.plist key MALL_BASE_URL.
+    static func mallBaseURL(bundle: Bundle = .main) -> String {
+        bundle.infoDictionary?["MALL_BASE_URL"] as? String ?? ""
+    }
+
+    /// Canonical mall home URL used by the native mall container.
+    static func mallHomeURL(bundle: Bundle = .main) -> URL? {
+        makeURL(baseURL: mallBaseURL(bundle: bundle), path: mallHomePath)
+    }
+
+    static func makeURL(baseURL: String, path: String) -> URL? {
+        guard var components = URLComponents(string: baseURL) else {
+            return nil
+        }
+
+        let trimmedPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        if trimmedPath.isEmpty {
+            components.path = "/"
+        } else {
+            components.path = "/\(trimmedPath)"
+        }
+
+        return components.url
     }
 }

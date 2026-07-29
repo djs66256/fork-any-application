@@ -85,7 +85,7 @@ struct PlayerRepositoryTests {
         }
 
         let repository = PlayerRepository(
-            dataSource: PlayerRemoteDataSource(client: APIClient(session: session))
+            dataSource: PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let progress = try await repository.fetchProgress(dramaId: "drama-001", playbackSessionId: "session-001")
@@ -162,7 +162,7 @@ struct PlayerRepositoryTests {
         }
 
         let repository = PlayerRepository(
-            dataSource: PlayerRemoteDataSource(client: APIClient(session: session))
+            dataSource: PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let startReceipt = try await repository.startPlayback(

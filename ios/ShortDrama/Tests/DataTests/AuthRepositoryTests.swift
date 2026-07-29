@@ -45,7 +45,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let result = try await repository.sendOtp(phone: "13800138000", countryCode: "+86", scene: "login")
@@ -82,7 +82,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let sessionEntity = try await repository.createSession(
@@ -133,7 +133,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let sessionEntity = try await repository.refreshSession(refreshToken: "refresh-token")
@@ -168,7 +168,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let user = try await repository.getCurrentUser(accessToken: "access-token")
@@ -202,7 +202,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         try await repository.logout(accessToken: "access-token")
@@ -221,7 +221,7 @@ struct AuthRepositoryTests {
 
         let session = makeSession(handler: handler)
         let repository = AuthRepository(
-            dataSource: AuthRemoteDataSource(client: APIClient(session: session))
+            dataSource: AuthRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         do {

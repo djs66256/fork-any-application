@@ -1,3 +1,4 @@
 CODE_SIGN_STYLE = Automatic
 COLON_SLASH = /
 API_BASE_URL = http:/$(COLON_SLASH)/localhost:3001
+MALL_BASE_URL = http:/$(COLON_SLASH)/localhost:3000

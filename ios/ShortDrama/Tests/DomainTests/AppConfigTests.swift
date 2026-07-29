@@ -76,9 +76,32 @@ struct AppConfigTests {
         #expect(AppConfig.apiBaseURL(bundle: bundle) == "https://api.example.com")
     }
 
-    @Test("apiBaseURL falls back to localhost when missing")
+    @Test("apiBaseURL returns empty string when missing")
     func testAPIBaseURLFallback() {
         let bundle = makeBundle(info: [:])
-        #expect(AppConfig.apiBaseURL(bundle: bundle) == "http://localhost:3001")
+        #expect(AppConfig.apiBaseURL(bundle: bundle) == "")
+    }
+
+    @Test("mallBaseURL returns correct value from Info.plist")
+    func testMallBaseURL() {
+        let bundle = makeBundle(info: [
+            "MALL_BASE_URL": "https://app.example.com"
+        ])
+        #expect(AppConfig.mallBaseURL(bundle: bundle) == "https://app.example.com")
+    }
+
+    @Test("mallBaseURL returns empty string when missing")
+    func testMallBaseURLFallback() {
+        let bundle = makeBundle(info: [:])
+        #expect(AppConfig.mallBaseURL(bundle: bundle) == "")
+    }
+
+    @Test("mallHomeURL appends canonical mall route")
+    func testMallHomeURL() {
+        let bundle = makeBundle(info: [
+            "MALL_BASE_URL": "https://app.example.com"
+        ])
+
+        #expect(AppConfig.mallHomeURL(bundle: bundle)?.absoluteString == "https://app.example.com/mall")
     }
 }
