@@ -24,6 +24,10 @@ describe('config', () => {
     expect(configModule.player.historyRepository).toBe('mock');
   });
 
+  it('should default comments repository to mock', () => {
+    expect(configModule.comments.repository).toBe('mock');
+  });
+
   it('should expose environment-backed supabase keys', () => {
     expect(configModule.supabase.url).toBeDefined();
     expect(configModule.supabase.anonKey).toBeDefined();

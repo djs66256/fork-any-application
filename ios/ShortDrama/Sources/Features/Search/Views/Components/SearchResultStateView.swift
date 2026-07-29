@@ -25,7 +25,8 @@ struct SearchResultStateView: View {
                         HomeDramaCardView(
                             drama: drama,
                             onPlay: { onPlay(drama) },
-                            onDetail: { onDetail(drama) }
+                            onDetail: { onDetail(drama) },
+                            onComment: {}
                         )
                     }
                 }

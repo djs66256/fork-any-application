@@ -2,6 +2,9 @@ package com.djs66256.short_drama.core.network
 
 import com.djs66256.short_drama.data.dto.BookDramaResponseDto
 import com.djs66256.short_drama.data.dto.ClassificationTagsResponseDto
+import com.djs66256.short_drama.data.dto.CommentDto
+import com.djs66256.short_drama.data.dto.CommentListResponseDto
+import com.djs66256.short_drama.data.dto.CreateCommentRequestDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.EpisodeListResponseDto
 import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
@@ -13,6 +16,7 @@ import com.djs66256.short_drama.data.dto.PlayerStopResponseDto
 import com.djs66256.short_drama.data.dto.RankingListResponseDto
 import com.djs66256.short_drama.data.dto.RecentlyViewedResponseDto
 import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
+import com.djs66256.short_drama.data.dto.ToggleCommentLikeResponseDto
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -79,6 +83,26 @@ interface ApiService {
     suspend fun getDramaEpisodes(
         @Path("id") dramaId: String,
     ): EpisodeListResponseDto
+
+    @GET("dramas/{id}/comments")
+    suspend fun getDramaComments(
+        @Path("id") id: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("sort") sort: String = "latest",
+    ): CommentListResponseDto
+
+    @POST("dramas/{id}/comments")
+    suspend fun createDramaComment(
+        @Path("id") id: String,
+        @Body request: CreateCommentRequestDto,
+    ): CommentDto
+
+    @POST("dramas/{id}/comments/{commentId}/like")
+    suspend fun toggleDramaCommentLike(
+        @Path("id") id: String,
+        @Path("commentId") commentId: String,
+    ): ToggleCommentLikeResponseDto
 
     @GET("episodes/{id}")
     suspend fun getEpisodeDetail(@Path("id") id: String): Unit

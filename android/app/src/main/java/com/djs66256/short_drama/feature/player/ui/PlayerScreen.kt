@@ -1,5 +1,6 @@
 package com.djs66256.short_drama.feature.player.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,14 +16,21 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
+import com.djs66256.short_drama.feature.comments.ui.CommentBottomSheet
+import com.djs66256.short_drama.feature.comments.ui.CommentLoginPlaceholderDialog
 import com.djs66256.short_drama.feature.player.player.PlaceholderPlayerHost
 import com.djs66256.short_drama.feature.player.ui.components.EpisodePickerSheetContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerBottomInfo
@@ -31,6 +39,7 @@ import com.djs66256.short_drama.feature.player.ui.components.PlayerRightActionBa
 import com.djs66256.short_drama.feature.player.ui.components.PlayerStatusContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerTopBar
 import com.djs66256.short_drama.feature.player.ui.components.SpeedPickerSheetContent
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerEffect
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
 import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
@@ -50,9 +59,11 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val fallbackNavController = rememberNavController()
     val activeNavController = navController ?: fallbackNavController
+    var pendingCommentLoginContext by remember { mutableStateOf<CommentLoginContext?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadIfNeeded()
@@ -68,6 +79,21 @@ fun PlayerScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             viewModel.onScreenDisposed()
+        }
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is PlayerEffect.RequireLogin -> {
+                    viewModel.closeComments()
+                    pendingCommentLoginContext = effect.context
+                    Toast.makeText(context, "请先登录后再操作评论", Toast.LENGTH_SHORT).show()
+                }
+                is PlayerEffect.ShowMessage -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -96,30 +122,59 @@ fun PlayerScreen(
 
         PlayerContentVariant.CONTENT -> PlayerContent(
             uiState = uiState,
-            onBack = { activeNavController.popBackStack() },
-            onToggleSpeedSheet = viewModel::toggleSpeedSheet,
-            onToggleMoreSheet = {},
-            onToggleEpisodeSheet = viewModel::toggleEpisodeSheet,
-            onToggleLike = viewModel::toggleLike,
-            onToggleFavorite = viewModel::toggleFavorite,
-            onSelectSpeed = viewModel::selectSpeed,
-            onSelectEpisode = viewModel::switchEpisode,
+            callbacks = PlayerContentCallbacks(
+                onBack = { activeNavController.popBackStack() },
+                onToggleSpeedSheet = viewModel::toggleSpeedSheet,
+                onToggleMoreSheet = {},
+                onToggleEpisodeSheet = viewModel::toggleEpisodeSheet,
+                onToggleLike = viewModel::toggleLike,
+                onToggleFavorite = viewModel::toggleFavorite,
+                onOpenComments = viewModel::openComments,
+                onSelectSpeed = viewModel::selectSpeed,
+                onSelectEpisode = viewModel::switchEpisode,
+                onCommentLoginRequired = viewModel::onCommentLoginRequired,
+                onCommentMessage = viewModel::onCommentMessage,
+                onDismissComments = viewModel::closeComments,
+            ),
+        )
+    }
+
+    pendingCommentLoginContext?.let { loginContext ->
+        CommentLoginPlaceholderDialog(
+            context = loginContext,
+            onConfirmLogin = {
+                viewModel.restoreCommentSheetAfterLogin()
+                pendingCommentLoginContext = null
+                Toast.makeText(context, "已回到评论抽屉，请手动重新执行操作", Toast.LENGTH_SHORT).show()
+            },
+            onDismiss = {
+                pendingCommentLoginContext = null
+                viewModel.clearPendingCommentLoginContext()
+            },
         )
     }
 }
+
+private data class PlayerContentCallbacks(
+    val onBack: () -> Unit,
+    val onToggleSpeedSheet: () -> Unit,
+    val onToggleMoreSheet: () -> Unit,
+    val onToggleEpisodeSheet: () -> Unit,
+    val onToggleLike: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onOpenComments: () -> Unit,
+    val onSelectSpeed: (PlaybackSpeed) -> Unit,
+    val onSelectEpisode: (com.djs66256.short_drama.domain.model.Episode) -> Unit,
+    val onCommentLoginRequired: (com.djs66256.short_drama.feature.comments.model.CommentLoginContext) -> Unit,
+    val onCommentMessage: (String) -> Unit,
+    val onDismissComments: () -> Unit,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerContent(
     uiState: PlayerUiState,
-    onBack: () -> Unit,
-    onToggleSpeedSheet: () -> Unit,
-    onToggleMoreSheet: () -> Unit,
-    onToggleEpisodeSheet: () -> Unit,
-    onToggleLike: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onSelectSpeed: (PlaybackSpeed) -> Unit,
-    onSelectEpisode: (com.djs66256.short_drama.domain.model.Episode) -> Unit,
+    callbacks: PlayerContentCallbacks,
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -131,15 +186,16 @@ private fun PlayerContent(
             PlayerTopBar(
                 title = uiState.playbackTitle,
                 currentSpeedLabel = uiState.currentSpeed.label,
-                onBack = onBack,
-                onToggleSpeedSheet = onToggleSpeedSheet,
-                onToggleMore = onToggleMoreSheet,
+                onBack = callbacks.onBack,
+                onToggleSpeedSheet = callbacks.onToggleSpeedSheet,
+                onToggleMore = callbacks.onToggleMoreSheet,
             )
             PlaceholderPlayerHost(uiState = uiState)
             PlayerRightActionBar(
                 interactionState = uiState.interactionState,
-                onToggleLike = onToggleLike,
-                onToggleFavorite = onToggleFavorite,
+                onToggleLike = callbacks.onToggleLike,
+                onToggleFavorite = callbacks.onToggleFavorite,
+                onOpenComments = callbacks.onOpenComments,
             )
             PlayerBottomInfo(
                 title = uiState.currentEpisode?.title ?: "短剧播放页",
@@ -151,31 +207,41 @@ private fun PlayerContent(
                 episodeCount = uiState.episodes.size,
                 currentEpisodeNumber = uiState.currentEpisode?.episodeNumber,
                 statusLabel = uiState.seriesStatus.label,
-                onOpenEpisodeSheet = onToggleEpisodeSheet,
+                onOpenEpisodeSheet = callbacks.onToggleEpisodeSheet,
             )
         }
     }
 
     if (uiState.isSpeedSheetVisible) {
-        ModalBottomSheet(onDismissRequest = onToggleSpeedSheet) {
+        ModalBottomSheet(onDismissRequest = callbacks.onToggleSpeedSheet) {
             SpeedPickerSheetContent(
                 speeds = PlaybackSpeed.defaults,
                 currentSpeed = uiState.currentSpeed,
-                onSelectSpeed = onSelectSpeed,
+                onSelectSpeed = callbacks.onSelectSpeed,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
     }
 
     if (uiState.isEpisodeSheetVisible) {
-        ModalBottomSheet(onDismissRequest = onToggleEpisodeSheet) {
+        ModalBottomSheet(onDismissRequest = callbacks.onToggleEpisodeSheet) {
             EpisodePickerSheetContent(
                 episodes = uiState.episodes,
                 currentEpisodeId = uiState.currentEpisode?.id,
-                onSelectEpisode = onSelectEpisode,
+                onSelectEpisode = callbacks.onSelectEpisode,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
+    }
+
+    if (uiState.commentSheetState.isVisible) {
+        CommentBottomSheet(
+            dramaId = uiState.commentSheetState.dramaId.orEmpty(),
+            source = uiState.commentSheetState.source,
+            onDismiss = callbacks.onDismissComments,
+            onRequireLogin = { effect -> callbacks.onCommentLoginRequired(effect.context) },
+            onMessage = callbacks.onCommentMessage,
+        )
     }
 }
 

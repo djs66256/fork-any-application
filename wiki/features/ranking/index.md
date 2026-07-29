@@ -1,15 +1,15 @@
 # 排行体系 (Ranking)
 
-> 最后更新：2026-07-28
+> 最后更新：2026-07-29
 > 覆盖端：Android / iOS / Backend（Web 本期不实现）
 
 ## 功能概述
 
-排行体系在既有搜索发现快捷入口和移动端 Native 路由承接页之上，补齐了“按榜单集中发现内容”的浏览链路。当前 Android 与 iOS 已同时从搜索页“排行”入口和剧场频道快捷入口进入真实排行页：普通“排行”默认请求 `contentType=all&type=hot&page=1&pageSize=10`，而剧场“预约”快捷入口会直接把排行页初始化到 `all + booking` 上下文，并通过 Backend `GET /api/dramas/rankings` 返回分页榜单；用户可在“全部 / 真人 / AI”与“热榜 / 推荐榜 / 预约榜”两个维度间切换，排行项继续复用现有 canonical `play` 路由语义进入播放器承接页。商城（mall）与赚钱（earn）仍按 H5 承载，不属于本期排行实现范围（`PRODUCT.md:22-25`）。
+排行体系在既有搜索发现快捷入口和移动端 Native 路由承接页之上，补齐了“按榜单集中发现内容”的浏览链路。当前 Android 与 iOS 已同时从搜索页“排行”入口和剧场频道快捷入口进入真实排行页：普通“排行”默认请求 `contentType=all&type=hot&page=1&pageSize=10`，而剧场“预约”快捷入口会直接把排行页初始化到 `all + booking` 上下文，并通过 Backend `GET /api/dramas/rankings` 返回分页榜单；用户可在“全部 / 真人 / AI”与“热榜 / 推荐榜 / 预约榜”两个维度间切换，排行项继续复用现有 canonical `play` 路由语义进入播放器承接页。与 PRD-09 评论系统直接相关的现状是：排行预约已提供当前仓库里最成型的登录拦截建模，可供评论写操作复用其“登录恢复上下文”思路；但它依赖的用户侧认证仍是 skeleton auth，而不是移动端真实 JWT 闭环。商城（mall）与赚钱（earn）仍按 H5 承载，不属于本期排行实现范围（`PRODUCT.md:22-25`）。
 
 - **核心价值**：为热门、推荐与预约内容提供结构化聚合入口，补齐搜索发现页和剧场频道到内容消费的主路径
 - **覆盖范围**：Backend 排行与预约接口、Android 排行页、iOS 排行页、搜索页/剧场快捷入口到播放页的导航链路
-- **当前状态**：Android / iOS / Backend 已落地；Web 仅保留 `/rankings` 占位页，不实现真实榜单（`web/src/app/rankings/page.tsx:1-9`）
+- **当前状态**：Android / iOS / Backend 已落地；Web 仅保留 `/rankings` 占位页，不实现真实榜单；排行预约登录拦截可为评论提供模式参考，但评论功能尚未在排行页或其它页面落地
 
 ## 入口与路由
 
@@ -19,7 +19,7 @@
 | Android | 剧场快捷入口“排行 / 预约” | `ranking?contentType=all&type=hot` / `ranking?contentType=all&type=booking`，先切回 `HOME` tab 再承载 | `android/app/src/main/java/com/djs66256/short_drama/navigation/TheaterShortcutRoute.kt:8-23`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:428-433` |
 | Android | Deeplink | `djsdrama://ranking`，进入 `PendingRoute.Ranking` 后导航至默认排行页 | `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt:33-41`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:89-92` |
 | iOS | 搜索发现快捷入口“排行” | `QuickEntryType.ranking -> .rankingHome` | `ios/ShortDrama/Sources/Domain/Entities/QuickEntry.swift:20-26`, `ios/ShortDrama/Sources/Features/Search/ViewModels/SearchHomeViewModel.swift:76-87` |
-| iOS | 剧场快捷入口“排行 / 预约” | `.openRanking(TheaterRankingEntryContext(rankingType: .hot/.booking))` | `ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:57-63` |
+| iOS | 剧场快捷入口“排行 / 预约” | `.openRanking(TheaterRankingEntryContext(rankingType: .hot/.booking))` | `ios/ShortDrama/Sources/Features/Theater/ViewModels/TheaterViewModel.swift:114-124`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:117-125` |
 | iOS | Deeplink | `djsdrama://ranking`，解析为 `.rankingHome` | `ios/ShortDrama/Sources/App/DeeplinkHandler.swift:26-45` |
 | Android / iOS | 排行项播放入口 | 点击排行项后复用 `play` 语义进入播放页；Android 兼容 `player` 历史别名，iOS 仅公开 `play` | `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:44-50,94-109`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:200-208`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:3-8`, `ios/ShortDrama/Sources/App/AppRoute.swift:39-60` |
 | Backend | 排行 / 预约接口 | `GET /api/dramas/rankings`、`POST /api/dramas/:id/book` | `backend/src/app/api/dramas/rankings/route.ts:8-24`, `backend/src/app/api/dramas/[id]/book/route.ts:16-28` |
@@ -58,12 +58,25 @@
    - iOS 未登录时设置 `bookingErrorMessage` 并发出 `.requireLogin(RankingLoginContext)`（`ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:122-126,146-150,210-217`）。
 3. 已登录用户点击预约后，调用 `POST /api/dramas/:id/book`。
    - Android Retrofit 和 iOS `DramaRemoteDataSource` 都使用同一 RESTful path（`android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt:39-48`, `ios/ShortDrama/Sources/Data/DataSources/DramaRemoteDataSource.swift:82-89,161-165`）。
-4. Backend 通过 `getAuthenticatedUserId()` 强制要求认证，认证来源仅支持骨架态 `x-user-id` 或 `Bearer <user-id>`，尚未接入真实 JWT 校验（`backend/src/middleware/auth.ts:5-32`）。
+4. Backend 通过 `getAuthenticatedUserId()` 强制要求认证，认证来源仅支持骨架态 `x-user-id` 或 `Bearer <user-id>`，尚未接入真实 JWT 校验。
+   - 源文件：`backend/src/middleware/auth.ts:17-33`
 5. 预约成功后，客户端只更新当前项的预约状态和预约数，不刷新整页。
    - Android 更新 `rawItems` 中目标项的 `isBooked/bookingCount` 并重新发布 UI（`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:213-226,380-390`）。
    - iOS 调用 `withBookingState(...)` 更新目标项并回写 `viewState`（`ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:133-141,219-223`, `ios/ShortDrama/Sources/Domain/Entities/RankingDrama.swift:58-81`）。
 6. Backend 预约行为当前是单向幂等 success，不支持取消预约。
    - 相同 `userId:dramaId` 二次预约直接返回 `booked: true` 和当前 `booking_count`；首次预约时才累加计数（`backend/src/repositories/mock/drama.mock.repository.ts:364-395`）。
+
+### 流程：评论写操作可复用排行登录拦截模式，但当前仅停留在参考层
+
+1. PRD-09 已定稿：评论写操作的登录成功后恢复策略是“恢复评论抽屉上下文，不自动重放原发送/点赞动作”。
+   - 源文件：`docs/specs/2026-07-29-prd-09-comments/spec.md:336-364,531-534`, `docs/specs/2026-07-29-prd-09-comments/spec-review.md:76-91`
+2. Android 现有最贴近这套语义的代码就是排行预约里的 `RankingEffect.RequireLogin(returnRoute)`，它能记录来源榜单 route 并阻止匿名写请求直达后端。
+   - 源文件：`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:46-49,193-205`
+3. iOS 现有最贴近这套语义的代码是 `RankingLoginContext` + `routeEffect = .requireLogin(...)`，它能记录 `dramaId` 与来源榜单上下文，但当前 UI 承接仍只是 alert。
+   - 源文件：`ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:14-16,117-159,213-220`, `ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift:56-67,81-110`
+4. 需要注意的是，排行这套模式还不是跨业务共享基础设施；当前 worktree 中评论模块不存在，无法直接证明已有通用 `PendingCommentAction` 或跨页面 comments login coordinator。
+5. 评论未来若复用排行模式，也必须同时遵守当前后端认证现实：移动端用户写接口仍使用 skeleton auth，而不是 Admin 那套真实 JWT + role 校验链路。
+   - 源文件：`backend/src/middleware/auth.ts:17-33,44-69,91-126`
 
 ### 边界与异常处理
 
@@ -74,8 +87,10 @@
 | 快速切换维度导致旧请求晚返回 | Android 使用 `activeRefreshToken/activeAppendToken + latestQueryKey`，iOS 使用 `requestToken`，只消费最后一次有效请求结果 | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:79-82,145-175,247-304,402-408`, `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:40,87-111,163-199` |
 | 超大页码 | Backend 返回 200 + 空数组，并保留分页元信息 | `backend/src/app/api/__tests__/dramas-rankings.test.ts:90-115` |
 | 排行 query 非法 | Backend 返回 400 `VALIDATION_ERROR` | `backend/src/app/api/__tests__/dramas-rankings.test.ts:117-124` |
-| 预约未登录 | Backend 返回 401；客户端侧也有预校验拦截 | `backend/src/app/api/__tests__/dramas-book.test.ts:66-77`, `backend/src/middleware/auth.ts:25-32` |
+| 预约未登录 | Backend 返回 401；客户端侧也有预校验拦截 | `backend/src/app/api/__tests__/dramas-book.test.ts:66-77`, `backend/src/middleware/auth.ts:26-33` |
 | Android 旧 `player` deeplink | Android 继续兼容 `djsdrama://player/{id}`；iOS 不兼容该历史 host | `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt:33-36`, `ios/ShortDrama/Sources/App/DeeplinkHandler.swift:26-45` |
+| iOS 登录拦截承接 | 当前只展示 alert，不会打开真实登录页或自动恢复操作 | `ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift:56-67,81-110` |
+| Android 登录拦截承接 | 当前 NavGraph 只对 `RequireLogin` 做提示性占位处理，不会进入真实登录流 | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:222-230` |
 
 ## 多端实现
 
@@ -85,7 +100,7 @@
 - 状态源：`RankingUiState` 聚合 `selectedContentType / selectedRankingType / items / loading / refreshing / appending / appendError / bookingInFlightIds`（`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:31-44`）
 - 领域模型：`RankingContentType`、`RankingType`、`RankingQuery`、`RankingPage`、`RankingDrama` 形成 Android 侧完整排行实体集（`android/app/src/main/java/com/djs66256/short_drama/domain/model/RankingQuery.kt:3-54`, `android/app/src/main/java/com/djs66256/short_drama/domain/model/RankingDrama.kt:3-19`）
 - DTO 对齐：`RankingDramaDto` 负责 snake_case 字段解码和 `content_type` 到 enum 的转换（`android/app/src/main/java/com/djs66256/short_drama/data/dto/RankingDramaDto.kt:8-52`）
-- UI 指标：`RankingDramaItemUiModel` 根据榜单类型切换展示“热度 / 推荐值 / 预约数”文案（`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/model/RankingUiModel.kt:6-71`）
+- 登录拦截模式：`RankingEffect.RequireLogin(returnRoute)` 是当前评论最可复用的 Android 侧登录恢复上下文参考（`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:46-49,193-205`）
 - 自动化证据：`RoutesTest` 覆盖默认排行路由与 query 编码；`DeeplinkRouteParserTest` 覆盖 `ranking` / `player` host；[待确认] 排行页专属 UI / ViewModel 测试文件未在本轮收录中逐一核验
 
 ### iOS
@@ -94,8 +109,8 @@
 - 状态源：`RankingViewModel` 使用 `ViewState + isAppending + appendErrorMessage + bookingErrorMessage + routeEffect` 承载页面状态（`ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:7-41`）
 - 领域模型：`RankingDrama`、`RankingQuery`、`BookDramaResult` 构成 iOS 侧排行实体与预约结果（`ios/ShortDrama/Sources/Domain/Entities/RankingDrama.swift:3-82`, `ios/ShortDrama/Sources/Domain/Entities/RankingQuery.swift:3-21`, `ios/ShortDrama/Sources/Domain/Entities/BookDramaResult.swift:3-8`）
 - 数据源：`DramaRemoteDataSource` 已接入 `/api/dramas/rankings` 与 `/api/dramas/{id}/book`（`ios/ShortDrama/Sources/Data/DataSources/DramaRemoteDataSource.swift:65-89,155-165`）
-- 页面交互：`RankingHomeView` 负责双层 Tab、播放跳转、登录提示弹窗与分页触发（`ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift:19-109`）
-- 自动化证据：`NavigationRouterTests` 已覆盖 `.rankingHome` 的 home-tab 归属和公开路由名 `ranking`（`ios/ShortDrama/Tests/ViewModelTests/NavigationRouterTests.swift:55-73`）；`APIClientTests` 已覆盖 `/api/dramas/rankings` canonical payload 解码（`ios/ShortDrama/Tests/DataTests/APIClientTests.swift:292-360`）
+- 登录拦截模式：`RankingLoginContext` + `routeEffect = .requireLogin(...)` 是当前评论最可复用的 iOS 侧登录恢复上下文参考，但 UI 承接仍只是 alert（`ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:14-16,117-159,213-220`, `ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift:56-67,81-110`）
+- 自动化证据：`NavigationRouterTests` 已覆盖 `.rankingHome` 的 home-tab 归属和公开路由名 `ranking`（`ios/ShortDrama/Tests/ViewModelTests/NavigationRouterTests.swift:55-73`）；`APIClientTests` 已覆盖 `/api/dramas/rankings` canonical payload 解码（`ios/ShortDrama/Tests/DataTests/APIClientTests.swift:292-360`）；`RankingViewModelTests` 已覆盖 guest / 401 登录拦截（`ios/ShortDrama/Tests/ViewModelTests/RankingViewModelTests.swift:225-243,273-291`）
 
 ### Backend
 
@@ -103,6 +118,7 @@
 - Service：`DramaService` 扩展 `listRankings()` 与 `bookDrama()`，统一校验 repository 输出（`backend/src/services/drama/drama.service.ts:44-78`）
 - Repository Contract：`DramaRepositoryInterface` 扩展 `RankingParams`、`AuthContext`、`BookDramaParams`、`listRankings()`、`bookDrama()`（`backend/src/repositories/interfaces/drama.repository.interface.ts:10-50`）
 - Schema：`RankingDramaSchema`、`RankingQuerySchema`、`RankingListResponseSchema`、`BookDramaResponseSchema` 定义了排行和预约接口的权威返回形态（`backend/src/lib/schemas.ts:30-44,75-105`）
+- 认证现状：预约接口仍沿用 skeleton auth，`Authorization: Bearer <user-id>` 或 `x-user-id` 只解析 userId，不做真实 JWT 校验；这也是 PRD-09 评论写接口明确要对齐的当前基线（`backend/src/middleware/auth.ts:17-33`, `docs/specs/2026-07-29-prd-09-comments/spec-review.md:80-91`）
 - 当前数据源：运行时仍直接实例化 `DramaMockRepository()`，Supabase migration 已存在但未成为当前 route 的实际数据路径（`backend/src/app/api/dramas/rankings/route.ts:17-23`, `backend/src/app/api/dramas/[id]/book/route.ts:20-27`, `backend/supabase/migrations/20260727000100_add_ranking_fields_and_bookings.sql:3-24`）
 - 自动化证据：`dramas-rankings.test.ts` 覆盖默认 query、可选 auth、超大页码空数据、非法参数 400 与异常 500；`dramas-book.test.ts` 覆盖 bearer / `x-user-id`、未登录 401、非法 id 400 与 not found / internal error（`backend/src/app/api/__tests__/dramas-rankings.test.ts:39-138`, `backend/src/app/api/__tests__/dramas-book.test.ts:18-133`）
 
@@ -116,7 +132,7 @@
 | 接口 | API 文档 | 说明 |
 |------|---------|------|
 | `GET /api/dramas/rankings` | [../../api/dramas.md](../../api/dramas.md) | 排行页唯一榜单数据源，支持 `type/contentType/page/pageSize` |
-| `POST /api/dramas/:id/book` | [../../api/dramas.md](../../api/dramas.md) | 预约榜提交接口，要求骨架态认证 |
+| `POST /api/dramas/:id/book` | [../../api/dramas.md](../../api/dramas.md) | 预约榜提交接口，要求 skeleton auth 基线 |
 | `GET /api/dramas` | [../../api/dramas.md](../../api/dramas.md) | 与排行共享基础 `Drama` 字段集来源 |
 | `POST /api/player/start` / `POST /api/player/stop` | [../../api/player.md](../../api/player.md) | 播放器仍是占位能力，排行项当前只负责跳转，不新增播放 API |
 
@@ -126,11 +142,13 @@
 |------|---------|--------|------|--------|
 | Android `RankingUiState` | `MutableStateFlow` | 页面级 | 排行页唯一状态源，聚合维度选择、列表、分页、错误与预约进行中状态 | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:31-44,65-77` |
 | Android `latestQueryKey + token` | ViewModel 私有字段 | 页面级 | 避免切换 Tab / 翻页时旧响应覆盖新状态 | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:79-82,397-413` |
+| Android `RankingEffect.RequireLogin(returnRoute)` | `SharedFlow<RankingEffect>` | 页面级 | 预约未登录时发出登录恢复上下文，是评论未来可复用的参考模式 | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt:46-49,73-77,193-205` |
 | iOS `selectedContentType / selectedRankingType / viewState` | `@Published` | 页面级 | 排行页的维度选择与内容态统一来源 | `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:23-30` |
 | iOS `requestToken` | ViewModel 私有字段 | 页面级 | 避免首屏/翻页结果乱序落盘 | `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:35-41,87-111,163-199` |
-| iOS `routeEffect` | `@Published` | 页面级 | 预约未登录时发出登录拦截承接信号 | `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:14-16,29,122-126` |
+| iOS `routeEffect` / `RankingLoginContext` | `@Published` | 页面级 | 预约未登录时发出结构化登录恢复上下文，是评论未来可复用的参考模式 | `ios/ShortDrama/Sources/Features/Ranking/ViewModels/RankingViewModel.swift:14-16,29,122-126,213-220` |
 | Backend `pagination` | JSON 响应 | 请求级 | 返回 `page / page_size / total / total_pages`，客户端据此判断是否还有下一页 | `backend/src/lib/schemas.ts:61-79`, `backend/src/repositories/interfaces/drama.repository.interface.ts:35-43` |
 | Backend `bookings` | `Set<string>` | Repository 实例级 | 以 `userId:dramaId` 记录当前进程内预约状态，用于 `is_booked` 与幂等预约 | `backend/src/repositories/mock/drama.mock.repository.ts:316-323,343-395` |
+| Backend 用户侧 `userId` | `x-user-id` 或 `Bearer <user-id>` | 请求级 | 排行/预约当前用户上下文的 skeleton auth 来源，也是评论写接口已定的基线 | `backend/src/middleware/auth.ts:17-33` |
 
 ## 依赖关系
 
@@ -142,6 +160,7 @@
 | 应用壳 | Native 容器承载 | Android/iOS 排行页都挂在首页 Tab / home graph 下 |
 | 播放器 | 路由跳转 | 排行项主动作统一复用 `play/:id` 语义 |
 | 深链 | 外部入口 | `djsdrama://ranking` 可直接打开排行页；Android 继续兼容 `player` 历史播放 host |
+| 认证体系 | 登录拦截与写接口基线 | 排行预约提供评论可复用的登录拦截模式；后端预约接口提供评论需对齐的 skeleton auth 基线 |
 | 数据模型 | 共享字段约束 | `RankingDrama` 基于 `Drama` 扩展排行字段，客户端 DTO / Entity 与 Backend schema 需保持一致 |
 
 ### 外部依赖
@@ -151,7 +170,7 @@
 | Next.js Route Handlers | Backend 排行与预约接口承载 | `backend/src/app/api/dramas/rankings/route.ts`, `backend/src/app/api/dramas/[id]/book/route.ts` |
 | Retrofit | Android 拉取排行与提交预约 | `android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt` |
 | URLSession + APIClient | iOS 拉取排行与提交预约 | `ios/ShortDrama/Sources/Data/DataSources/DramaRemoteDataSource.swift` |
-| Skeleton Auth (`x-user-id` / Bearer user id) | Backend 预约认证 | `backend/src/middleware/auth.ts:5-32` |
+| Skeleton Auth (`x-user-id` / Bearer user id) | Backend 预约认证，也是评论写接口当前应对齐的基线 | `backend/src/middleware/auth.ts:17-33` |
 
 ## 已知限制
 
@@ -159,8 +178,10 @@
 |------|------|---------|------|
 | Web 不实现真实排行页 | Web 只能看到 `/rankings` 占位页，无法浏览真实榜单 | 2026-07-27 | 属于明确范围外，符合 `PRODUCT.md` Native 页面约束 |
 | Backend 运行时仍使用 mock repository | 排行顺序、预约数和 `is_booked` 都来自本地进程内数据，不具备持久化或多实例一致性 | 2026-07-27 | Supabase migration 已存在，但未接入当前 route |
-| 预约认证仍是骨架态 | `Authorization` 里的 Bearer token 当前被直接当作 userId 使用，未接入真实 JWT 校验 | 2026-07-27 | `backend/src/middleware/auth.ts:5-32` |
-| iOS 不兼容 `player` 历史 deeplink host | 旧播放 deeplink 兼容仅在 Android 保留 | 2026-07-27 | iOS 仅解析 `play` |
+| 用户侧预约认证仍是 skeleton auth | `Authorization` 里的 Bearer token 当前被直接当作 userId 使用，未接入真实 JWT 校验 | 2026-07-29 | `backend/src/middleware/auth.ts:17-33` |
+| Android 登录拦截仍未接真实登录跳转 | `RequireLogin(returnRoute)` 当前只能表达语义，无法验证真实登录回流 | 2026-07-29 | `AuthSessionProvider` 默认恒为 false，NavGraph 仅做占位承接 |
+| iOS 登录拦截仍是 alert 级承接 | `RankingLoginContext` 当前不会进入真实登录页，也不会自动恢复写操作 | 2026-07-29 | `RankingHomeView` 只展示 alert |
+| 评论能力尚未落地 | 排行只能为评论提供登录拦截模式参考，当前不存在共享 comments 模块 | 2026-07-29 | 需要与 PRD-09 comments 后续实现联动 |
 | mall / earn 的 H5 容器尚未接入 | 文档仅能记录产品策略，当前移动端仍显示 placeholder tab，而非真实 WebView/WKWebView 容器 | 2026-07-27 | `PRODUCT.md:22-25`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:274-295`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:37-43` |
 | 设备级黑盒测试未执行 | 当前对真实点击、滚动分页、匿名/登录态预约的结论仍以代码与自动化测试为主 | 2026-07-27 | `docs/specs/2026-07-27-prd-05-ranking/qa-test.md:14-24,59-79` |
 
@@ -168,6 +189,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-29 | 更新：同步 PRD-09 评论系统依赖关系，明确排行预约已提供评论可复用的登录拦截建模，但当前用户侧认证仍是 skeleton auth，Android / iOS 登录承接也仍未形成真实闭环 |
 | 2026-07-28 | 更新：补充 PRD-12 剧场“排行 / 预约”快捷入口会复用排行页，并分别记录 Android `ranking?contentType=all&type=booking` 与 iOS `TheaterRankingEntryContext` 的首屏上下文注入方案 |
 | 2026-07-27 | 初始创建：收录 PRD-05 排行体系的搜索入口、双层 Tab、分页、预约拦截、`play` 路由复用、Backend 排行/预约接口与多端范围边界 |
 

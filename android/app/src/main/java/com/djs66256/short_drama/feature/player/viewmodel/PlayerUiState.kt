@@ -2,6 +2,8 @@ package com.djs66256.short_drama.feature.player.viewmodel
 
 import com.djs66256.short_drama.domain.model.Episode
 import com.djs66256.short_drama.domain.model.SeriesStatus
+import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
+import com.djs66256.short_drama.feature.comments.model.CommentSource
 
 enum class PlayerScreenState {
     IDLE,
@@ -34,6 +36,17 @@ data class PlayerInteractionState(
     val favorited: Boolean = false,
 )
 
+data class PlayerCommentSheetState(
+    val isVisible: Boolean = false,
+    val dramaId: String? = null,
+    val source: CommentSource = CommentSource.PLAYER,
+)
+
+sealed interface PlayerEffect {
+    data class RequireLogin(val context: CommentLoginContext) : PlayerEffect
+    data class ShowMessage(val message: String) : PlayerEffect
+}
+
 data class PlayerUiState(
     val dramaId: String = "",
     val screenState: PlayerScreenState = PlayerScreenState.IDLE,
@@ -44,6 +57,8 @@ data class PlayerUiState(
     val isEpisodeSheetVisible: Boolean = false,
     val isSpeedSheetVisible: Boolean = false,
     val interactionState: PlayerInteractionState = PlayerInteractionState(),
+    val commentSheetState: PlayerCommentSheetState = PlayerCommentSheetState(),
+    val pendingCommentLoginContext: CommentLoginContext? = null,
     val errorMessage: String? = null,
     val seriesStatus: SeriesStatus = SeriesStatus.COMPLETED,
     val hasLoadedOnce: Boolean = false,

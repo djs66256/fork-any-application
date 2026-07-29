@@ -5,12 +5,13 @@ struct PlayerRightActionBar: View {
     let favorited: Bool
     let onLike: () -> Void
     let onFavorite: () -> Void
+    let onComment: () -> Void
 
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.lg) {
             actionButton(systemName: liked ? "heart.fill" : "heart", title: "点赞", action: onLike)
             actionButton(systemName: favorited ? "star.fill" : "star", title: "收藏", action: onFavorite)
-            staticButton(systemName: "message", title: "评论")
+            actionButton(systemName: "message", title: "评论", action: onComment)
             staticButton(systemName: "square.and.arrow.up", title: "分享")
         }
     }

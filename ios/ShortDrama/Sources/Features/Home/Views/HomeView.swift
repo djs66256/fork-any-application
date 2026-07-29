@@ -5,6 +5,7 @@ struct HomeView: View {
 
     @EnvironmentObject private var router: NavigationRouter
     @StateObject private var viewModel: HomeViewModel
+    @State private var loginAlertContext: CommentLoginContext?
 
     init() {
         let repository: DramaRepositoryProtocol = DramaRepository()
@@ -21,6 +22,7 @@ struct HomeView: View {
                 HomeFeedListView(
                     dramas: dramas,
                     onPlay: handlePlay(for:),
+                    onComment: handleComment(for:),
                     onDetail: handleDetail(for:)
                 )
             case .empty:
@@ -60,11 +62,65 @@ struct HomeView: View {
         .task {
             await viewModel.loadIfNeeded()
         }
+        .sheet(item: activeCommentSheetBinding) { context in
+            CommentSheetView(
+                viewModel: viewModel.makeCommentSheetViewModel(dramaId: context.id),
+                onClose: viewModel.closeComments,
+                onRequireLogin: viewModel.handleCommentLoginRequired(_:)
+            )
+        }
+        .onReceive(viewModel.$pendingCommentLoginContext) { context in
+            guard let context else { return }
+            loginAlertContext = context
+        }
+        .alert("请先登录", isPresented: isShowingLoginAlert, presenting: loginAlertContext) { _ in
+            Button("取消", role: .cancel) {
+                loginAlertContext = nil
+                viewModel.clearPendingCommentLoginContext()
+            }
+            Button("我知道了") {
+                let context = loginAlertContext
+                loginAlertContext = nil
+                viewModel.clearPendingCommentLoginContext()
+                if let context {
+                    viewModel.restoreCommentContext(context)
+                }
+            }
+        } message: { _ in
+            Text("登录后即可发表评论或点赞评论。首版仅恢复评论抽屉上下文，不自动重放写操作。")
+        }
+    }
+
+    private var activeCommentSheetBinding: Binding<HomeViewModel.CommentSheetContext?> {
+        Binding(
+            get: { viewModel.activeCommentSheet },
+            set: { value in
+                if value == nil {
+                    viewModel.closeComments()
+                }
+            }
+        )
+    }
+
+    private var isShowingLoginAlert: Binding<Bool> {
+        Binding(
+            get: { loginAlertContext != nil },
+            set: { isPresented in
+                if !isPresented {
+                    loginAlertContext = nil
+                    viewModel.clearPendingCommentLoginContext()
+                }
+            }
+        )
     }
 
     private func handlePlay(for drama: Drama) {
         guard let route = HomeRouteBuilder.playerRoute(for: drama) else { return }
         router.navigate(to: route)
+    }
+
+    private func handleComment(for drama: Drama) {
+        viewModel.openComments(for: drama)
     }
 
     private func handleDetail(for drama: Drama) {
@@ -88,6 +144,7 @@ enum HomeRouteBuilder {
 private struct HomeFeedListView: View {
     let dramas: [Drama]
     let onPlay: (Drama) -> Void
+    let onComment: (Drama) -> Void
     let onDetail: (Drama) -> Void
 
     var body: some View {
@@ -97,7 +154,8 @@ private struct HomeFeedListView: View {
                     HomeDramaCardView(
                         drama: drama,
                         onPlay: { onPlay(drama) },
-                        onDetail: { onDetail(drama) }
+                        onDetail: { onDetail(drama) },
+                        onComment: { onComment(drama) }
                     )
                 }
             }

@@ -8,9 +8,10 @@ export enum ErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-INVALID_PARAMS = 'INVALID_PARAMS',
+  INVALID_PARAMS = 'INVALID_PARAMS',
   INVALID_PLAYBACK_SESSION = 'INVALID_PLAYBACK_SESSION',
   DRAMA_NOT_FOUND = 'DRAMA_NOT_FOUND',
+  COMMENT_NOT_FOUND = 'COMMENT_NOT_FOUND',
   EPISODE_NOT_FOUND = 'EPISODE_NOT_FOUND',
   EPISODE_NOT_PLAYABLE = 'EPISODE_NOT_PLAYABLE',
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
@@ -27,9 +28,10 @@ const ErrorStatusCode: Record<ErrorCode, number> = {
   [ErrorCode.INTERNAL_ERROR]: 500,
   [ErrorCode.NOT_IMPLEMENTED]: 501,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
-[ErrorCode.INVALID_PARAMS]: 400,
+  [ErrorCode.INVALID_PARAMS]: 400,
   [ErrorCode.INVALID_PLAYBACK_SESSION]: 400,
   [ErrorCode.DRAMA_NOT_FOUND]: 404,
+  [ErrorCode.COMMENT_NOT_FOUND]: 404,
   [ErrorCode.EPISODE_NOT_FOUND]: 404,
   [ErrorCode.EPISODE_NOT_PLAYABLE]: 409,
   [ErrorCode.INVALID_CREDENTIALS]: 401,
@@ -65,6 +67,9 @@ export const Errors = {
 
   dramaNotFound: (dramaId: string) =>
     new AppError(ErrorCode.DRAMA_NOT_FOUND, `Drama (${dramaId}) not found`),
+
+  commentNotFound: (commentId: string) =>
+    new AppError(ErrorCode.COMMENT_NOT_FOUND, `Comment (${commentId}) not found`),
 
   episodeNotFound: (episodeId: string) =>
     new AppError(ErrorCode.EPISODE_NOT_FOUND, `Episode (${episodeId}) not found`),

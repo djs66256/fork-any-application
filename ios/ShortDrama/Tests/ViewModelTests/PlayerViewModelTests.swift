@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
 
 @MainActor
 struct PlayerViewModelTests {
@@ -175,7 +175,7 @@ struct PlayerViewModelTests {
         await viewModel.loadIfNeeded()
         viewModel.updateCurrentProgress(75)
         viewModel.handleBack()
-        await Task.yield()
+        try? await Task.sleep(for: .milliseconds(50))
 
         #expect(router.pathsByTab[.home]?.isEmpty == true)
         #expect(repository.calls.contains(.stop(
@@ -226,7 +226,7 @@ struct PlayerViewModelTests {
         await viewModel.loadIfNeeded()
         viewModel.updateCurrentProgress(27)
         viewModel.handleDisappear()
-        await Task.yield()
+        try? await Task.sleep(for: .milliseconds(50))
 
         #expect(router.pathsByTab[.home]?.count == 1)
         #expect(repository.calls.contains(.stop(

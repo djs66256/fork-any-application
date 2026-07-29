@@ -15,4 +15,7 @@ export const config = {
   player: {
     historyRepository: process.env.PLAYER_HISTORY_REPOSITORY ?? 'mock',
   },
+  comments: {
+    repository: process.env.COMMENTS_REPOSITORY ?? 'mock',
+  },
 } as const;

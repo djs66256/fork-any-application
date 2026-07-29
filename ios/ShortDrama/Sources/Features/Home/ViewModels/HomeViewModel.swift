@@ -11,6 +11,10 @@ final class HomeViewModel: ObservableObject {
         case error(String)
     }
 
+    struct CommentSheetContext: Identifiable, Equatable {
+        let id: String
+    }
+
     private enum Constants {
         static let firstPage = 1
         static let pageSize = 10
@@ -20,10 +24,16 @@ final class HomeViewModel: ObservableObject {
 
     @Published private(set) var viewState: ViewState = .loading
     @Published private(set) var isRetrying = false
+    @Published private(set) var activeCommentSheet: CommentSheetContext?
+    @Published private(set) var pendingCommentLoginContext: CommentLoginContext?
 
     // MARK: - Dependencies
 
     private let fetchDramasUseCase: FetchDramasUseCase
+    private let fetchDramaCommentsUseCase: FetchDramaCommentsUseCase
+    private let createCommentUseCase: CreateCommentUseCase
+    private let toggleCommentLikeUseCase: ToggleCommentLikeUseCase
+    private let isUserLoggedIn: @Sendable () -> Bool
 
     // MARK: - State
 
@@ -32,8 +42,16 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - Init
 
-    init(fetchDramasUseCase: FetchDramasUseCase) {
+    init(
+        fetchDramasUseCase: FetchDramasUseCase,
+        commentRepository: CommentRepositoryProtocol = CommentRepository(),
+        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
+    ) {
         self.fetchDramasUseCase = fetchDramasUseCase
+        self.fetchDramaCommentsUseCase = FetchDramaCommentsUseCase(repository: commentRepository)
+        self.createCommentUseCase = CreateCommentUseCase(repository: commentRepository)
+        self.toggleCommentLikeUseCase = ToggleCommentLikeUseCase(repository: commentRepository)
+        self.isUserLoggedIn = isUserLoggedIn
     }
 
     // MARK: - Actions
@@ -49,6 +67,45 @@ final class HomeViewModel: ObservableObject {
 
     func retry() async {
         await performLoad(isRetry: true)
+    }
+
+    func openComments(for drama: Drama) {
+        openComments(dramaId: drama.id)
+    }
+
+    func openComments(dramaId: String) {
+        guard !dramaId.isEmpty else { return }
+        activeCommentSheet = CommentSheetContext(id: dramaId)
+    }
+
+    func closeComments() {
+        activeCommentSheet = nil
+    }
+
+    func handleCommentLoginRequired(_ context: CommentLoginContext) {
+        guard context.source == .home else { return }
+        pendingCommentLoginContext = context
+        openComments(dramaId: context.dramaId)
+    }
+
+    func clearPendingCommentLoginContext() {
+        pendingCommentLoginContext = nil
+    }
+
+    func restoreCommentContext(_ context: CommentLoginContext) {
+        guard context.source == .home else { return }
+        openComments(dramaId: context.dramaId)
+    }
+
+    func makeCommentSheetViewModel(dramaId: String) -> CommentSheetViewModel {
+        CommentSheetViewModel(
+            dramaId: dramaId,
+            source: .home,
+            fetchDramaCommentsUseCase: fetchDramaCommentsUseCase,
+            createCommentUseCase: createCommentUseCase,
+            toggleCommentLikeUseCase: toggleCommentLikeUseCase,
+            isUserLoggedIn: isUserLoggedIn
+        )
     }
 
     // MARK: - Private

@@ -73,6 +73,7 @@ fun PlayerRightActionBar(
     interactionState: PlayerInteractionState,
     onToggleLike: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onOpenComments: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -90,7 +91,7 @@ fun PlayerRightActionBar(
             onClick = onToggleFavorite,
             label = { Text(if (interactionState.favorited) "已收藏" else "收藏") },
         )
-        AssistChip(onClick = {}, label = { Text("评论") })
+        AssistChip(onClick = onOpenComments, label = { Text("评论") })
         AssistChip(onClick = {}, label = { Text("分享") })
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
 
 @MainActor
 struct HomeViewModelTests {
@@ -20,12 +20,23 @@ struct HomeViewModelTests {
         )
     }
 
+    private func makeViewModel(
+        repository: MockDramaRepository,
+        commentRepository: MockCommentRepository = MockCommentRepository(),
+        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
+    ) -> HomeViewModel {
+        HomeViewModel(
+            fetchDramasUseCase: FetchDramasUseCase(repository: repository),
+            commentRepository: commentRepository,
+            isUserLoggedIn: isUserLoggedIn
+        )
+    }
+
     @Test("T-03: HomeViewModel first load enters content state with items")
     func testLoadIfNeededSuccessContent() async {
         let mock = MockDramaRepository()
         mock.behavior = .success([makeDrama()])
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
 
@@ -40,8 +51,7 @@ struct HomeViewModelTests {
     func testLoadIfNeededEmpty() async {
         let mock = MockDramaRepository()
         mock.behavior = .success([])
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
 
@@ -56,8 +66,7 @@ struct HomeViewModelTests {
             .success([]),
             .success([makeDrama(id: "drama-003")])
         ]
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
         #expect(viewModel.viewState == .empty)
@@ -72,8 +81,7 @@ struct HomeViewModelTests {
     func testLoadIfNeededError() async {
         let mock = MockDramaRepository()
         mock.behavior = .failure(.server(code: 500, message: "加载失败，请重试"))
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
 
@@ -88,8 +96,7 @@ struct HomeViewModelTests {
             .failure(.network(underlying: URLError(.notConnectedToInternet))),
             .success([makeDrama(id: "drama-002")])
         ]
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
         if case .error(let message) = viewModel.viewState {
@@ -109,8 +116,7 @@ struct HomeViewModelTests {
     func testRetryDeduplicatesConcurrentRequests() async {
         let mock = MockDramaRepository()
         mock.behavior = .delayed([makeDrama()], 0.2)
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await withTaskGroup(of: Void.self) { group in
             group.addTask {
@@ -131,12 +137,64 @@ struct HomeViewModelTests {
     func testLoadIfNeededOnlyOnce() async {
         let mock = MockDramaRepository()
         mock.behavior = .success([makeDrama()])
-        let useCase = FetchDramasUseCase(repository: mock)
-        let viewModel = HomeViewModel(fetchDramasUseCase: useCase)
+        let viewModel = makeViewModel(repository: mock)
 
         await viewModel.loadIfNeeded()
         await viewModel.loadIfNeeded()
 
         #expect(mock.fetchDramasCallCount == 1)
+    }
+
+    @Test("T-08: Home comments entry opens a single active sheet context")
+    func testOpenCommentsCreatesSheetContext() {
+        let viewModel = makeViewModel(repository: MockDramaRepository())
+
+        viewModel.openComments(for: makeDrama(id: "drama-comment"))
+
+        #expect(viewModel.activeCommentSheet == .init(id: "drama-comment"))
+    }
+
+    @Test("T-08: closing comment sheet does not affect feed state")
+    func testCloseCommentsKeepsMainFeedState() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama(id: "drama-001")])
+        let viewModel = makeViewModel(repository: mock)
+
+        await viewModel.loadIfNeeded()
+        viewModel.openComments(dramaId: "drama-001")
+        viewModel.closeComments()
+
+        #expect(viewModel.activeCommentSheet == nil)
+        #expect(viewModel.viewState == .content([makeDrama(id: "drama-001")]))
+    }
+
+    @Test("T-09: Home login restore only reopens comment context")
+    func testRestoreCommentContextOnlyRestoresSheet() {
+        let viewModel = makeViewModel(repository: MockDramaRepository())
+        let context = CommentLoginContext(
+            source: .home,
+            dramaId: "drama-restore",
+            action: PendingCommentAction(kind: .toggleLike, commentId: "comment-1")
+        )
+
+        viewModel.restoreCommentContext(context)
+
+        #expect(viewModel.activeCommentSheet == .init(id: "drama-restore"))
+        #expect(viewModel.pendingCommentLoginContext == nil)
+    }
+
+    @Test("T-09: Home login required stores context without replaying action")
+    func testHandleCommentLoginRequiredStoresContext() {
+        let viewModel = makeViewModel(repository: MockDramaRepository())
+        let context = CommentLoginContext(
+            source: .home,
+            dramaId: "drama-login",
+            action: PendingCommentAction(kind: .createComment, commentId: nil)
+        )
+
+        viewModel.handleCommentLoginRequired(context)
+
+        #expect(viewModel.pendingCommentLoginContext == context)
+        #expect(viewModel.activeCommentSheet == .init(id: "drama-login"))
     }
 }
