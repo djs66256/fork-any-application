@@ -463,10 +463,10 @@
 ### 当前行为说明
 
 - 默认请求 `GET /api/dramas/rankings` 会被解析为 `type=hot&contentType=all&page=1&pageSize=10`。
-- Repository 先按 `content_type` 过滤，再按榜单类型分别使用 `play_count`、`recommendation_score`、`booking_count` 降序排序；分值相同则按 `created_at` 倒序稳定打散。
-- 当请求携带 `x-user-id` 或 `Authorization: Bearer <user-id>` 时，Route 会把该值透传为可选 `authContext`，并据此计算 `is_booked`。
+- Route 当前已切换为 `DramaSupabaseRepository()`，不再使用早期的 `DramaMockRepository()` 运行时数据源（`backend/src/app/api/dramas/rankings/route.ts:17-22`）。
+- Route 会通过 `resolveOptionalAuthContext(request)` 解析 bearer access token；未登录请求仍允许访问排行列表，但 `is_booked` 固定为 `false`（`backend/src/app/api/dramas/rankings/route.ts:19-22`、`backend/src/middleware/auth.ts:65-67`）。
+- 当前可选鉴权只接受真实 `Authorization: Bearer <accessToken>` 语义：本地测试 token 会走 local auth session 校验，正式 token 会走 `supabase.auth.getUser(token)` 校验；旧的 `x-user-id` / `Bearer <user-id>` 已不再是当前 contract（`backend/src/middleware/auth.ts:27-63`）。
 - 超大页码返回 200 + 空数组，不视为错误。
-- 当前运行时数据源仍是 `DramaMockRepository`，不是 Supabase 实时数据。
 
 ### Error Code
 
@@ -482,14 +482,14 @@
 
 ### 功能简介
 
-提交短剧预约。该接口服务于预约榜交互，当前要求调用方提供骨架态身份信息；成功后返回单向幂等的 `booked: true` 结果和最新预约数。
+提交短剧预约。该接口服务于预约榜交互，当前已要求调用方提供真实登录态 bearer access token；成功后返回单向幂等的 `booked: true` 结果和最新预约数。
 
 ### 代码文件路径
 
 - Route：`backend/src/app/api/dramas/[id]/book/route.ts:16-28`
-- Auth：`backend/src/middleware/auth.ts:16-32`
+- Auth：`backend/src/middleware/auth.ts:69-103,132-138`
 - Service：`backend/src/services/drama/drama.service.ts:84-92`
-- Repository：`backend/src/repositories/mock/drama.mock.repository.ts:470-504`
+- Repository：`backend/src/repositories/supabase/drama.supabase.repository.ts`
 - Schema：`backend/src/lib/schemas.ts:154-160`
 - 测试：`backend/src/app/api/__tests__/dramas-book.test.ts:18-133`
 
@@ -507,10 +507,9 @@
 
 | 字段 | 必填 | 说明 |
 |------|------|------|
-| `x-user-id` | 否 | 骨架态显式 userId；若存在则优先于 Authorization |
-| `Authorization` | 否 | `Bearer <user-id>`；当前 token 不做 JWT 校验，直接当作 userId 使用 |
+| `Authorization` | 是 | `Bearer <accessToken>`；本地测试 token 走 local auth session，正式 token 走 Supabase `getUser(token)` 校验 |
 
-> 说明：本接口必须能解析出 userId，否则返回 401 `UNAUTHORIZED`。
+> 说明：本接口当前通过 `requireAuthContext()` 强制要求真实登录态；缺失 token、fake token、过期 token 都会返回 401 `AUTH_UNAUTHORIZED`。
 
 ### Response
 
@@ -530,9 +529,9 @@
 
 ### 当前行为说明
 
-- 当 `x-user-id` 与 `Authorization` 同时存在时，优先使用 `x-user-id`。
+- Route 当前已通过 `requireAuthContext()` 完成鉴权，并从 `getAuth(request)` 提取 `userId`；预约接口不再接受 `x-user-id` 或伪造 bearer userId（`backend/src/app/api/dramas/[id]/book/route.ts:16-25`、`backend/src/middleware/auth.ts:69-103,132-138`）。
 - 若同一用户重复预约同一短剧，接口保持幂等 success：返回 `booked: true`，但不会再次增加 `booking_count`。
-- 首次预约成功时，Repository 会在内存中累加 `booking_count`，并把目标项 `is_booked` 标记为 `true`。
+- 当前运行时数据源已经切换为 `DramaSupabaseRepository()`；预约数与 `is_booked` 由真实 repository 路径负责，而不是旧的 mock 内存状态（`backend/src/app/api/dramas/[id]/book/route.ts:20-27`）。
 - 若 `id` 不存在，则返回 404 `NOT_FOUND`。
 
 ### Error Code
@@ -541,7 +540,7 @@
 |--------|--------|------|
 | 200 | — | 预约成功或重复预约幂等成功 |
 | 400 | `VALIDATION_ERROR` | `id` 不是合法 UUID |
-| 401 | `UNAUTHORIZED` | 未提供可解析的 userId |
+| 401 | `AUTH_UNAUTHORIZED` | 未登录、token 非法或 token 已失效 |
 | 404 | `NOT_FOUND` | 短剧不存在 |
 | 500 | `INTERNAL_ERROR` | 服务内部错误 |
 
@@ -614,6 +613,7 @@
 |------|---------|
 | 2026-07-28 | 更新：新增 `GET /api/dramas/channel` 文档，补充剧场 feed query、`heat` 字段、非 `all` 频道合法空态、repository registry 注入与服务端内部数据校验语义 |
 | 2026-07-27 | 更新：新增 `GET /api/dramas/search`、`GET /api/dramas/hot-search`、`GET /api/dramas/tags` 文档，补充 `tags` 字段在首页/搜索/分类中的共享事实，并将搜索命中规则明确为 `title + category + tags` |
+| 2026-07-29 | 更新：同步 PRD-08 登录闭环后排行与预约接口的真实认证语义，修正 rankings 的可选 bearer 校验、book 的 `requireAuthContext()`、`AUTH_UNAUTHORIZED` 错误码，以及运行时 repository 已切换到 `DramaSupabaseRepository()` |
 | 2026-07-27 | 更新：新增 `GET /api/dramas/rankings` 与 `POST /api/dramas/:id/book` 文档，补充排行 query、扩展字段、可选 auth 上下文、预约幂等行为与当前骨架态认证约束 |
 | 2026-07-26 | 更新：`GET /api/dramas` 从空骨架修正为首页 Feed 列表接口，补充 canonical query、首页卡片字段、mock 数据分页行为与 `VALIDATION_ERROR` 校验错误码 |
 | 2026-07-24 | 初始创建，项目初始化阶段新增 3 个 dramas API 端点 |
