@@ -1,6 +1,7 @@
 package com.djs66256.short_drama.feature.player.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
+import app.cash.turbine.test
 import com.djs66256.short_drama.core.network.ApiResult
 import com.djs66256.short_drama.domain.model.DramaEpisodeList
 import com.djs66256.short_drama.domain.model.Episode
@@ -14,6 +15,10 @@ import com.djs66256.short_drama.domain.usecase.GetDramaEpisodesUseCase
 import com.djs66256.short_drama.domain.usecase.GetPlaybackProgressUseCase
 import com.djs66256.short_drama.domain.usecase.StartPlaybackUseCase
 import com.djs66256.short_drama.domain.usecase.StopPlaybackUseCase
+import com.djs66256.short_drama.feature.comments.model.CommentPendingActionType
+import com.djs66256.short_drama.feature.comments.model.CommentSource
+import com.djs66256.short_drama.feature.comments.model.PendingCommentAction
+import com.djs66256.short_drama.feature.comments.model.buildCommentLoginContext
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -27,6 +32,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -249,6 +256,44 @@ class PlayerViewModelTest {
         coVerify(exactly = 1) {
             stopPlaybackUseCase(StopPlaybackParams("drama-1", "episode-1", 12.0, 100.0))
         }
+    }
+
+    @Test
+    fun `T-07 player comment entry opens and closes sheet with current drama`() = runTest {
+        val viewModel = createViewModel(SavedStateHandle(mapOf("videoId" to "drama-xyz")))
+
+        viewModel.openComments()
+        assertTrue(viewModel.uiState.value.commentSheetState.isVisible)
+        assertEquals("drama-xyz", viewModel.uiState.value.commentSheetState.dramaId)
+
+        viewModel.closeComments()
+        assertFalse(viewModel.uiState.value.commentSheetState.isVisible)
+    }
+
+    @Test
+    fun `T-07 player stores comment login context and restores sheet without replay`() = runTest {
+        val viewModel = createViewModel(SavedStateHandle(mapOf("videoId" to "drama-xyz")))
+        val context = buildCommentLoginContext(
+            source = CommentSource.PLAYER,
+            dramaId = "drama-xyz",
+            action = PendingCommentAction(
+                type = CommentPendingActionType.TOGGLE_LIKE,
+                commentId = "comment-1",
+            ),
+        )
+
+        viewModel.effects.test {
+            viewModel.onCommentLoginRequired(context)
+            val effect = awaitItem() as PlayerEffect.RequireLogin
+            assertEquals("play/drama-xyz", effect.context.returnRoute)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertEquals(context, viewModel.uiState.value.pendingCommentLoginContext)
+        viewModel.restoreCommentSheetAfterLogin()
+        assertTrue(viewModel.uiState.value.commentSheetState.isVisible)
+        assertEquals("drama-xyz", viewModel.uiState.value.commentSheetState.dramaId)
+        assertEquals(null, viewModel.uiState.value.pendingCommentLoginContext)
     }
 
     @Test

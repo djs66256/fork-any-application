@@ -14,6 +14,10 @@ final class PlayerViewModel: ObservableObject {
         case error(String)
     }
 
+    enum RouteEffect: Equatable {
+        case requireLogin(CommentLoginContext)
+    }
+
     enum PlaybackSpeed: Double, CaseIterable, Equatable, Sendable {
         case half = 0.5
         case threeQuarter = 0.75
@@ -56,9 +60,12 @@ final class PlayerViewModel: ObservableObject {
     @Published private(set) var playbackRate: Float = 1.0
     @Published private(set) var liked = false
     @Published private(set) var favorited = false
+    @Published private(set) var routeEffect: RouteEffect?
+    @Published private(set) var pendingCommentLoginContext: CommentLoginContext?
     @Published var isEpisodeSheetPresented = false
     @Published var isSpeedDialogPresented = false
     @Published var isMoreDialogPresented = false
+    @Published var isCommentSheetPresented = false
 
     private let router: NavigationRouter
     private let fetchPlayerProgressUseCase: FetchPlayerProgressUseCase
@@ -66,6 +73,10 @@ final class PlayerViewModel: ObservableObject {
     private let startPlaybackUseCase: StartPlaybackUseCase
     private let stopPlaybackUseCase: StopPlaybackUseCase
     private let playbackSessionStore: PlaybackSessionStore
+    private let fetchDramaCommentsUseCase: FetchDramaCommentsUseCase
+    private let createCommentUseCase: CreateCommentUseCase
+    private let toggleCommentLikeUseCase: ToggleCommentLikeUseCase
+    private let isUserLoggedIn: @Sendable () -> Bool
 
     private var hasLoadedOnce = false
     private var bootstrapTask: Task<Void, Never>?
@@ -75,11 +86,21 @@ final class PlayerViewModel: ObservableObject {
     init(
         videoId: String,
         router: NavigationRouter = NavigationRouter(),
-        fetchPlayerProgressUseCase: FetchPlayerProgressUseCase = FetchPlayerProgressUseCase(repository: PlayerRepository()),
-        fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase = FetchDramaEpisodesUseCase(repository: PlayerRepository()),
-        startPlaybackUseCase: StartPlaybackUseCase = StartPlaybackUseCase(repository: PlayerRepository()),
-        stopPlaybackUseCase: StopPlaybackUseCase = StopPlaybackUseCase(repository: PlayerRepository()),
-        playbackSessionStore: PlaybackSessionStore = KeychainPlaybackSessionStore()
+        fetchPlayerProgressUseCase: FetchPlayerProgressUseCase = FetchPlayerProgressUseCase(
+            repository: PlayerRepository()
+        ),
+        fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase = FetchDramaEpisodesUseCase(
+            repository: PlayerRepository()
+        ),
+        startPlaybackUseCase: StartPlaybackUseCase = StartPlaybackUseCase(
+            repository: PlayerRepository()
+        ),
+        stopPlaybackUseCase: StopPlaybackUseCase = StopPlaybackUseCase(
+            repository: PlayerRepository()
+        ),
+        playbackSessionStore: PlaybackSessionStore = KeychainPlaybackSessionStore(),
+        commentRepository: CommentRepositoryProtocol = CommentRepository(),
+        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
     ) {
         self.videoId = videoId
         self.router = router
@@ -88,6 +109,10 @@ final class PlayerViewModel: ObservableObject {
         self.startPlaybackUseCase = startPlaybackUseCase
         self.stopPlaybackUseCase = stopPlaybackUseCase
         self.playbackSessionStore = playbackSessionStore
+        self.fetchDramaCommentsUseCase = FetchDramaCommentsUseCase(repository: commentRepository)
+        self.createCommentUseCase = CreateCommentUseCase(repository: commentRepository)
+        self.toggleCommentLikeUseCase = ToggleCommentLikeUseCase(repository: commentRepository)
+        self.isUserLoggedIn = isUserLoggedIn
     }
 
     func loadIfNeeded() async {
@@ -150,6 +175,46 @@ final class PlayerViewModel: ObservableObject {
 
     func toggleFavorite() {
         favorited.toggle()
+    }
+
+    func openComments() {
+        isCommentSheetPresented = true
+    }
+
+    func closeComments() {
+        isCommentSheetPresented = false
+    }
+
+    func handleCommentLoginRequired(_ context: CommentLoginContext) {
+        guard context.source == .player else { return }
+        pendingCommentLoginContext = context
+        isCommentSheetPresented = true
+        routeEffect = .requireLogin(context)
+    }
+
+    func restoreCommentContext(_ context: CommentLoginContext) {
+        guard context.source == .player, context.dramaId == dramaId else { return }
+        pendingCommentLoginContext = context
+        isCommentSheetPresented = true
+    }
+
+    func clearRouteEffect() {
+        routeEffect = nil
+    }
+
+    func clearPendingCommentLoginContext() {
+        pendingCommentLoginContext = nil
+    }
+
+    func makeCommentSheetViewModel() -> CommentSheetViewModel {
+        CommentSheetViewModel(
+            dramaId: dramaId,
+            source: .player,
+            fetchDramaCommentsUseCase: fetchDramaCommentsUseCase,
+            createCommentUseCase: createCommentUseCase,
+            toggleCommentLikeUseCase: toggleCommentLikeUseCase,
+            isUserLoggedIn: isUserLoggedIn
+        )
     }
 
     func playableEpisodes() -> [Episode] {
@@ -229,11 +294,6 @@ final class PlayerViewModel: ObservableObject {
         }
 
         return playable.first
-    }
-
-    private func exitPlayer() async {
-        router.dismiss()
-        await stopPlaybackIfNeeded(bestEffort: true)
     }
 
     private func startPlayback(

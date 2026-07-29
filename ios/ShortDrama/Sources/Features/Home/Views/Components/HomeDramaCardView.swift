@@ -5,6 +5,7 @@ struct HomeDramaCardView: View {
     let drama: Drama
     let onPlay: () -> Void
     let onDetail: () -> Void
+    let onComment: () -> Void
 
     private var metadataText: String {
         var items: [String] = []
@@ -55,6 +56,11 @@ struct HomeDramaCardView: View {
                     onPlay()
                 }
                 .buttonStyle(.borderedProminent)
+
+                Button("评论") {
+                    onComment()
+                }
+                .buttonStyle(.bordered)
 
                 Button("详情") {
                     onDetail()

@@ -3,6 +3,7 @@ package com.djs66256.short_drama.core.di
 import com.djs66256.short_drama.core.storage.DataStorePlaybackSessionStore
 import com.djs66256.short_drama.core.storage.PlaybackSessionStore
 import com.djs66256.short_drama.data.datasource.ClassificationRemoteDataSource
+import com.djs66256.short_drama.data.datasource.CommentRemoteDataSource
 import com.djs66256.short_drama.data.datasource.DramaRemoteDataSource
 import com.djs66256.short_drama.data.datasource.MenuPanelRemoteDataSource
 import com.djs66256.short_drama.data.datasource.PlayerRemoteDataSource
@@ -11,6 +12,7 @@ import com.djs66256.short_drama.data.datasource.SearchRemoteDataSource
 import com.djs66256.short_drama.data.local.SearchHistoryLocalDataSource
 import com.djs66256.short_drama.data.repository.AuthRepositoryImpl
 import com.djs66256.short_drama.data.repository.ClassificationRepositoryImpl
+import com.djs66256.short_drama.data.repository.CommentRepositoryImpl
 import com.djs66256.short_drama.data.repository.DramaRepositoryImpl
 import com.djs66256.short_drama.data.repository.MenuPanelRepositoryImpl
 import com.djs66256.short_drama.data.repository.PlayerRepositoryImpl
@@ -18,6 +20,7 @@ import com.djs66256.short_drama.data.repository.RankingRepositoryImpl
 import com.djs66256.short_drama.data.repository.SearchRepositoryImpl
 import com.djs66256.short_drama.domain.repository.AuthRepository
 import com.djs66256.short_drama.domain.repository.ClassificationRepository
+import com.djs66256.short_drama.domain.repository.CommentRepository
 import com.djs66256.short_drama.domain.repository.DramaRepository
 import com.djs66256.short_drama.domain.repository.MenuPanelRepository
 import com.djs66256.short_drama.domain.repository.PlayerRepository
@@ -47,6 +50,12 @@ object RepositoryModule {
     fun provideAuthRepository(
         implementation: AuthRepositoryImpl,
     ): AuthRepository = implementation
+
+    @Provides
+    @Singleton
+    fun provideCommentRepository(
+        remoteDataSource: CommentRemoteDataSource,
+    ): CommentRepository = CommentRepositoryImpl(remoteDataSource)
 
     @Provides
     @Singleton

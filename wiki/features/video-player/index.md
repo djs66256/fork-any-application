@@ -1,93 +1,124 @@
 # 播放器
 
-> 最后更新：2026-07-28
+> 最后更新：2026-07-29
 > 覆盖端：Web / Android / iOS / Backend
 
 ## 功能概述
 
-播放器当前已具备完整的 Backend 契约与移动端播放页，但在首页发现链路之外，PRD-07 把菜单面板里的“最近在看”纳入播放器入口之一，PRD-12 又把剧场频道卡片点击纳入同一主路径：Android / iOS 都会通过 `GET /api/player/recently-viewed` 拉取当前匿名播放会话的最近历史，剧场 feed / 首页 feed / 排行列表 / 菜单最近在看四类入口点击后都继续复用既有 `play/:id` 播放主路径。Web 端仍没有对应菜单或剧场入口，不在本期范围内。
+播放器当前已具备完整的播放历史与最近在看 Backend 契约，以及 Android / iOS 统一复用的播放页主路径。首页 Feed、剧场频道、排行列表、菜单最近在看四类入口都会继续复用既有 `play/:id` 播放语义；播放器本身也已具备基础播放信息、选集、倍速、点赞/收藏等页面状态。与 PRD-09 评论系统直接相关的最新现状是：Android 与 iOS 播放器都已经把“评论”从视觉位接成了真实入口，并在当前页面上下文内承载评论抽屉 / sheet；Backend 也已提供 comments API，因此播放器内已可完成评论浏览、发表评论、点赞切换以及未登录写操作拦截。
 
-- 核心价值：统一承载首页 Feed、剧场卡片、排行列表与菜单最近在看四类入口，确保多入口都复用同一条播放器主路径与播放历史契约
-- 覆盖范围：Web、Android、iOS、Backend
-- 当前状态：Android / iOS 已接入首页信息流、剧场频道、排行列表和菜单最近在看四类播放器入口；Backend 已实现 `progress/start/stop/recently-viewed` 契约；Web 不涉及本期菜单与剧场入口
+- **核心价值**：统一承载首页 Feed、剧场卡片、排行列表与菜单最近在看四类入口，并在播放上下文内补齐评论互动能力
+- **覆盖范围**：Web、Android、iOS、Backend
+- **当前状态**：Android / iOS 已接入首页信息流、剧场频道、排行列表和菜单最近在看四类播放器入口；Backend 已实现 `progress/start/stop/recently-viewed` 契约与 comments API；Web 仍保持占位播放器页，不实现评论能力
 
 ## 入口与路由
 
 | 端 | 入口 | 路由 / deeplink | 源文件 |
 |----|------|----------------|--------|
-| Web | 首页代表性链接 | `/play/[id]` | `web/src/app/play/[id]/page.tsx:14-39`, `web/src/features/home/HomeScreen.tsx:36-38` |
-| Android | 首页 Feed 卡片“播放”按钮、排行卡片点击、菜单最近在看卡片、deeplink | `play/{videoId}`（兼容 `player/{videoId}`）、`djsdrama://play/{id}`、`djsdrama://player/{id}` | `android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:67-70,251-257`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelScreen.kt:44-73`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:70-76`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:221-265`, `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:44-57,102-155`, `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt:33-36` |
-| iOS | 首页 Feed 卡片“观看”按钮、排行卡片点击、菜单最近在看卡片、deeplink | `play` public route name、`djsdrama://play/{id}` | `ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:41-67`, `ios/ShortDrama/Sources/Features/MenuPanel/Views/MenuPanelContainerView.swift:20-45`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:86-89`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:3-8`, `ios/ShortDrama/Sources/App/AppRoute.swift:42-64`, `ios/ShortDrama/Sources/App/DeeplinkHandler.swift:26-45` |
-| Backend | 菜单最近在看接口 + 播放历史接口 | `GET /api/player/progress`, `GET /api/player/recently-viewed`, `POST /api/player/start`, `POST /api/player/stop` | `backend/src/app/api/player/progress/route.ts:1-45`, `backend/src/app/api/player/recently-viewed/route.ts:1-21`, `backend/src/app/api/player/start/route.ts:1-47`, `backend/src/app/api/player/stop/route.ts:1-48` |
+| Web | 首页代表性链接 | `/play/[id]` | `web/src/app/play/[id]/page.tsx`、`web/src/features/home/HomeScreen.tsx` |
+| Android | 首页 Feed 卡片“播放”按钮、排行卡片点击、菜单最近在看卡片、deeplink | `play/{videoId}`（兼容 `player/{videoId}`）、`djsdrama://play/{id}`、`djsdrama://player/{id}` | `android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelScreen.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt` |
+| iOS | 首页 Feed 卡片“观看”按钮、排行卡片点击、菜单最近在看卡片、deeplink | `play` public route name、`djsdrama://play/{id}` | `ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift`、`ios/ShortDrama/Sources/Features/MenuPanel/Views/MenuPanelContainerView.swift`、`ios/ShortDrama/Sources/App/AppRoute.swift`、`ios/ShortDrama/Sources/App/DeeplinkHandler.swift` |
+| Backend | 菜单最近在看接口 + 播放历史接口 | `GET /api/player/progress`, `GET /api/player/recently-viewed`, `POST /api/player/start`, `POST /api/player/stop` | `backend/src/app/api/player/progress/route.ts`、`backend/src/app/api/player/recently-viewed/route.ts`、`backend/src/app/api/player/start/route.ts`、`backend/src/app/api/player/stop/route.ts` |
+| Android | 播放器内评论入口 | `AssistChip(onClick = onOpenComments, ...)`，当前页内打开评论抽屉 | `android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/components/PlayerComponents.kt` |
+| iOS | 播放器内评论入口 | `actionButton(systemName: "message", title: "评论", action: onComment)`，当前页内打开 comments sheet | `ios/ShortDrama/Sources/Features/Player/Views/Components/PlayerRightActionBar.swift` |
+| Backend | 播放器评论接口 | `GET /api/dramas/:id/comments`、`POST /api/dramas/:id/comments`、`POST /api/dramas/:id/comments/:commentId/like` | `backend/src/app/api/dramas/[id]/comments/route.ts`、`backend/src/app/api/dramas/[id]/comments/[commentId]/like/route.ts` |
 
 ## 核心逻辑
 
 ### 流程：从首页信息流、排行列表或菜单最近在看进入播放页
 
 1. 用户从首页 Feed、排行列表、菜单最近在看或 deeplink 进入播放页。
-   - Web：首页仍只有代表性链接 `/play/sample`，不承接菜单最近在看（`web/src/features/home/HomeScreen.tsx:36-38`）。
-   - Android：首页 `HomeScreen` 卡片点击时调用 `onOpenPlay(drama.id)`；排行页 `RankingScreen` 点击列表项时同样调用 `onOpenPlay(item.id)`；菜单最近在看由 `MenuPanelViewModel` 发出 `OpenPlayback(dramaId)` 事件，再映射为 `PendingRoute.Play(dramaId)`（`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:251-257`, `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/ui/RankingScreen.kt:221-225`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/ui/MenuPanelScreen.kt:44-73`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:70-76`）。
-   - iOS：首页 `HomeRouteBuilder.playerRoute(for:)` 与排行页 `RankingRouteBuilder.playRoute(for:)` 都把 `drama.id` 映射到 `.player(videoId:)`；菜单最近在看通过 `MenuPanelViewModel.route(for:)` 把 `RecentlyViewedItem.dramaId` 映射到同一条 `.player(videoId:)` 路由（`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:65-79`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:3-8`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:86-89`）。
+   - Web：首页仍只有代表性链接 `/play/sample`，不承接菜单最近在看。
+   - Android：首页、排行、菜单最近在看都复用 `play/{videoId}`。
+   - iOS：首页、排行、菜单最近在看都复用 `.player(videoId:)`。
 2. 菜单入口会先关闭抽屉，再由壳层执行真正的播放导航。
-   - Android：`closeMenuThenNavigate()` 把首个待跳转目标写入 `pendingMenuRoute`，等待 `onMenuClosedAnimationFinished()` 后再转移给 `pendingRoute` 消费（`android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt:86-116`）。
-   - iOS：`closeMenuPanelThenNavigate(to:)` 先把目标写入 `pendingMenuNavigation` 并切到 `.closing`，`markMenuPanelDidClose()` 才真正调用 `navigate(to:)`（`ios/ShortDrama/Sources/App/NavigationRouter.swift:97-113`）。
+   - Android：`closeMenuThenNavigate()` 先写入 `pendingMenuRoute`。
+   - iOS：`closeMenuPanelThenNavigate(to:)` 先写入 `pendingMenuNavigation`。
 3. 最近在看列表由 Backend 统一返回，移动端只消费当前匿名播放会话的数据。
-   - Backend：`GET /api/player/recently-viewed` 复用 `X-Playback-Session-Id`，先取最近候选窗口，再过滤缺 drama / 缺 episode / drama-episode 不匹配的脏数据，最终最多返回 3 条，不承诺用更老 offset 补足（`backend/src/app/api/player/recently-viewed/route.ts:11-20`, `backend/src/app/api/player/parse-playback-session-id.ts:5-16`, `backend/src/services/player/player.service.ts:100-142`, `backend/src/lib/player.ts:1-2`）。
-   - Android：`ApiService.getRecentlyViewed()` 注入同名 header，`MenuPanelViewModel` 使用 `PlaybackSessionStore` 取会话 ID，并将接口结果再 `take(3)` 映射为 content / empty / error 状态（`android/app/src/main/java/com/djs66256/short_drama/core/network/ApiService.kt:84-87`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:79-129`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/model/MenuPanelStaticEntries.kt:50-52`）。
-   - iOS：`PlayerRemoteDataSource` 同样用 `X-Playback-Session-Id` 请求 `/api/player/recently-viewed`，`MenuPanelViewModel` 根据返回 items 切换 `content / empty / error`，并在点击时校验 `dramaId` 非空（`ios/ShortDrama/Sources/Data/DataSources/PlayerRemoteDataSource.swift:23-26,85-95`, `ios/ShortDrama/Sources/Data/Repositories/MenuPanelRepository.swift:10-13`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:34-89`, `ios/ShortDrama/Sources/Domain/Entities/RecentlyViewedItem.swift:11-19`）。
 4. 路由层读取 `videoId` 并交给播放页 View / ViewModel，菜单入口不会创建新的播放器路由语义。
-   - Android：`PlayerViewModel` 从 `SavedStateHandle` 读取 `videoId`，必要时回退到通用 `id` key（`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:14-17`）。
-   - iOS：`TabNavigationHostView` 在路由命中 `.player(let videoId)` 时构造 `PlayerViewModel(videoId: videoId)`（`ios/ShortDrama/Sources/App/TabNavigationHostView.swift:27-29`）。
 5. 播放历史仍由 `progress/start/stop` 与播放页本身维护；菜单最近在看只是额外入口，不引入新的播放器页面实现。
+
+### 流程：播放器内评论入口已接通真实 comments 容器
+
+1. Android 播放器右侧操作区已把“评论”芯片接成真实回调，不再是 `onClick = {}` 占位。
+   - 源文件：`android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/components/PlayerComponents.kt`
+2. Android `PlayerViewModel.openComments()` 会在 `commentSheetState` 中写入 `isVisible = true` 与当前 `dramaId`；`PlayerScreen` 根据该状态渲染评论 bottom sheet。
+   - 源文件：`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/PlayerScreen.kt`
+3. iOS 播放器右侧操作区同样已改为真实 action button，点击后调用 `PlayerViewModel.openComments()` 并通过 `.sheet` 打开 `CommentSheetView`。
+   - 源文件：`ios/ShortDrama/Sources/Features/Player/Views/Components/PlayerRightActionBar.swift`、`ios/ShortDrama/Sources/Features/Player/Views/PlayerView.swift`
+4. 播放器内评论列表、排序、分页、发表评论与点赞都由独立 comments ViewModel 承载，而不是塞入播放器已有播放状态机。
+   - Android：`CommentSheetViewModel`
+   - iOS：`CommentSheetViewModel`
+5. Backend 当前已提供播放器评论所需的三条接口：
+   - `GET /api/dramas/:id/comments`
+   - `POST /api/dramas/:id/comments`
+   - `POST /api/dramas/:id/comments/:commentId/like`
+6. 因为评论容器仍然是页面内增强而不是独立 route，所以播放页不会离开当前上下文。
+
+### 流程：播放器评论写操作的登录拦截与恢复
+
+1. 评论写操作前，客户端会先检查是否已登录。
+2. 未登录时：
+   - Android：`PlayerViewModel.onCommentLoginRequired(context)` 保存 `pendingCommentLoginContext` 并发出 `PlayerEffect.RequireLogin(context)`。
+   - iOS：`PlayerViewModel.handleCommentLoginRequired(_:)` 保存 `pendingCommentLoginContext`，同时设置 `routeEffect = .requireLogin(context)`。
+3. 当前登录承接仍为占位：
+   - Android：placeholder dialog / Toast
+   - iOS：alert
+4. 登录恢复后只重新打开评论抽屉 / sheet：
+   - Android：`restoreCommentSheetAfterLogin()`
+   - iOS：`restoreCommentContext(_:)`
+5. 首版明确**不自动重放**原发送评论或点赞动作。
 
 ### 边界与异常处理
 
 | 场景 | 处理方式 | 源文件 |
 |------|---------|--------|
-| Web 路由参数为空或全空白 | `trim()` 后为空即 `notFound()`，不渲染有效播放页 | `web/src/app/play/[id]/page.tsx:9-39` |
-| Android deeplink 使用历史 `player` host | 解析后统一映射到 `PendingRoute.Play(videoId)` | `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt:33-36` |
-| Android 页面参数 key 不一致 | `PlayerViewModel` 优先读 `videoId`，再回退通用 `id` | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:14-17` |
-| iOS 冷启动即收到播放 deeplink | 先写入 `pendingRoute`，待 `TabView` ready 后再导航 | `ios/ShortDrama/Sources/App/ShortDramaApp.swift:13-20`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:39-50` |
-| 首页 / 排行卡片 `id` 为空 | Android 不触发播放导航；iOS `HomeRouteBuilder` / `RankingRouteBuilder` 返回 `nil` | `android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:158-170,209-218`, `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/ui/RankingScreen.kt:214-217`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:5-8` |
-| 最近在看 header 缺失或非法 | Backend 直接返回 `INVALID_PLAYBACK_SESSION` 400 | `backend/src/app/api/player/parse-playback-session-id.ts:5-16`, `backend/src/app/api/__tests__/player.recently-viewed.test.ts:135-155` |
-| 最近在看候选记录含脏数据 | 服务端过滤无效 drama / episode 或不匹配关系，允许返回不足 3 条 | `backend/src/services/player/player.service.ts:106-129`, `backend/src/services/player/player.service.test.ts:86-171` |
-| 菜单关闭阶段重复点击其它入口 | Android / iOS 都只保留首个待导航目标，避免多次跳转 | `android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt:86-116`, `android/app/src/test/java/com/djs66256/short_drama/navigation/MainNavigationViewModelTest.kt:100-130`, `ios/ShortDrama/Sources/App/NavigationRouter.swift:97-113`, `ios/ShortDrama/Tests/ViewModelTests/NavigationRouterTests.swift:294-308` |
+| Web 路由参数为空或全空白 | `trim()` 后为空即 `notFound()`，不渲染有效播放页 | `web/src/app/play/[id]/page.tsx` |
+| Android deeplink 使用历史 `player` host | 解析后统一映射到 `PendingRoute.Play(videoId)` | `android/app/src/main/java/com/djs66256/short_drama/navigation/DeeplinkRouteParser.kt` |
+| Android 页面参数 key 不一致 | `PlayerViewModel` 优先读 `videoId`，再回退通用 `id` | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt` |
+| iOS 冷启动即收到播放 deeplink | 先写入 `pendingRoute`，待 `TabView` ready 后再导航 | `ios/ShortDrama/Sources/App/ShortDramaApp.swift`、`ios/ShortDrama/Sources/App/NavigationRouter.swift` |
+| 最近在看 header 缺失或非法 | Backend 直接返回 `INVALID_PLAYBACK_SESSION` 400 | `backend/src/app/api/player/parse-playback-session-id.ts` |
+| 最近在看候选记录含脏数据 | 服务端过滤无效 drama / episode 或不匹配关系，允许返回不足 3 条 | `backend/src/services/player/player.service.ts` |
+| 点击播放器评论后未登录写操作 | 不自动提交写请求，只缓存评论上下文并恢复评论容器 | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt`、`ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift` |
 
 ## 多端实现
 
 ### Web
 
-- Page 层：`web/src/app/play/[id]/page.tsx:14-39`
-- Feature 层：`web/src/features/player/PlayerScreen.tsx:7-25`
-- 首页入口：`web/src/features/home/HomeScreen.tsx:36-38`
-- 特点：Server Component 先做参数规范化，再委托占位 Feature 渲染
+- Page 层：`web/src/app/play/[id]/page.tsx`
+- Feature 层：`web/src/features/player/PlayerScreen.tsx`
+- 首页入口：`web/src/features/home/HomeScreen.tsx`
+- 特点：Server Component 先做参数规范化，再委托占位 Feature 渲染；本期不承载 comments UI
 
 ### Android
 
-- 路由定义：`android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt:44-50,94-109`
-- 导航注册：`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:187-243`
-- 首页 Feed 入口：`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:177-232`
-- 排行入口：`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/ui/RankingScreen.kt:193-243`
-- 页面实现：`android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/PlayerScreen.kt:14-34`
-- 参数读取：`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:14-17`
-- 特点：同时兼容 canonical `play` 与 legacy `player` route / deeplink
+- 路由定义：`android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`
+- 导航注册：`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`
+- 首页 Feed 入口：`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt`
+- 排行入口：`android/app/src/main/java/com/djs66256/short_drama/feature/ranking/ui/RankingScreen.kt`
+- 页面实现：`android/app/src/main/java/com/djs66256/short_drama/feature/player/ui/PlayerScreen.kt`
+- 参数读取：`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt`
+- 评论现状：评论入口、评论抽屉、登录恢复上下文都已接通；`CommentBottomSheet` 作为独立模块嵌入播放器页
+- 特点：同时兼容 canonical `play` 与 legacy `player` route / deeplink，且评论能力以页面内增强方式落地
 
 ### iOS
 
-- 路由定义：`ios/ShortDrama/Sources/App/AppRoute.swift:39-60`
-- 导航注册：`ios/ShortDrama/Sources/App/TabNavigationHostView.swift:11-31`
-- 首页 Feed 入口：`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:73-224`
-- 排行入口：`ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift:69-77`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:3-8`
-- 页面实现：`ios/ShortDrama/Sources/Features/Player/Views/PlayerView.swift:4-18`
-- 参数承载：`ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift:4-11`
+- 路由定义：`ios/ShortDrama/Sources/App/AppRoute.swift`
+- 导航注册：`ios/ShortDrama/Sources/App/TabNavigationHostView.swift`
+- 首页 Feed 入口：`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift`
+- 排行入口：`ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift`
+- 页面实现：`ios/ShortDrama/Sources/Features/Player/Views/PlayerView.swift`
+- 参数承载：`ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift`
+- 评论现状：评论入口、comments sheet、登录恢复上下文都已接通；评论能力不离开播放器上下文
 - 特点：播放页属于首页 Tab 的子路由，对外公开名为 `play`
 
 ### Backend
 
-- 路由文件：`backend/src/app/api/player/progress/route.ts:1-45`、`backend/src/app/api/player/recently-viewed/route.ts:1-21`、`backend/src/app/api/player/start/route.ts:1-47`、`backend/src/app/api/player/stop/route.ts:1-48`
-- Service 与 header 解析：`backend/src/services/player/player.service.ts:25-142`、`backend/src/app/api/player/parse-playback-session-id.ts:1-17`
+- 路由文件：`backend/src/app/api/player/progress/route.ts`、`backend/src/app/api/player/recently-viewed/route.ts`、`backend/src/app/api/player/start/route.ts`、`backend/src/app/api/player/stop/route.ts`
+- Service 与 header 解析：`backend/src/services/player/player.service.ts`、`backend/src/app/api/player/parse-playback-session-id.ts`
 - 当前行为：`progress/start/stop` 维护匿名播放历史，`recently-viewed` 在固定候选窗口内过滤脏数据后最多返回 3 条
-- 特点：播放器历史链路已真实落地，菜单最近在看只是新增入口，不引入新的播放器接口语义
+- 评论现状：已新增 comments routes、service、repository 与 migration，可直接承载播放器评论列表 / 发评论 / 点赞
+- 特点：播放器历史链路与评论链路并存，评论作为 drama 子资源挂到 `/api/dramas/:id/comments*`
 
 ## API 引用
 
@@ -96,23 +127,25 @@
 | `GET /api/player/progress` | [../../api/player.md](../../api/player.md) | 播放页 bootstrap 的续播查询接口 |
 | `GET /api/player/recently-viewed` | [../../api/player.md](../../api/player.md) | 菜单最近在看数据源，Android / iOS 都复用该接口 |
 | `POST /api/player/start` | [../../api/player.md](../../api/player.md) | 开始播放接口，菜单最近在看点击后仍进入同一播放器起播链路 |
-| `POST /api/player/stop` | [../../api/player.md](../../api/player.md) | 停止播放 / 保存历史接口，最近在看候选记录来源于该接口持久化结果 |
-| `GET /api/dramas` | [../../api/dramas.md](../../api/dramas.md) | 首页 Feed 提供进入播放页所需的 `drama.id` 与卡片数据 |
-| `GET /api/dramas/rankings` | [../../api/dramas.md](../../api/dramas.md) | 排行页提供进入播放页所需的 `drama.id` 与榜单字段 |
+| `POST /api/player/stop` | [../../api/player.md](../../api/player.md) | 停止播放 / 保存历史接口 |
+| `GET /api/dramas/:id/comments` | [../../api/dramas.md](../../api/dramas.md) | 播放器评论列表接口 |
+| `POST /api/dramas/:id/comments` | [../../api/dramas.md](../../api/dramas.md) | 播放器发表评论接口 |
+| `POST /api/dramas/:id/comments/:commentId/like` | [../../api/dramas.md](../../api/dramas.md) | 播放器点赞 / 取消点赞接口 |
 
 ## 状态管理
 
 | 状态 | 存储方式 | 作用域 | 说明 | 源文件 |
 |------|---------|--------|------|--------|
-| Web `videoId` | 路由 `params` | 页面级 | 页面渲染时由 App Router 提供，先做非空校验 | `web/src/app/play/[id]/page.tsx:14-39` |
-| Android `videoId` | `SavedStateHandle` | 页面级 | 从导航参数恢复，兼容旧 key | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt:14-17` |
-| Android `pendingRoute` | `StateFlow<UiState>` | 应用级 | deeplink 与菜单关闭后的播放目标都先缓存，稍后再导航 | `android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt:21-116` |
-| Android 菜单最近在看状态 | `StateFlow<MenuPanelUiState>` | 页面级 | 承载最近在看 items、loading、error、empty 与 retrying 状态 | `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:23-129` |
-| iOS `videoId` | `PlayerViewModel` 初始化参数 | 页面级 | 由 `AppRoute.player(videoId:)` 直接传入 | `ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift:5-10` |
-| iOS `pendingRoute` | `NavigationRouter.pendingRoute` | 应用级 | 冷启动 deeplink 场景的播放目标暂存 | `ios/ShortDrama/Sources/App/NavigationRouter.swift:24-27,115-127` |
-| iOS 菜单最近在看状态 | `MenuPanelViewModel.viewState` | 页面级 | 承载 recently viewed 的 idle / loading / content / empty / error 状态与重试中标记 | `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:4-84` |
-| 当前播放会话 ID | `PlaybackSessionStore` / `KeychainPlaybackSessionStore` | 应用级 | 最近在看、progress、start、stop 统一复用同一个 `X-Playback-Session-Id` | `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:40-42,91-93`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:16-18,51-52`, `backend/src/app/api/player/parse-playback-session-id.ts:5-16` |
-| 首页 Feed / 排行 / 菜单最近在看 `drama.id` | 列表项字段 | 页面级 | 作为移动端播放路由的统一参数来源 | `android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt:251-257`, `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/ui/RankingScreen.kt:221-225`, `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt:70-76`, `ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift:65-79`, `ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift:5-8`, `ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift:86-89` |
+| Web `videoId` | 路由 `params` | 页面级 | 页面渲染时由 App Router 提供，先做非空校验 | `web/src/app/play/[id]/page.tsx` |
+| Android `videoId` | `SavedStateHandle` | 页面级 | 从导航参数恢复，兼容旧 key | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt` |
+| Android `pendingRoute` | `StateFlow<UiState>` | 应用级 | deeplink 与菜单关闭后的播放目标都先缓存，稍后再导航 | `android/app/src/main/java/com/djs66256/short_drama/navigation/MainNavigationViewModel.kt` |
+| Android 播放器页面状态 | `MutableStateFlow<PlayerUiState>` | 页面级 | 承载播放 bootstrap、选集、倍速、点赞、收藏，以及评论抽屉可见性和登录恢复上下文 | `android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerUiState.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt` |
+| Android 评论状态 | `MutableStateFlow<CommentUiState>` | 组件级 | 承载评论列表、分页、排序、输入、发送中、点赞中 | `android/app/src/main/java/com/djs66256/short_drama/feature/comments/viewmodel/CommentSheetViewModel.kt` |
+| iOS `videoId` | `PlayerViewModel` 初始化参数 | 页面级 | 由 `AppRoute.player(videoId:)` 直接传入 | `ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift` |
+| iOS `pendingRoute` | `NavigationRouter.pendingRoute` | 应用级 | 冷启动 deeplink 场景的播放目标暂存 | `ios/ShortDrama/Sources/App/NavigationRouter.swift` |
+| iOS 播放器页面状态 | `@Published` + ViewModel 私有字段 | 页面级 | 维护播放、选集、倍速、点赞、收藏，以及 comments sheet 可见性和登录恢复上下文 | `ios/ShortDrama/Sources/Features/Player/ViewModels/PlayerViewModel.swift` |
+| iOS 评论状态 | `@Published` | 组件级 | 承载 `listState`、`appendState`、`selectedSort`、`comments`、`inputText` 等 | `ios/ShortDrama/Sources/Features/Comments/ViewModels/CommentSheetViewModel.swift` |
+| 当前播放会话 ID | `PlaybackSessionStore` / `KeychainPlaybackSessionStore` | 应用级 | 最近在看、progress、start、stop 统一复用同一个 `X-Playback-Session-Id` | `android/app/src/main/java/com/djs66256/short_drama/feature/menu/viewmodel/MenuPanelViewModel.kt`、`ios/ShortDrama/Sources/Features/MenuPanel/ViewModels/MenuPanelViewModel.swift`、`backend/src/app/api/player/parse-playback-session-id.ts` |
 
 ## 依赖关系
 
@@ -125,6 +158,7 @@
 | 首页信息流 | 导航入口 | 移动端真实入口之一来自首页 Feed 卡片 |
 | 排行体系 | 导航入口 | 移动端另一条真实入口来自排行列表卡片 |
 | 菜单面板 | 导航入口 | Android / iOS 菜单中的最近在看卡片会复用播放器主路径 |
+| 评论能力 | 页面内增强 | PRD-09 已把评论抽屉 / sheet 接在播放器页内，不新增独立 comments route |
 
 ### 外部依赖
 
@@ -132,6 +166,7 @@
 |------|------|---------|
 | Backend Dramas API | 提供首页卡片与排行项中的 `drama.id` | `GET /api/dramas`, `GET /api/dramas/rankings` |
 | Backend Player API | 提供续播、最近在看、起播与停止上报 | `GET /api/player/progress`, `GET /api/player/recently-viewed`, `POST /api/player/start`, `POST /api/player/stop` |
+| Backend Comments API | 提供播放器评论列表、发评论、点赞 | `GET /api/dramas/:id/comments`, `POST /api/dramas/:id/comments`, `POST /api/dramas/:id/comments/:commentId/like` |
 
 ## 已知限制
 
@@ -139,14 +174,16 @@
 |------|------|---------|------|
 | Web 无菜单最近在看入口 | 无法验证 Web 端与移动端一致的菜单到播放页链路 | 2026-07-28 | Web 本期不涉及菜单面板，首页仍只有代表性播放链接 |
 | 菜单最近在看最多只返回 3 条且允许不足 3 条 | 过滤脏数据后可能看到 0-2 条，不承诺继续向后补足 | 2026-07-28 | `RECENTLY_VIEWED_FETCH_LIMIT=10` 只定义候选窗口，不是 offset 补足承诺 |
-| 登录 / 消息 / 预约 / 下载仍是占位承接 | 菜单中的这些入口暂不触发真实业务流，只能验证先关菜单再导航 | 2026-07-28 | Android / iOS 都跳转 Native placeholder |
-| 游戏中心仅提供本地反馈 | 菜单内游戏入口不会进入真实播放或其他业务页面 | 2026-07-28 | Android snackbar / iOS alert 均显示“即将上线” |
-| 设备级黑盒仍待补测 | 无法确认真实菜单开合、连点与最近在看点击后的设备表现 | 2026-07-28 | `docs/specs/2026-07-27-prd-07-menu-panel/qa-test.md:14-32,246-275` |
+| 播放器评论登录承接仍是占位方案 | 能验证“拦截 + 恢复评论容器”语义，但不能验证真实登录回流 | 2026-07-29 | Android placeholder dialog；iOS alert |
+| Backend comments migration 的本地推送验证仍受历史 migration 阻塞 | 无法在本轮完成 comments migration 的真实 `supabase db push` 验证 | 2026-07-29 | 属于既有环境遗留，不影响当前播放器评论代码链路 |
+| 登录恢复不自动重放写操作 | 登录后用户需要自行再次发送评论或再次点赞 | 2026-07-29 | 这是首版设计语义，不是 bug |
+| 设备级黑盒仍待补测 | 无法确认真实菜单开合、连点、最近在看点击与播放器评论抽屉的设备表现 | 2026-07-29 | 当前以代码、自动化测试和 QA 文档为主 |
 
 ## 修订历史
 
 | 日期 | 变更摘要 |
 |------|---------|
+| 2026-07-29 | 更新：同步 PRD-09 评论系统落地结果，将 Android / iOS 播放器“评论”从视觉占位修正为真实入口，补充播放器内 comments sheet / bottom sheet、登录恢复上下文与 Backend comments API 现状 |
 | 2026-07-28 | 更新：同步 PRD-12 剧场频道落地结果，补充剧场卡片点击也复用 canonical `play` 主路径，并明确首页、剧场、排行与菜单最近在看四类入口共用播放器导航语义 |
 | 2026-07-28 | 更新：同步 PRD-07 菜单面板落地结果，补充最近在看接口、菜单卡片到 `play` 路由的复用链路、关闭后导航时序与 Web 范围边界 |
 | 2026-07-27 | 更新：补充 PRD-05 后播放页真实入口新增排行列表卡片，记录 `drama.id -> play/:id` 在首页 Feed 与排行体系中的共用导航链路 |

@@ -26,6 +26,13 @@ class HomeScreenTest {
     }
 
     @Test
+    fun `T-07 comment action only enables navigation for non blank drama id`() {
+        assertTrue(hasNavigableDramaId("comment-drama"))
+        assertFalse(hasNavigableDramaId(""))
+        assertFalse(hasNavigableDramaId("   "))
+    }
+
+    @Test
     fun `home card meta text includes category tags episodes and rating`() {
         val drama = Drama(
             id = "drama-1",

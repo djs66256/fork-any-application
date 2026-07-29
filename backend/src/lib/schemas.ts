@@ -240,6 +240,75 @@ export const DramaIdPathSchema = z.object({
 
 export type DramaIdPath = z.infer<typeof DramaIdPathSchema>;
 
+export const CommentIdPathSchema = z.object({
+  commentId: z.string().uuid(),
+});
+
+export type CommentIdPath = z.infer<typeof CommentIdPathSchema>;
+
+export const DramaCommentPathSchema = DramaIdPathSchema;
+
+export type DramaCommentPath = z.infer<typeof DramaCommentPathSchema>;
+
+export const DramaCommentLikePathSchema = DramaIdPathSchema.extend({
+  commentId: z.string().uuid(),
+});
+
+export type DramaCommentLikePath = z.infer<typeof DramaCommentLikePathSchema>;
+
+export const CommentSortSchema = z.enum(['latest', 'hot']);
+export type CommentSort = z.infer<typeof CommentSortSchema>;
+
+export const CommentUserSummarySchema = z.object({
+  id: z.string().uuid(),
+  display_name: z.string().trim().min(1),
+  avatar_url: z.string().url().nullable().default(null),
+});
+
+export type CommentUserSummary = z.infer<typeof CommentUserSummarySchema>;
+
+export const CommentSchema = z.object({
+  id: z.string().uuid(),
+  drama_id: z.string().uuid(),
+  content: z.string().trim().min(1).max(500),
+  like_count: z.number().int().min(0),
+  liked: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  user: CommentUserSummarySchema,
+});
+
+export type Comment = z.infer<typeof CommentSchema>;
+
+export const CommentListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+  sort: CommentSortSchema.default('latest'),
+});
+
+export type CommentListQuery = z.infer<typeof CommentListQuerySchema>;
+
+export const CreateCommentRequestSchema = z.object({
+  content: z.string().trim().min(1).max(500),
+});
+
+export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
+
+export const CommentListResponseSchema = z.object({
+  data: z.array(CommentSchema),
+  pagination: PaginationSchema,
+});
+
+export type CommentListResponse = z.infer<typeof CommentListResponseSchema>;
+
+export const ToggleCommentLikeResponseSchema = z.object({
+  comment_id: z.string().uuid(),
+  liked: z.boolean(),
+  like_count: z.number().int().min(0),
+});
+
+export type ToggleCommentLikeResponse = z.infer<typeof ToggleCommentLikeResponseSchema>;
+
 export const PlaybackSessionIdHeaderSchema = z.string().uuid();
 
 export type PlaybackSessionIdHeader = z.infer<typeof PlaybackSessionIdHeaderSchema>;

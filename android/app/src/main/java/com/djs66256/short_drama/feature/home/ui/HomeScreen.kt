@@ -1,5 +1,6 @@
 package com.djs66256.short_drama.feature.home.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,15 +31,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.domain.model.Drama
+import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
+import com.djs66256.short_drama.feature.comments.model.CommentSource
+import com.djs66256.short_drama.feature.comments.ui.CommentBottomSheet
+import com.djs66256.short_drama.feature.comments.ui.CommentLoginPlaceholderDialog
 import com.djs66256.short_drama.feature.home.viewmodel.HomeViewModel
 
 @Composable
@@ -51,6 +60,9 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var activeCommentDramaId by remember { mutableStateOf<String?>(null) }
+    var pendingCommentLoginContext by remember { mutableStateOf<CommentLoginContext?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadIfNeeded()
@@ -86,11 +98,42 @@ fun HomeScreen(
                             drama = drama,
                             onPlay = { onOpenPlay(drama.id) },
                             onDetail = { onOpenDetail(drama.id) },
+                            onComment = { activeCommentDramaId = drama.id },
                         )
                     }
                 }
             }
         }
+    }
+
+    activeCommentDramaId?.let { dramaId ->
+        CommentBottomSheet(
+            dramaId = dramaId,
+            source = CommentSource.HOME,
+            onDismiss = { activeCommentDramaId = null },
+            onRequireLogin = { effect ->
+                activeCommentDramaId = null
+                pendingCommentLoginContext = effect.context
+                Toast.makeText(context, "请先登录后再操作评论", Toast.LENGTH_SHORT).show()
+            },
+            onMessage = { message ->
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            },
+        )
+    }
+
+    pendingCommentLoginContext?.let { loginContext ->
+        CommentLoginPlaceholderDialog(
+            context = loginContext,
+            onConfirmLogin = {
+                activeCommentDramaId = loginContext.dramaId
+                pendingCommentLoginContext = null
+                Toast.makeText(context, "已回到评论抽屉，请手动重新执行操作", Toast.LENGTH_SHORT).show()
+            },
+            onDismiss = {
+                pendingCommentLoginContext = null
+            },
+        )
     }
 }
 
@@ -198,6 +241,7 @@ fun HomeDramaCard(
     drama: Drama,
     onPlay: () -> Unit,
     onDetail: () -> Unit,
+    onComment: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val actionsEnabled = hasNavigableDramaId(drama.id)
@@ -269,6 +313,17 @@ fun HomeDramaCard(
                     modifier = Modifier.weight(1f),
                 ) {
                     Text("详情")
+                }
+                OutlinedButton(
+                    onClick = {
+                        if (actionsEnabled) {
+                            onComment()
+                        }
+                    },
+                    enabled = actionsEnabled,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("评论")
                 }
             }
         }

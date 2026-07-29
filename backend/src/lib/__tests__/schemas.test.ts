@@ -7,9 +7,15 @@ import {
   CLASSIFICATION_DIMENSION_KEYS,
   ClassificationTagsQuerySchema,
   ClassificationTagsResponseSchema,
+  CommentListQuerySchema,
+  CommentListResponseSchema,
+  CommentSchema,
   CreateAuthSessionRequestSchema,
+  CreateCommentRequestSchema,
   CountryCodeSchema,
   CurrentUserResponseSchema,
+  DramaCommentLikePathSchema,
+  DramaCommentPathSchema,
   DramaIdPathSchema,
   DramaListResponseSchema,
   DramaSchema,
@@ -25,6 +31,7 @@ import {
   MallProductsQuerySchema,
   MallProductsResponseSchema,
   PlaybackHistorySchema,
+  ToggleCommentLikeResponseSchema,
   PlaybackSessionIdHeaderSchema,
   PlayerProgressQuerySchema,
   PlayerProgressResponseSchema,
@@ -729,6 +736,81 @@ describe('DramaListResponseSchema', () => {
     const result = DramaListResponseSchema.parse(data);
     expect(result.data).toHaveLength(1);
     expect(result.pagination.total_pages).toBe(1);
+  });
+});
+
+describe('comment schemas', () => {
+  it('should apply comment list defaults', () => {
+    expect(CommentListQuerySchema.parse({})).toEqual({
+      page: 1,
+      pageSize: 20,
+      sort: 'latest',
+    });
+  });
+
+  it('should parse valid comment list query, body, and path params', () => {
+    expect(CommentListQuerySchema.parse({ page: '2', pageSize: '20', sort: 'hot' })).toEqual({
+      page: 2,
+      pageSize: 20,
+      sort: 'hot',
+    });
+    expect(CreateCommentRequestSchema.parse({ content: '  hello  ' })).toEqual({
+      content: 'hello',
+    });
+    expect(DramaCommentPathSchema.parse({ id: '550e8400-e29b-41d4-a716-446655440001' })).toEqual({
+      id: '550e8400-e29b-41d4-a716-446655440001',
+    });
+    expect(
+      DramaCommentLikePathSchema.parse({
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        commentId: '880e8400-e29b-41d4-a716-446655440001',
+      }),
+    ).toEqual({
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      commentId: '880e8400-e29b-41d4-a716-446655440001',
+    });
+  });
+
+  it('should reject invalid comment params and body', () => {
+    expect(() => CommentListQuerySchema.parse({ page: 0 })).toThrow();
+    expect(() => CommentListQuerySchema.parse({ pageSize: 51 })).toThrow();
+    expect(() => CommentListQuerySchema.parse({ sort: 'foo' })).toThrow();
+    expect(() => CreateCommentRequestSchema.parse({ content: '   ' })).toThrow();
+    expect(() => CreateCommentRequestSchema.parse({ content: 'a'.repeat(501) })).toThrow();
+    expect(() => DramaCommentPathSchema.parse({ id: 'bad-id' })).toThrow();
+    expect(() => DramaCommentLikePathSchema.parse({ id: 'bad-id', commentId: 'bad-id' })).toThrow();
+  });
+
+  it('should parse canonical comment response payloads', () => {
+    const comment = CommentSchema.parse({
+      id: '880e8400-e29b-41d4-a716-446655440001',
+      drama_id: '550e8400-e29b-41d4-a716-446655440001',
+      content: '评论正文',
+      like_count: 12,
+      liked: false,
+      created_at: '2026-07-29T09:30:00.000Z',
+      updated_at: '2026-07-29T09:30:00.000Z',
+      user: {
+        id: '770e8400-e29b-41d4-a716-446655440001',
+        display_name: '评论用户',
+        avatar_url: null,
+      },
+    });
+
+    expect(comment.user.display_name).toBe('评论用户');
+
+    const listResponse = CommentListResponseSchema.parse({
+      data: [comment],
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
+    });
+    expect(listResponse.data).toHaveLength(1);
+
+    const toggleResponse = ToggleCommentLikeResponseSchema.parse({
+      comment_id: '880e8400-e29b-41d4-a716-446655440001',
+      liked: true,
+      like_count: 13,
+    });
+    expect(toggleResponse.liked).toBe(true);
   });
 });
 

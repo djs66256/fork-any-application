@@ -5,7 +5,10 @@ import com.djs66256.short_drama.data.dto.AuthSessionPayloadDto
 import com.djs66256.short_drama.data.dto.AuthUserDto
 import com.djs66256.short_drama.data.dto.BookDramaResponseDto
 import com.djs66256.short_drama.data.dto.ClassificationTagsResponseDto
+import com.djs66256.short_drama.data.dto.CommentDto
+import com.djs66256.short_drama.data.dto.CommentListResponseDto
 import com.djs66256.short_drama.data.dto.CreateAuthSessionRequestDto
+import com.djs66256.short_drama.data.dto.CreateCommentRequestDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.EpisodeListResponseDto
 import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
@@ -20,6 +23,7 @@ import com.djs66256.short_drama.data.dto.RefreshAuthSessionRequestDto
 import com.djs66256.short_drama.data.dto.SendOtpPayloadDto
 import com.djs66256.short_drama.data.dto.SendOtpRequestDto
 import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
+import com.djs66256.short_drama.data.dto.ToggleCommentLikeResponseDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -87,6 +91,26 @@ interface ApiService {
     suspend fun getDramaEpisodes(
         @Path("id") dramaId: String,
     ): EpisodeListResponseDto
+
+    @GET("dramas/{id}/comments")
+    suspend fun getDramaComments(
+        @Path("id") id: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+        @Query("sort") sort: String = "latest",
+    ): CommentListResponseDto
+
+    @POST("dramas/{id}/comments")
+    suspend fun createDramaComment(
+        @Path("id") id: String,
+        @Body request: CreateCommentRequestDto,
+    ): CommentDto
+
+    @POST("dramas/{id}/comments/{commentId}/like")
+    suspend fun toggleDramaCommentLike(
+        @Path("id") id: String,
+        @Path("commentId") commentId: String,
+    ): ToggleCommentLikeResponseDto
 
     @GET("episodes/{id}")
     suspend fun getEpisodeDetail(@Path("id") id: String): Unit

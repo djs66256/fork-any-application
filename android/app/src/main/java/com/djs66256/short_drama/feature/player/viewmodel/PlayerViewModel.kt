@@ -12,13 +12,18 @@ import com.djs66256.short_drama.domain.usecase.GetDramaEpisodesUseCase
 import com.djs66256.short_drama.domain.usecase.GetPlaybackProgressUseCase
 import com.djs66256.short_drama.domain.usecase.StartPlaybackUseCase
 import com.djs66256.short_drama.domain.usecase.StopPlaybackUseCase
+import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
 import com.djs66256.short_drama.navigation.AppDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -40,6 +45,12 @@ class PlayerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(PlayerUiState(dramaId = dramaId))
     val uiState: StateFlow<PlayerUiState> = _uiState.asStateFlow()
+
+    private val _effects = MutableSharedFlow<PlayerEffect>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val effects: SharedFlow<PlayerEffect> = _effects.asSharedFlow()
 
     private var requestJob: Job? = null
     private var stopReportJob: Job? = null
@@ -90,6 +101,58 @@ class PlayerViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(interactionState = state.interactionState.copy(favorited = !state.interactionState.favorited))
         }
+    }
+
+    fun openComments() {
+        if (dramaId.isBlank()) {
+            return
+        }
+        _uiState.update { state ->
+            state.copy(
+                commentSheetState = state.commentSheetState.copy(
+                    isVisible = true,
+                    dramaId = dramaId,
+                ),
+            )
+        }
+    }
+
+    fun closeComments() {
+        _uiState.update { state ->
+            state.copy(
+                commentSheetState = state.commentSheetState.copy(isVisible = false),
+            )
+        }
+    }
+
+    fun onCommentLoginRequired(context: CommentLoginContext) {
+        _uiState.update { state -> state.copy(pendingCommentLoginContext = context) }
+        viewModelScope.launch {
+            _effects.emit(PlayerEffect.RequireLogin(context))
+        }
+    }
+
+    fun onCommentMessage(message: String) {
+        viewModelScope.launch {
+            _effects.emit(PlayerEffect.ShowMessage(message))
+        }
+    }
+
+    fun restoreCommentSheetAfterLogin() {
+        val context = _uiState.value.pendingCommentLoginContext ?: return
+        _uiState.update { state ->
+            state.copy(
+                commentSheetState = state.commentSheetState.copy(
+                    isVisible = true,
+                    dramaId = context.dramaId,
+                ),
+                pendingCommentLoginContext = null,
+            )
+        }
+    }
+
+    fun clearPendingCommentLoginContext() {
+        _uiState.update { state -> state.copy(pendingCommentLoginContext = null) }
     }
 
     fun onPlaybackPositionChanged(positionSeconds: Double) {

@@ -89,6 +89,38 @@ class ApiServiceTest {
     }
 
     @Test
+    fun `T-09 getDramaComments uses canonical path and query names`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "getDramaComments" }
+        val getAnnotation = requireNotNull(method.getAnnotation(GET::class.java))
+
+        assertEquals("dramas/{id}/comments", getAnnotation.value)
+        assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
+        assertEquals("page", method.parameterAnnotations[1].filterIsInstance<Query>().single().value)
+        assertEquals("pageSize", method.parameterAnnotations[2].filterIsInstance<Query>().single().value)
+        assertEquals("sort", method.parameterAnnotations[3].filterIsInstance<Query>().single().value)
+    }
+
+    @Test
+    fun `T-09 createDramaComment uses canonical path and request body`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "createDramaComment" }
+        val postAnnotation = requireNotNull(method.getAnnotation(POST::class.java))
+
+        assertEquals("dramas/{id}/comments", postAnnotation.value)
+        assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
+        assertEquals(1, method.parameterAnnotations[1].filterIsInstance<Body>().size)
+    }
+
+    @Test
+    fun `T-09 toggleDramaCommentLike uses canonical nested path params`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "toggleDramaCommentLike" }
+        val postAnnotation = requireNotNull(method.getAnnotation(POST::class.java))
+
+        assertEquals("dramas/{id}/comments/{commentId}/like", postAnnotation.value)
+        assertEquals("id", method.parameterAnnotations[0].filterIsInstance<Path>().single().value)
+        assertEquals("commentId", method.parameterAnnotations[1].filterIsInstance<Path>().single().value)
+    }
+
+    @Test
     fun `T-03 getRecentlyViewed uses canonical path and playback session header`() {
         val method = ApiService::class.java.declaredMethods.single { it.name == "getRecentlyViewed" }
         val getAnnotation = requireNotNull(method.getAnnotation(GET::class.java))

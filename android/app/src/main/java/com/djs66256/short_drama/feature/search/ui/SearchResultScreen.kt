@@ -98,6 +98,7 @@ fun SearchResultScreen(
                             drama = drama,
                             onPlay = { onOpenPlay(drama.id) },
                             onDetail = { onOpenDetail(drama.id) },
+                            onComment = {},
                         )
                     }
                 }

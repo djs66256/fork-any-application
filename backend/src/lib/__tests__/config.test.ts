@@ -36,6 +36,12 @@ describe('config', () => {
     expect(config.player.historyRepository).toBe('mock');
   });
 
+  it('should default comments repository to mock', async () => {
+    const { config } = await import('../config');
+
+    expect(config.comments.repository).toBe('mock');
+  });
+
   it('should expose environment-backed supabase keys', async () => {
     const { config } = await import('../config');
 

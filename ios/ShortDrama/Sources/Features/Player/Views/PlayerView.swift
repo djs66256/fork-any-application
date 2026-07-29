@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayerView: View {
     @ObservedObject var viewModel: PlayerViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @State private var loginAlertContext: CommentLoginContext?
 
     var body: some View {
         Group {
@@ -49,6 +50,30 @@ struct PlayerView: View {
         .onDisappear {
             viewModel.handleDisappear()
         }
+        .onReceive(viewModel.$routeEffect) { effect in
+            guard let effect else { return }
+            switch effect {
+            case .requireLogin(let context):
+                loginAlertContext = context
+            }
+            viewModel.clearRouteEffect()
+        }
+        .alert("请先登录", isPresented: isShowingLoginAlert, presenting: loginAlertContext) { _ in
+            Button("取消", role: .cancel) {
+                loginAlertContext = nil
+                viewModel.clearPendingCommentLoginContext()
+            }
+            Button("我知道了") {
+                let context = loginAlertContext
+                loginAlertContext = nil
+                viewModel.clearPendingCommentLoginContext()
+                if let context {
+                    viewModel.restoreCommentContext(context)
+                }
+            }
+        } message: { _ in
+            Text("登录后即可发表评论或点赞评论。首版仅恢复评论抽屉上下文，不自动重放写操作。")
+        }
     }
 
     private var playerContent: some View {
@@ -88,7 +113,8 @@ struct PlayerView: View {
                         liked: viewModel.liked,
                         favorited: viewModel.favorited,
                         onLike: viewModel.toggleLike,
-                        onFavorite: viewModel.toggleFavorite
+                        onFavorite: viewModel.toggleFavorite,
+                        onComment: viewModel.openComments
                     )
                 }
                 .padding(.horizontal, DesignTokens.Spacing.lg)
@@ -123,6 +149,13 @@ struct PlayerView: View {
             )
             .presentationDetents([.medium, .large])
         }
+        .sheet(isPresented: $viewModel.isCommentSheetPresented) {
+            CommentSheetView(
+                viewModel: viewModel.makeCommentSheetViewModel(),
+                onClose: viewModel.closeComments,
+                onRequireLogin: viewModel.handleCommentLoginRequired(_:)
+            )
+        }
         .confirmationDialog("播放速度", isPresented: $viewModel.isSpeedDialogPresented) {
             ForEach(PlayerViewModel.PlaybackSpeed.allCases, id: \.self) { speed in
                 Button(speed.label) {
@@ -135,6 +168,18 @@ struct PlayerView: View {
         } message: {
             Text("更多能力首版仅提供占位入口，暂未开放具体功能。")
         }
+    }
+
+    private var isShowingLoginAlert: Binding<Bool> {
+        Binding(
+            get: { loginAlertContext != nil },
+            set: { isPresented in
+                if !isPresented {
+                    loginAlertContext = nil
+                    viewModel.clearPendingCommentLoginContext()
+                }
+            }
+        )
     }
 }
 
