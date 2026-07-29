@@ -17,6 +17,14 @@ feature-workflow 是需求从「想法」到「代码落地」的完整编排层
 
 核心设计理念：**agent 高度自主推进流程，人只在 3 个固定确认点和必要时介入**。每个需要 review 的阶段都内置了「执行→审查→修复」循环，agent 会自行修复能解决的问题，仅将无法判断的问题上报给人。
 
+## 路径约定
+
+本 skill 文档及所有 reference 文件中出现的相对路径（`scripts/`、`references/`、`assets/` 等）均以 **skill 根目录**为基准。执行 `scripts/workflow.py` 时，从 skill 根目录执行：
+
+```bash
+python3 scripts/workflow.py <command>
+```
+
 ## 生命周期边界（硬性约束）
 
 feature-workflow 的启动和完成有明确边界，违反边界等同于流程未完成：

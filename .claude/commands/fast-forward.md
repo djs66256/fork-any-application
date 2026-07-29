@@ -2,6 +2,10 @@
 description: 自动推进 feature-workflow 直到完成，人工确认步骤直接通过
 ---
 
+## 路径约定
+
+本命令先加载 `Skill("feature-workflow")` 获取上下文，skill 加载后，`scripts/workflow.py` 等路径以 feature-workflow skill 根目录为基准。其余操作路径以项目根目录为基准。
+
 ## 流程概述
 
 本命令自动推进 feature-workflow 全流程，包括 worktree 生命周期管理：
@@ -15,12 +19,14 @@ description: 自动推进 feature-workflow 直到完成，人工确认步骤直�
 
 ### 1. 创建 worktree
 
-调用 `EnterWorktree` 工具，`name` 参数格式为 `YYYY-MM-dd-<feature-name>`（使用当天的日期和需求名）。
+先调用 `Skill("feature-workflow")` 加载 skill 上下文，然后调用 `EnterWorktree` 工具，`name` 参数格式为 `YYYY-MM-dd-<feature-name>`（使用当天的日期和需求名）。
 
-进入 worktree 后，执行 init：
+进入 worktree 后，在 skill 根目录下执行 init：
 
 ```bash
+cd <feature-workflow-skill-dir>
 python3 scripts/workflow.py init <name>
+cd <project-root>
 ```
 
 ### 2. 推进 feature-workflow
