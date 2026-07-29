@@ -25,7 +25,13 @@ export function useUsers(page = 1, pageSize = 20) {
   }, [page, pageSize]);
 
   useEffect(() => {
-    fetchUsers();
+    const timeoutId = window.setTimeout(() => {
+      void fetchUsers();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchUsers]);
 
   return { users, pagination, isLoading, error, refetch: fetchUsers };

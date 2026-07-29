@@ -15,6 +15,7 @@ CODE_SIGN_STYLE = Automatic
 COLON_SLASH = /
 API_BASE_URL = https:/$(COLON_SLASH)/api.example.com
 MALL_BASE_URL = https:/$(COLON_SLASH)/app.example.com
+EARN_BASE_URL = https:/$(COLON_SLASH)/app.example.com
 // 上线时替换为下面三行（并删除上面的 Automatic 行）：
 // CODE_SIGN_STYLE = Manual
 // DEVELOPMENT_TEAM =

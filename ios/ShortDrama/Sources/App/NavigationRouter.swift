@@ -14,6 +14,12 @@ enum MallRestoreRequest: Equatable {
     case loginReturn(completed: Bool)
 }
 
+@MainActor
+enum EarnRestoreRequest: Equatable {
+    case loginReturn(completed: Bool)
+    case taskReturn(EarnTaskPlayerResult)
+}
+
 /// Manages the navigation state for the app.
 @MainActor
 final class NavigationRouter: ObservableObject {
@@ -33,9 +39,12 @@ final class NavigationRouter: ObservableObject {
     @Published private(set) var pendingMenuNavigation: AppRoute?
     @Published private(set) var presentedLoginContext: LoginInterceptionContext?
     @Published private(set) var mallLoginContext: MallLoginContext?
+    @Published private(set) var earnLoginContext: EarnLoginContext?
     @Published private(set) var activeSearchReturnTarget: String?
     @Published private(set) var activeSearchSourceTab: AppTab?
     @Published private(set) var pendingMallRestoreRequest: MallRestoreRequest?
+    @Published private(set) var pendingEarnRestoreRequest: EarnRestoreRequest?
+    @Published private(set) var pendingEarnTaskPlayerResult: EarnTaskPlayerResult?
 
     private var pendingTheaterRankingEntryContext: TheaterRankingEntryContext?
 
@@ -78,6 +87,7 @@ final class NavigationRouter: ObservableObject {
              .actorHub,
              .player,
              .dramaDetail,
+             .earnPlayer,
              .menuPlaceholder,
              .settings:
             var path = pathsByTab[tab] ?? NavigationPath()
@@ -85,6 +95,8 @@ final class NavigationRouter: ObservableObject {
             pathsByTab[tab] = path
         case .mallLogin(let context):
             mallLoginContext = context
+        case .earnLogin(let context):
+            earnLoginContext = context
         }
     }
 
@@ -131,7 +143,11 @@ final class NavigationRouter: ObservableObject {
         pendingMenuNavigation = nil
 
         if case .menuPlaceholder(let kind) = route, kind == .login {
-            presentLogin(context: LoginInterceptionContext(source: .profileEntry, returnRoute: .profilePlaceholderReturnRoute))
+            let context = LoginInterceptionContext(
+                source: .profileEntry,
+                returnRoute: .profilePlaceholderReturnRoute
+            )
+            presentLogin(context: context)
             return
         }
 
@@ -184,6 +200,9 @@ final class NavigationRouter: ObservableObject {
             popToRoot(of: .home)
         case .mallLogin:
             select(tab: .mall)
+        case .earnLogin,
+             .earnPlayer:
+            select(tab: .earn)
         case .settings:
             select(tab: .profile)
             navigate(to: .settings)
@@ -240,6 +259,37 @@ final class NavigationRouter: ObservableObject {
     func consumeMallRestoreRequest() -> MallRestoreRequest? {
         defer { pendingMallRestoreRequest = nil }
         return pendingMallRestoreRequest
+    }
+
+    func presentEarnLogin(_ context: EarnLoginContext) {
+        navigate(to: .earnLogin(context: context))
+    }
+
+    func dismissEarnLogin(completed: Bool) {
+        earnLoginContext = nil
+        selectedTab = .earn
+        pendingEarnRestoreRequest = .loginReturn(completed: completed)
+    }
+
+    func openPlayerFromEarn(_ context: EarnTaskContext) {
+        navigate(to: .earnPlayer(context: context))
+    }
+
+    func finishEarnTaskPlayer(result: EarnTaskPlayerResult) {
+        pendingEarnTaskPlayerResult = result
+        selectedTab = .earn
+        dismiss(in: .earn)
+        pendingEarnRestoreRequest = .taskReturn(result)
+    }
+
+    func consumeEarnRestoreRequest() -> EarnRestoreRequest? {
+        defer { pendingEarnRestoreRequest = nil }
+        return pendingEarnRestoreRequest
+    }
+
+    func consumeEarnTaskPlayerResult() -> EarnTaskPlayerResult? {
+        defer { pendingEarnTaskPlayerResult = nil }
+        return pendingEarnTaskPlayerResult
     }
 
     private func handleSelectedTabChange() {

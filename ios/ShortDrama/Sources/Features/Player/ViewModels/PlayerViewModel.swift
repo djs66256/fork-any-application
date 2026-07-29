@@ -3,45 +3,6 @@ import SwiftUI
 
 @MainActor
 final class PlayerViewModel: ObservableObject {
-    enum UiState: Equatable {
-        case idle
-        case bootstrapping
-        case ready
-        case playing
-        case paused
-        case switchingEpisode
-        case noResource
-        case error(String)
-    }
-
-    enum PlaybackSpeed: Double, CaseIterable, Equatable, Sendable {
-        case half = 0.5
-        case threeQuarter = 0.75
-        case normal = 1.0
-        case onePointTwentyFive = 1.25
-        case onePointFive = 1.5
-        case onePointSeventyFive = 1.75
-        case double = 2.0
-
-        var label: String {
-            switch self {
-            case .half:
-                return "0.5x"
-            case .threeQuarter:
-                return "0.75x"
-            case .normal:
-                return "1.0x"
-            case .onePointTwentyFive:
-                return "1.25x"
-            case .onePointFive:
-                return "1.5x"
-            case .onePointSeventyFive:
-                return "1.75x"
-            case .double:
-                return "2.0x"
-            }
-        }
-    }
 
     let videoId: String
     var dramaId: String { videoId }
@@ -61,6 +22,7 @@ final class PlayerViewModel: ObservableObject {
     @Published var isMoreDialogPresented = false
 
     private let router: NavigationRouter
+    private let earnTaskContext: EarnTaskContext?
     private let fetchPlayerProgressUseCase: FetchPlayerProgressUseCase
     private let fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase
     private let startPlaybackUseCase: StartPlaybackUseCase
@@ -71,18 +33,29 @@ final class PlayerViewModel: ObservableObject {
     private var bootstrapTask: Task<Void, Never>?
     private var switchEpisodeTask: Task<Void, Never>?
     private var lastStopFingerprint: StopFingerprint?
+    private var hasReportedEarnResult = false
 
     init(
         videoId: String,
         router: NavigationRouter = NavigationRouter(),
-        fetchPlayerProgressUseCase: FetchPlayerProgressUseCase = FetchPlayerProgressUseCase(repository: PlayerRepository()),
-        fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase = FetchDramaEpisodesUseCase(repository: PlayerRepository()),
-        startPlaybackUseCase: StartPlaybackUseCase = StartPlaybackUseCase(repository: PlayerRepository()),
-        stopPlaybackUseCase: StopPlaybackUseCase = StopPlaybackUseCase(repository: PlayerRepository()),
+        earnTaskContext: EarnTaskContext? = nil,
+        fetchPlayerProgressUseCase: FetchPlayerProgressUseCase = .init(
+            repository: PlayerRepository()
+        ),
+        fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase = .init(
+            repository: PlayerRepository()
+        ),
+        startPlaybackUseCase: StartPlaybackUseCase = .init(
+            repository: PlayerRepository()
+        ),
+        stopPlaybackUseCase: StopPlaybackUseCase = .init(
+            repository: PlayerRepository()
+        ),
         playbackSessionStore: PlaybackSessionStore = KeychainPlaybackSessionStore()
     ) {
         self.videoId = videoId
         self.router = router
+        self.earnTaskContext = earnTaskContext
         self.fetchPlayerProgressUseCase = fetchPlayerProgressUseCase
         self.fetchDramaEpisodesUseCase = fetchDramaEpisodesUseCase
         self.startPlaybackUseCase = startPlaybackUseCase
@@ -113,7 +86,10 @@ final class PlayerViewModel: ObservableObject {
     }
 
     func handleBack() {
-        router.dismiss()
+        finishEarnFlowIfNeeded(completed: false, reason: .userExit)
+        if earnTaskContext == nil {
+            router.dismiss()
+        }
         Task(priority: .userInitiated) {
             await stopPlaybackIfNeeded(bestEffort: true)
         }
@@ -121,6 +97,7 @@ final class PlayerViewModel: ObservableObject {
 
     func handleDisappear() {
         lastStopFingerprint = nil
+        finishEarnFlowIfNeeded(completed: false, reason: .containerRecreated)
         Task {
             await stopPlaybackIfNeeded(bestEffort: true)
         }
@@ -128,9 +105,31 @@ final class PlayerViewModel: ObservableObject {
 
     func handleScenePhaseChange(_ phase: ScenePhase) async {
         guard phase == .background else { return }
+        finishEarnFlowIfNeeded(completed: false, reason: .backgrounded)
         await stopPlaybackIfNeeded(bestEffort: true)
         if currentEpisode != nil {
             uiState = .paused
+        }
+    }
+
+    func handlePlaybackEnded() {
+        if let episode = currentEpisode {
+            currentProgress = Double(max(episode.duration, 1))
+        }
+        finishEarnFlowIfNeeded(completed: true, reason: .playbackEnded)
+        if earnTaskContext == nil {
+            uiState = .paused
+        }
+        Task {
+            await stopPlaybackIfNeeded(bestEffort: true)
+        }
+    }
+
+    func handlePlaybackFailure(message: String) {
+        finishEarnFlowIfNeeded(completed: false, reason: .error)
+        uiState = .error(message)
+        Task {
+            await stopPlaybackIfNeeded(bestEffort: true)
         }
     }
 
@@ -231,11 +230,6 @@ final class PlayerViewModel: ObservableObject {
         return playable.first
     }
 
-    private func exitPlayer() async {
-        router.dismiss()
-        await stopPlaybackIfNeeded(bestEffort: true)
-    }
-
     private func startPlayback(
         episode: Episode,
         progress: Double,
@@ -297,9 +291,20 @@ final class PlayerViewModel: ObservableObject {
         }
     }
 
-    private struct StopFingerprint: Equatable {
-        let episodeId: String
-        let progress: Double
-        let duration: Double
+    private func finishEarnFlowIfNeeded(completed: Bool, reason: EarnTaskPlayerResult.Reason) {
+        guard let earnTaskContext,
+              !hasReportedEarnResult,
+              let result = EarnTaskPlayerResult(
+                taskId: earnTaskContext.taskId,
+                videoId: earnTaskContext.videoId,
+                completed: completed,
+                reason: reason,
+                source: earnTaskContext.source
+              ) else {
+            return
+        }
+
+        hasReportedEarnResult = true
+        router.finishEarnTaskPlayer(result: result)
     }
 }

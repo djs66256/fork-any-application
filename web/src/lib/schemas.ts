@@ -145,3 +145,170 @@ export const MallHostMessageSchema = z.discriminatedUnion('type', [
 ]);
 
 export type MallHostMessage = z.infer<typeof MallHostMessageSchema>;
+
+export const EarnTaskIdSchema = z.string().uuid();
+
+export const EarnTaskStatusSchema = z.enum([
+  'available',
+  'in_progress',
+  'completed',
+  'claimed',
+  'locked',
+]);
+
+export type EarnTaskStatus = z.infer<typeof EarnTaskStatusSchema>;
+
+export const EarnTaskActionSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('play'),
+    video_id: z.string().trim().min(1),
+  }),
+  z.object({
+    type: z.literal('placeholder'),
+    feedback: z.string().trim().min(1),
+  }),
+  z.object({
+    type: z.literal('login'),
+  }),
+]);
+
+export type EarnTaskAction = z.infer<typeof EarnTaskActionSchema>;
+
+export const EarnTaskSchema = z.object({
+  id: EarnTaskIdSchema,
+  title: z.string().trim().min(1).max(100),
+  description: z.string().trim().min(1).max(200),
+  reward_coins: z.number().int().nonnegative(),
+  status: EarnTaskStatusSchema,
+  action: EarnTaskActionSchema,
+  is_representative: z.boolean().optional(),
+});
+
+export type EarnTask = z.infer<typeof EarnTaskSchema>;
+
+export const EarnDailyRewardStatusSchema = z.enum(['claimable', 'claimed', 'locked']);
+
+export type EarnDailyRewardStatus = z.infer<typeof EarnDailyRewardStatusSchema>;
+
+export const EarnDailyRewardSchema = z.object({
+  day: z.number().int().min(1).max(7),
+  coins: z.number().int().nonnegative(),
+  status: EarnDailyRewardStatusSchema,
+});
+
+export type EarnDailyReward = z.infer<typeof EarnDailyRewardSchema>;
+
+export const EarnOverviewResponseSchema = z.object({
+  coins: z.number().int().nonnegative(),
+  is_logged_in: z.boolean(),
+  new_user_task: EarnTaskSchema,
+  daily_rewards: z.array(EarnDailyRewardSchema).length(7),
+  cash_tasks: z.array(EarnTaskSchema),
+});
+
+export type EarnOverviewResponse = z.infer<typeof EarnOverviewResponseSchema>;
+
+export const CompleteEarnTaskRequestSchema = z.object({
+  task_id: EarnTaskIdSchema,
+});
+
+export type CompleteEarnTaskRequest = z.infer<typeof CompleteEarnTaskRequestSchema>;
+
+export const CompleteEarnTaskResponseSchema = z.object({
+  success: z.literal(true),
+  task_id: EarnTaskIdSchema,
+  coins_earned: z.number().int().nonnegative(),
+  total_coins: z.number().int().nonnegative(),
+  task_status: z.literal('completed'),
+});
+
+export type CompleteEarnTaskResponse = z.infer<typeof CompleteEarnTaskResponseSchema>;
+
+export const EarnTaskContextSchema = z.object({
+  taskId: EarnTaskIdSchema,
+  source: z.literal('earn'),
+  returnTarget: z.literal('/earn'),
+  videoId: z.string().trim().min(1),
+});
+
+export type EarnTaskContext = z.infer<typeof EarnTaskContextSchema>;
+
+export const EarnLoginContextSchema = z.object({
+  source: z.literal('earn'),
+  returnTarget: z.literal('/earn'),
+});
+
+export type EarnLoginContext = z.infer<typeof EarnLoginContextSchema>;
+
+export const EarnBridgeMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('earn.requestLogin'),
+    payload: EarnLoginContextSchema,
+  }),
+  z.object({
+    type: z.literal('earn.openTaskPlayer'),
+    payload: EarnTaskContextSchema,
+  }),
+]);
+
+export type EarnBridgeMessage = z.infer<typeof EarnBridgeMessageSchema>;
+
+export const EarnHostTransportSchema = z.object({
+  type: z.literal('custom-event'),
+  eventName: z.literal('earn.hostMessage'),
+});
+
+export type EarnHostTransport = z.infer<typeof EarnHostTransportSchema>;
+
+export const EarnHostAuthStateSchema = z.object({
+  source: z.literal('earn'),
+  isLoggedIn: z.boolean(),
+  reason: z.enum(['initial-load', 'login-success', 'login-cancel', 'app-resume']),
+  returnTarget: z.literal('/earn'),
+  apiAccessToken: z.string().trim().min(1).nullable().optional(),
+  expiresAt: z.string().trim().min(1).nullable().optional(),
+});
+
+export type EarnHostAuthState = z.infer<typeof EarnHostAuthStateSchema>;
+
+export const EarnRestoreContextSchema = z.object({
+  source: z.literal('earn'),
+  reason: z.enum(['login-return', 'task-return', 'container-recreated']),
+  returnTarget: z.literal('/earn'),
+  preserveScroll: z.boolean().default(false),
+});
+
+export type EarnRestoreContext = z.infer<typeof EarnRestoreContextSchema>;
+
+export const EarnTaskPlayerResultSchema = z.object({
+  source: z.literal('earn'),
+  taskId: EarnTaskIdSchema,
+  videoId: z.string().trim().min(1),
+  completed: z.boolean(),
+  reason: z.enum([
+    'playback-ended',
+    'user-exit',
+    'backgrounded',
+    'error',
+    'container-recreated',
+  ]),
+});
+
+export type EarnTaskPlayerResult = z.infer<typeof EarnTaskPlayerResultSchema>;
+
+export const EarnHostMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('earn.syncAuthState'),
+    payload: EarnHostAuthStateSchema,
+  }),
+  z.object({
+    type: z.literal('earn.restoreContext'),
+    payload: EarnRestoreContextSchema,
+  }),
+  z.object({
+    type: z.literal('earn.completeTask'),
+    payload: EarnTaskPlayerResultSchema,
+  }),
+]);
+
+export type EarnHostMessage = z.infer<typeof EarnHostMessageSchema>;

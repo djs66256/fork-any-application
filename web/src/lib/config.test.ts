@@ -46,4 +46,22 @@ describe('config', () => {
     const { config } = await import('@/lib/config');
     expect(config.mall.bridgeEnabled).toBe(false);
   });
+
+  it('should expose earn defaults', async () => {
+    const { config } = await import('@/lib/config');
+    expect(config.earn.route).toBe('/earn');
+    expect(config.earn.bridgeEnabled).toBe(true);
+    expect(config.earn.browserFeedback.loginUnavailable).toBe('暂时无法打开登录，请稍后再试');
+    expect(config.earn.browserFeedback.taskRequiresApp).toBe('请在 App 内完成该任务');
+    expect(config.earn.browserFeedback.taskUnavailable).toBe('当前任务暂不可用，请稍后重试');
+    expect(config.earn.browserFeedback.taskInDevelopment).toBe('该任务开发中，敬请期待');
+    expect(config.earn.browserFeedback.reloginRequired).toBe('请先登录后再领取奖励');
+    expect(config.earn.browserFeedback.completionFailed).toBe('奖励领取失败，请稍后重试');
+  });
+
+  it('should honor earn bridge env override', async () => {
+    vi.stubEnv('NEXT_PUBLIC_EARN_BRIDGE_ENABLED', 'false');
+    const { config } = await import('@/lib/config');
+    expect(config.earn.bridgeEnabled).toBe(false);
+  });
 });

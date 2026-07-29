@@ -6,23 +6,26 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.djs66256.short_drama.domain.model.Episode
 import com.djs66256.short_drama.feature.player.player.PlaceholderPlayerHost
 import com.djs66256.short_drama.feature.player.ui.components.EpisodePickerSheetContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerBottomInfo
@@ -31,9 +34,9 @@ import com.djs66256.short_drama.feature.player.ui.components.PlayerRightActionBa
 import com.djs66256.short_drama.feature.player.ui.components.PlayerStatusContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerTopBar
 import com.djs66256.short_drama.feature.player.ui.components.SpeedPickerSheetContent
+import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
-import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerViewModel
 
 internal enum class PlayerContentVariant {
@@ -43,16 +46,31 @@ internal enum class PlayerContentVariant {
     CONTENT,
 }
 
+private data class PlayerContentCallbacks(
+    val onBack: () -> Unit,
+    val onToggleSpeedSheet: () -> Unit,
+    val onToggleMoreSheet: () -> Unit,
+    val onToggleEpisodeSheet: () -> Unit,
+    val onToggleLike: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onSelectSpeed: (PlaybackSpeed) -> Unit,
+    val onSelectEpisode: (Episode) -> Unit,
+    val onPlaybackCompleted: (() -> Unit)? = null,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     navController: NavController? = null,
+    onBack: (() -> Unit)? = null,
+    onPlaybackCompleted: (() -> Unit)? = null,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val fallbackNavController = rememberNavController()
     val activeNavController = navController ?: fallbackNavController
+    val resolvedOnBack: () -> Unit = onBack ?: { activeNavController.popBackStack(); Unit }
 
     LaunchedEffect(Unit) {
         viewModel.loadIfNeeded()
@@ -96,14 +114,17 @@ fun PlayerScreen(
 
         PlayerContentVariant.CONTENT -> PlayerContent(
             uiState = uiState,
-            onBack = { activeNavController.popBackStack() },
-            onToggleSpeedSheet = viewModel::toggleSpeedSheet,
-            onToggleMoreSheet = {},
-            onToggleEpisodeSheet = viewModel::toggleEpisodeSheet,
-            onToggleLike = viewModel::toggleLike,
-            onToggleFavorite = viewModel::toggleFavorite,
-            onSelectSpeed = viewModel::selectSpeed,
-            onSelectEpisode = viewModel::switchEpisode,
+            callbacks = PlayerContentCallbacks(
+                onBack = resolvedOnBack,
+                onToggleSpeedSheet = viewModel::toggleSpeedSheet,
+                onToggleMoreSheet = {},
+                onToggleEpisodeSheet = viewModel::toggleEpisodeSheet,
+                onToggleLike = viewModel::toggleLike,
+                onToggleFavorite = viewModel::toggleFavorite,
+                onSelectSpeed = viewModel::selectSpeed,
+                onSelectEpisode = viewModel::switchEpisode,
+                onPlaybackCompleted = onPlaybackCompleted,
+            ),
         )
     }
 }
@@ -112,14 +133,7 @@ fun PlayerScreen(
 @Composable
 private fun PlayerContent(
     uiState: PlayerUiState,
-    onBack: () -> Unit,
-    onToggleSpeedSheet: () -> Unit,
-    onToggleMoreSheet: () -> Unit,
-    onToggleEpisodeSheet: () -> Unit,
-    onToggleLike: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onSelectSpeed: (PlaybackSpeed) -> Unit,
-    onSelectEpisode: (com.djs66256.short_drama.domain.model.Episode) -> Unit,
+    callbacks: PlayerContentCallbacks,
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -131,15 +145,15 @@ private fun PlayerContent(
             PlayerTopBar(
                 title = uiState.playbackTitle,
                 currentSpeedLabel = uiState.currentSpeed.label,
-                onBack = onBack,
-                onToggleSpeedSheet = onToggleSpeedSheet,
-                onToggleMore = onToggleMoreSheet,
+                onBack = callbacks.onBack,
+                onToggleSpeedSheet = callbacks.onToggleSpeedSheet,
+                onToggleMore = callbacks.onToggleMoreSheet,
             )
             PlaceholderPlayerHost(uiState = uiState)
             PlayerRightActionBar(
                 interactionState = uiState.interactionState,
-                onToggleLike = onToggleLike,
-                onToggleFavorite = onToggleFavorite,
+                onToggleLike = callbacks.onToggleLike,
+                onToggleFavorite = callbacks.onToggleFavorite,
             )
             PlayerBottomInfo(
                 title = uiState.currentEpisode?.title ?: "短剧播放页",
@@ -151,28 +165,33 @@ private fun PlayerContent(
                 episodeCount = uiState.episodes.size,
                 currentEpisodeNumber = uiState.currentEpisode?.episodeNumber,
                 statusLabel = uiState.seriesStatus.label,
-                onOpenEpisodeSheet = onToggleEpisodeSheet,
+                onOpenEpisodeSheet = callbacks.onToggleEpisodeSheet,
             )
+            callbacks.onPlaybackCompleted?.let { onPlaybackCompleted ->
+                Button(onClick = onPlaybackCompleted) {
+                    Text("模拟任务完成")
+                }
+            }
         }
     }
 
     if (uiState.isSpeedSheetVisible) {
-        ModalBottomSheet(onDismissRequest = onToggleSpeedSheet) {
+        ModalBottomSheet(onDismissRequest = callbacks.onToggleSpeedSheet) {
             SpeedPickerSheetContent(
                 speeds = PlaybackSpeed.defaults,
                 currentSpeed = uiState.currentSpeed,
-                onSelectSpeed = onSelectSpeed,
+                onSelectSpeed = callbacks.onSelectSpeed,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
     }
 
     if (uiState.isEpisodeSheetVisible) {
-        ModalBottomSheet(onDismissRequest = onToggleEpisodeSheet) {
+        ModalBottomSheet(onDismissRequest = callbacks.onToggleEpisodeSheet) {
             EpisodePickerSheetContent(
                 episodes = uiState.episodes,
                 currentEpisodeId = uiState.currentEpisode?.id,
-                onSelectEpisode = onSelectEpisode,
+                onSelectEpisode = callbacks.onSelectEpisode,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }

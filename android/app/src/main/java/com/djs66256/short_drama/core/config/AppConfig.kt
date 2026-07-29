@@ -9,6 +9,7 @@ interface AppConfig {
     val isDebug: Boolean
     val apiBaseUrl: String
     val mallBaseUrl: String
+    val earnBaseUrl: String
     val appName: String
     val appVersion: String
 }

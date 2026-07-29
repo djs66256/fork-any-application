@@ -33,6 +33,14 @@ final class AuthStore: ObservableObject {
         }
     }
 
+    var accessToken: String? {
+        status.currentSession?.accessToken
+    }
+
+    var accessTokenExpiresAt: String? {
+        status.currentSession?.expiresAt
+    }
+
     func restoreIfNeeded() async {
         guard !hasAttemptedRestore else { return }
         hasAttemptedRestore = true

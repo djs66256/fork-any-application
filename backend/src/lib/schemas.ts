@@ -119,6 +119,68 @@ export const MallProductsResponseSchema = z.object({
 
 export type MallProductsResponse = z.infer<typeof MallProductsResponseSchema>;
 
+export const EarnTaskStatusSchema = z.enum(['available', 'in_progress', 'completed', 'claimed', 'locked']);
+export type EarnTaskStatus = z.infer<typeof EarnTaskStatusSchema>;
+
+export const EarnTaskActionSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('play'),
+    video_id: z.string().trim().min(1),
+  }),
+  z.object({
+    type: z.literal('placeholder'),
+    feedback: z.string().trim().min(1),
+  }),
+  z.object({
+    type: z.literal('login'),
+  }),
+]);
+export type EarnTaskAction = z.infer<typeof EarnTaskActionSchema>;
+
+export const EarnTaskSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(1).max(100),
+  description: z.string().trim().min(1).max(200),
+  reward_coins: z.number().int().nonnegative(),
+  status: EarnTaskStatusSchema,
+  action: EarnTaskActionSchema,
+  is_representative: z.boolean().optional(),
+});
+export type EarnTask = z.infer<typeof EarnTaskSchema>;
+
+export const EarnDailyRewardStatusSchema = z.enum(['claimable', 'claimed', 'locked']);
+export type EarnDailyRewardStatus = z.infer<typeof EarnDailyRewardStatusSchema>;
+
+export const EarnDailyRewardSchema = z.object({
+  day: z.number().int().min(1).max(7),
+  coins: z.number().int().nonnegative(),
+  status: EarnDailyRewardStatusSchema,
+});
+export type EarnDailyReward = z.infer<typeof EarnDailyRewardSchema>;
+
+export const EarnOverviewResponseSchema = z.object({
+  coins: z.number().int().nonnegative(),
+  is_logged_in: z.boolean(),
+  new_user_task: EarnTaskSchema,
+  daily_rewards: z.array(EarnDailyRewardSchema).length(7),
+  cash_tasks: z.array(EarnTaskSchema),
+});
+export type EarnOverviewResponse = z.infer<typeof EarnOverviewResponseSchema>;
+
+export const CompleteEarnTaskRequestSchema = z.object({
+  task_id: z.string().uuid(),
+});
+export type CompleteEarnTaskRequest = z.infer<typeof CompleteEarnTaskRequestSchema>;
+
+export const CompleteEarnTaskResponseSchema = z.object({
+  success: z.literal(true),
+  task_id: z.string().uuid(),
+  coins_earned: z.number().int().nonnegative(),
+  total_coins: z.number().int().nonnegative(),
+  task_status: z.literal('completed'),
+});
+export type CompleteEarnTaskResponse = z.infer<typeof CompleteEarnTaskResponseSchema>;
+
 export const DramaListResponseSchema = z.object({
   data: z.array(DramaSchema),
   pagination: PaginationSchema,

@@ -4,7 +4,6 @@ import { DramaService } from '@/services/drama/drama.service';
 import { getDramaRepository } from '@/repositories/repository-registry';
 import { withErrorHandler } from '@/middleware/error-handler';
 import { resolveOptionalAuthContext } from '@/middleware/auth';
-import { DramaSupabaseRepository } from '@/repositories/supabase/drama.supabase.repository';
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);

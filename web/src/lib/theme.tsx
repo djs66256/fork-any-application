@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -19,7 +19,6 @@ function getSystemTheme(): Theme {
 }
 
 function applyTheme(theme: Theme | null) {
-  const resolved = theme ?? getSystemTheme();
   if (typeof document === 'undefined') return;
   if (theme) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -28,17 +27,21 @@ function applyTheme(theme: Theme | null) {
   }
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => getSystemTheme());
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
 
-  useEffect(() => {
-    // Sync with localStorage after mount; inline script in layout.tsx
-    // already applied data-theme before first paint to prevent flash.
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    if (stored === 'light' || stored === 'dark') {
-      setTheme(stored);
-    }
-  }, []);
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+
+  return getSystemTheme();
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
   const toggleTheme = () => {
     setTheme((prev) => {

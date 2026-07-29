@@ -23,7 +23,13 @@ export function useStats() {
   }, []);
 
   useEffect(() => {
-    fetchStats();
+    const timeoutId = window.setTimeout(() => {
+      void fetchStats();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchStats]);
 
   return { stats, isLoading, error, refetch: fetchStats };

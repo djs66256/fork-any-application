@@ -12,6 +12,7 @@ settings:
     INFOPLIST_FILE: ShortDrama/Resources/Info.plist
     INFOPLIST_KEY_API_BASE_URL: "$(API_BASE_URL)"
     INFOPLIST_KEY_MALL_BASE_URL: "$(MALL_BASE_URL)"
+    INFOPLIST_KEY_EARN_BASE_URL: "$(EARN_BASE_URL)"
 
 targets:
   ShortDrama:

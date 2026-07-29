@@ -231,6 +231,30 @@ describe('apiFetch', () => {
       expect(init.body).toBe(JSON.stringify({ title: 'Test' }));
     });
 
+    it('should preserve explicit authorization headers', async () => {
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ success: true }),
+      } as Response);
+
+      await api.post(
+        '/api/earn/complete-task',
+        { task_id: '22222222-2222-4222-8222-222222222222' },
+        {
+          headers: {
+            Authorization: 'Bearer token-123',
+          },
+        },
+      );
+
+      const init = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][1] as RequestInit;
+      expect(init.headers).toEqual({
+        Authorization: 'Bearer token-123',
+        'Content-Type': 'application/json',
+      });
+    });
+
     it('should return undefined for 204 No Content', async () => {
       vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,

@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 @testable import ShortDrama
+import Testing
 
 struct AppConfigTests {
 
@@ -12,7 +12,6 @@ struct AppConfigTests {
             atPath: bundlePath,
             withIntermediateDirectories: true
         )
-        // Write a minimal Info.plist
         let plistPath = (bundlePath as NSString).appendingPathComponent("Info.plist")
         let data = try? PropertyListSerialization.data(
             fromPropertyList: info,
@@ -102,6 +101,34 @@ struct AppConfigTests {
             "MALL_BASE_URL": "https://app.example.com"
         ])
 
-        #expect(AppConfig.mallHomeURL(bundle: bundle)?.absoluteString == "https://app.example.com/mall")
+        #expect(
+            AppConfig.mallHomeURL(bundle: bundle)?.absoluteString == "https://app.example.com/mall"
+        )
+    }
+
+    @Test("T-01: earnBaseURL returns correct value from Info.plist")
+    func testEarnBaseURL() {
+        let bundle = makeBundle(info: [
+            "EARN_BASE_URL": "https://app.example.com"
+        ])
+
+        #expect(AppConfig.earnBaseURL(bundle: bundle) == "https://app.example.com")
+    }
+
+    @Test("T-01: earnBaseURL returns empty string when missing")
+    func testEarnBaseURLFallback() {
+        let bundle = makeBundle(info: [:])
+        #expect(AppConfig.earnBaseURL(bundle: bundle) == "")
+    }
+
+    @Test("T-01: earnHomeURL appends canonical earn route")
+    func testEarnHomeURL() {
+        let bundle = makeBundle(info: [
+            "EARN_BASE_URL": "https://app.example.com"
+        ])
+
+        #expect(
+            AppConfig.earnHomeURL(bundle: bundle)?.absoluteString == "https://app.example.com/earn"
+        )
     }
 }
