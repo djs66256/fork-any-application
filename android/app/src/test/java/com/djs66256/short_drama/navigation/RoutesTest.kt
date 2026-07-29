@@ -95,6 +95,14 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-06 mall login route generates canonical destination`() {
+        assertEquals(
+            "mall/login?productId=product-001&returnTarget=%2Fmall",
+            AppDestination.mallLogin(productId = "product-001", returnTarget = "/mall"),
+        )
+    }
+
+    @Test
     fun `feed actions reuse play and detail destinations with drama id`() {
         val dramaId = "feed-drama-001"
 

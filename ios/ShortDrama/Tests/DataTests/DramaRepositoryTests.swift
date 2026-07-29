@@ -191,7 +191,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -215,7 +215,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -237,7 +237,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -260,7 +260,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -288,7 +288,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -318,7 +318,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 
@@ -346,7 +346,7 @@ struct DramaRepositoryTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = DramaRemoteDataSource(client: client)
         let repository = DramaRepository(dataSource: dataSource)
 

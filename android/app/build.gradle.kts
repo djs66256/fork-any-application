@@ -26,9 +26,22 @@ android {
         if (localPropertiesFile.exists()) {
             localProperties.load(localPropertiesFile.inputStream())
         }
+        fun normalizeMallBaseUrl(rawBaseUrl: String): String {
+            val trimmed = rawBaseUrl.trim().removeSuffix("/")
+            return when {
+                trimmed.endsWith("/api/v1") -> trimmed.removeSuffix("/api/v1")
+                trimmed.endsWith("/api") -> trimmed.removeSuffix("/api")
+                else -> trimmed
+            }
+        }
+
         val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/")
+        val mallBaseUrl = normalizeMallBaseUrl(
+            localProperties.getProperty("mall.base.url", apiBaseUrl),
+        )
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        buildConfigField("String", "MALL_BASE_URL", "\"$mallBaseUrl\"")
         buildConfigField("String", "APP_NAME", "\"ShortDrama\"")
         buildConfigField("String", "APP_VERSION", "\"${versionName}\"")
     }

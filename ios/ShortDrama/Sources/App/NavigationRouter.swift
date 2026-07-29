@@ -8,6 +8,12 @@ enum MenuPanelPresentationState: Equatable {
     case closing
 }
 
+@MainActor
+enum MallRestoreRequest: Equatable {
+    case searchReturn
+    case loginReturn(completed: Bool)
+}
+
 /// Manages the navigation state for the app.
 @MainActor
 final class NavigationRouter: ObservableObject {
@@ -25,6 +31,10 @@ final class NavigationRouter: ObservableObject {
     @Published private(set) var containerReady = false
     @Published private(set) var menuPanelState: MenuPanelPresentationState = .closed
     @Published private(set) var pendingMenuNavigation: AppRoute?
+    @Published private(set) var mallLoginContext: MallLoginContext?
+    @Published private(set) var activeSearchReturnTarget: String?
+    @Published private(set) var activeSearchSourceTab: AppTab?
+    @Published private(set) var pendingMallRestoreRequest: MallRestoreRequest?
 
     private var pendingTheaterRankingEntryContext: TheaterRankingEntryContext?
 
@@ -35,6 +45,10 @@ final class NavigationRouter: ObservableObject {
         case .closed:
             return false
         }
+    }
+
+    var isPresentingSearchFromMall: Bool {
+        activeSearchSourceTab == .mall && activeSearchReturnTarget == "/mall"
     }
 
     func pathBinding(for tab: AppTab) -> Binding<NavigationPath> {
@@ -67,6 +81,8 @@ final class NavigationRouter: ObservableObject {
             var path = pathsByTab[tab] ?? NavigationPath()
             path.append(route)
             pathsByTab[tab] = path
+        case .mallLogin(let context):
+            mallLoginContext = context
         }
     }
 
@@ -148,6 +164,36 @@ final class NavigationRouter: ObservableObject {
     func popToRoot(of tab: AppTab) {
         pathsByTab[tab] = NavigationPath()
         selectedTab = tab
+    }
+
+    func openSearchFromMall() {
+        activeSearchSourceTab = .mall
+        activeSearchReturnTarget = "/mall"
+        navigate(to: .searchHome)
+    }
+
+    func restoreMallContextAfterSearch() {
+        guard isPresentingSearchFromMall else { return }
+        popToRoot(of: .home)
+        selectedTab = .mall
+        pendingMallRestoreRequest = .searchReturn
+        activeSearchSourceTab = nil
+        activeSearchReturnTarget = nil
+    }
+
+    func presentMallLogin(_ context: MallLoginContext) {
+        navigate(to: .mallLogin(context: context))
+    }
+
+    func dismissMallLogin(completed: Bool) {
+        mallLoginContext = nil
+        selectedTab = .mall
+        pendingMallRestoreRequest = .loginReturn(completed: completed)
+    }
+
+    func consumeMallRestoreRequest() -> MallRestoreRequest? {
+        defer { pendingMallRestoreRequest = nil }
+        return pendingMallRestoreRequest
     }
 
     private func handleSelectedTabChange() {

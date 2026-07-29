@@ -8,6 +8,7 @@ package com.djs66256.short_drama.core.config
 interface AppConfig {
     val isDebug: Boolean
     val apiBaseUrl: String
+    val mallBaseUrl: String
     val appName: String
     val appVersion: String
 }

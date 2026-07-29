@@ -55,7 +55,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = APIClientTestGetEndpoint(path: "/test")
         let result: APIClientTestResponse = try await client.request(endpoint)
 
@@ -76,7 +76,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
@@ -99,7 +99,7 @@ struct APIClientTests {
             throw URLError(.notConnectedToInternet)
         }
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
@@ -212,7 +212,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.getDramas(page: 1, pageSize: 10)
         let response: DramaListResponse = try await client.request(endpoint)
 
@@ -261,7 +261,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.searchDramas(query: "逆袭", page: 1, pageSize: 10)
         let response: DramaListResponse = try await client.request(endpoint)
 
@@ -288,7 +288,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.getHotSearches()
         let response: HotSearchListResponseDTO = try await client.request(endpoint)
 
@@ -333,7 +333,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.getClassificationTags(gender: .female)
         let response: ClassificationTagsResponseDTO = try await client.request(endpoint)
 
@@ -384,7 +384,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.getRankings(
             query: RankingQuery(type: .hot, contentType: .all, page: 1, pageSize: 10)
         )
@@ -414,7 +414,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.bookDrama(id: "ranking-001")
         let response: BookDramaResponseDTO = try await client.request(endpoint)
 
@@ -435,7 +435,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = APIClientTestGetEndpoint(path: "/test")
 
         do {
@@ -465,7 +465,7 @@ struct APIClientTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let endpoint = DramaEndpoints.searchDramas(query: " ", page: 1, pageSize: 10)
 
         do {

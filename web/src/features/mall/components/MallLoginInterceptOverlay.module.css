@@ -1,0 +1,33 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  background: var(--color-overlay);
+}
+
+.dialog {
+  width: min(100%, 420px);
+}
+
+.dialog :global(div) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-large);
+}
+
+.description {
+  color: var(--color-fg-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

@@ -43,7 +43,7 @@ struct PlayerRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         let response = try await dataSource.fetchProgress(dramaId: "drama-001", playbackSessionId: "session-001")
 
         #expect(response.data.dramaId == "drama-001")
@@ -95,7 +95,7 @@ struct PlayerRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         let response = try await dataSource.fetchEpisodes(dramaId: "drama-001")
 
         #expect(response.data.dramaId == "drama-001")
@@ -141,7 +141,7 @@ struct PlayerRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         let response = try await dataSource.fetchRecentlyViewed(playbackSessionId: "session-001")
 
         #expect(response.data.items.count == 1)
@@ -189,7 +189,7 @@ struct PlayerRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         let response = try await dataSource.startPlayback(
             request: StartPlaybackRequest(dramaId: "drama-001", episodeId: "episode-001", progress: 120),
             playbackSessionId: "session-001"
@@ -239,7 +239,7 @@ struct PlayerRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session))
+        let dataSource = PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         let response = try await dataSource.stopPlayback(
             request: StopPlaybackRequest(dramaId: "drama-001", episodeId: "episode-001", progress: 150, duration: 180),
             playbackSessionId: "session-001"

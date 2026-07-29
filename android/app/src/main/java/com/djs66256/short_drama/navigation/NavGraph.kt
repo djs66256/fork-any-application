@@ -21,8 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +41,10 @@ import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
 import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
+import com.djs66256.short_drama.feature.mall.model.MallLoginContext
+import com.djs66256.short_drama.feature.mall.model.MallLoginResult
+import com.djs66256.short_drama.feature.mall.ui.MallLoginScreen
+import com.djs66256.short_drama.feature.mall.ui.MallScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelDrawer
 import com.djs66256.short_drama.feature.theater.ui.TheaterScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelRoute
@@ -58,6 +64,9 @@ fun NavGraph(
     val currentDestination = navBackStackEntry?.destination
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    var mallSearchReturnSignal by remember { mutableStateOf(0) }
+    var mallLoginResultSignal by remember { mutableStateOf(0) }
+    var latestMallLoginResult by remember { mutableStateOf<MallLoginResult?>(null) }
 
     LaunchedEffect(uiState.pendingRoute) {
         when (val pendingRoute = uiState.pendingRoute) {
@@ -186,7 +195,10 @@ fun NavGraph(
                     }
                     composable(route = AppDestination.Route.SEARCH) {
                         SearchHomeScreen(
-                            onBack = { navController.popBackStack() },
+                            onBack = {
+                                mallSearchReturnSignal += 1
+                                navController.popBackStack()
+                            },
                             onSubmitQuery = { route -> navController.navigate(route) },
                             onOpenQuickEntry = { route -> navController.navigate(route) },
                         )
@@ -321,9 +333,56 @@ fun NavGraph(
                     route = AppDestination.Graph.MALL,
                 ) {
                     composable(route = AppDestination.Route.MALL) {
-                        PlaceholderScreen(
-                            title = TopLevelTab.MALL.label,
-                            description = "商城频道占位页，后续 PRD 会在这里接入真实内容。",
+                        MallScreen(
+                            onOpenSearch = {
+                                navController.navigate(AppDestination.search())
+                            },
+                            onOpenMallLogin = { context: MallLoginContext ->
+                                navController.navigate(
+                                    AppDestination.mallLogin(
+                                        productId = context.productId,
+                                        returnTarget = context.returnTarget,
+                                    ),
+                                )
+                            },
+                            searchReturnSignal = mallSearchReturnSignal,
+                            loginResultSignal = mallLoginResultSignal,
+                            latestLoginResult = latestMallLoginResult,
+                        )
+                    }
+                    composable(
+                        route = AppDestination.Route.MALL_LOGIN,
+                        arguments = listOf(
+                            navArgument(AppDestination.Arg.PRODUCT_ID) {
+                                type = NavType.StringType
+                                defaultValue = ""
+                            },
+                            navArgument(AppDestination.Arg.RETURN_TARGET) {
+                                type = NavType.StringType
+                                defaultValue = "/mall"
+                            },
+                        ),
+                    ) { backStackEntry ->
+                        val productId = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.PRODUCT_ID)
+                            .orEmpty()
+                        MallLoginScreen(
+                            productId = productId,
+                            onClose = {
+                                latestMallLoginResult = MallLoginResult.CLOSED
+                                mallLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
+                            onCancel = {
+                                latestMallLoginResult = MallLoginResult.CANCELLED
+                                mallLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
+                            onSuccess = {
+                                latestMallLoginResult = MallLoginResult.SUCCESS
+                                mallLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
                         )
                     }
                 }

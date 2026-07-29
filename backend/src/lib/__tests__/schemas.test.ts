@@ -12,6 +12,9 @@ import {
   HealthResponseSchema,
   HotSearchItemSchema,
   HotSearchListResponseSchema,
+  MallProductSchema,
+  MallProductsQuerySchema,
+  MallProductsResponseSchema,
   PlaybackHistorySchema,
   PlaybackSessionIdHeaderSchema,
   PlayerProgressQuerySchema,
@@ -127,6 +130,87 @@ describe('DramaSchema', () => {
         updated_at: validDrama.updated_at,
       }),
     ).toThrow();
+  });
+});
+
+describe('MallProductsQuerySchema', () => {
+  it('should apply mall products defaults', () => {
+    expect(MallProductsQuerySchema.parse({})).toEqual({
+      page: 1,
+      pageSize: 20,
+    });
+  });
+
+  it('should coerce and parse valid mall products query params', () => {
+    expect(MallProductsQuerySchema.parse({ page: '2', pageSize: '40' })).toEqual({
+      page: 2,
+      pageSize: 40,
+    });
+  });
+
+  it('should reject invalid mall products query params', () => {
+    expect(() => MallProductsQuerySchema.parse({ page: 0 })).toThrow();
+    expect(() => MallProductsQuerySchema.parse({ pageSize: 101 })).toThrow();
+  });
+});
+
+describe('MallProductSchema', () => {
+  const validMallProduct = {
+    id: '223e4567-e89b-12d3-a456-426614174000',
+    title: '轻奢真丝睡衣礼盒',
+    image_url: 'https://example.com/mall/products/pajama-gift-box.jpg',
+    price: 199,
+    tags: ['热卖', '包邮'],
+  };
+
+  it('should parse valid mall product payloads', () => {
+    expect(MallProductSchema.parse(validMallProduct)).toEqual(validMallProduct);
+  });
+
+  it('should default tags to empty array', () => {
+    expect(
+      MallProductSchema.parse({
+        id: validMallProduct.id,
+        title: validMallProduct.title,
+        image_url: validMallProduct.image_url,
+        price: validMallProduct.price,
+      }),
+    ).toMatchObject({
+      tags: [],
+    });
+  });
+
+  it('should reject invalid mall product fields', () => {
+    expect(() => MallProductSchema.parse({ ...validMallProduct, id: 'invalid-uuid' })).toThrow();
+    expect(() => MallProductSchema.parse({ ...validMallProduct, image_url: 'not-a-url' })).toThrow();
+    expect(() => MallProductSchema.parse({ ...validMallProduct, price: -1 })).toThrow();
+    expect(() => MallProductSchema.parse({ ...validMallProduct, tags: ['', '包邮'] })).toThrow();
+    expect(() => MallProductSchema.parse({ ...validMallProduct, tags: ['热卖', '包邮', '新品', '加赠'] })).toThrow();
+  });
+});
+
+describe('MallProductsResponseSchema', () => {
+  it('should parse canonical mall products response', () => {
+    const result = MallProductsResponseSchema.parse({
+      data: [
+        {
+          id: '223e4567-e89b-12d3-a456-426614174000',
+          title: '轻奢真丝睡衣礼盒',
+          image_url: 'https://example.com/mall/products/pajama-gift-box.jpg',
+          price: 199,
+          tags: ['热卖', '包邮'],
+        },
+      ],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 25,
+        total_pages: 2,
+      },
+    });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.pagination.page_size).toBe(20);
   });
 });
 

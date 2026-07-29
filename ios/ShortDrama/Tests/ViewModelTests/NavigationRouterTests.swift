@@ -70,6 +70,16 @@ struct NavigationRouterTests {
         #expect(AppRoute.actorHub.owningTab == .home)
     }
 
+    @Test("mall login route belongs to mall tab and keeps public naming")
+    func testMallLoginRouteBelongsToMallTab() {
+        let route = AppRoute.mallLogin(
+            context: MallLoginContext(source: "mall", productID: "product-001", returnTarget: "/mall")
+        )
+
+        #expect(route.owningTab == .mall)
+        #expect(route.publicRouteName == "mall/login")
+    }
+
     @Test("T-10: theater ranking context is consumed once")
     func testTheaterRankingContextConsumesOnce() {
         let router = NavigationRouter()
@@ -231,6 +241,41 @@ struct NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 1)
         #expect(router.pathsByTab[.mall]?.isEmpty == true)
         #expect(router.menuPanelState == .closed)
+    }
+
+    @Test("mall search opens search home and restores mall context on return")
+    func testOpenSearchFromMallAndRestoreContext() {
+        let router = NavigationRouter()
+
+        router.openSearchFromMall()
+
+        #expect(router.selectedTab == .home)
+        #expect(router.isPresentingSearchFromMall == true)
+        #expect(router.pathsByTab[.home]?.count == 1)
+
+        router.restoreMallContextAfterSearch()
+
+        #expect(router.selectedTab == .mall)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
+        #expect(router.consumeMallRestoreRequest() == .searchReturn)
+        #expect(router.isPresentingSearchFromMall == false)
+    }
+
+    @Test("mall login presentation and dismissal restore mall tab")
+    func testMallLoginPresentationAndDismissal() {
+        let router = NavigationRouter()
+        let context = MallLoginContext(source: "mall", productID: "product-001", returnTarget: "/mall")
+
+        router.presentMallLogin(context)
+
+        #expect(router.selectedTab == .mall)
+        #expect(router.mallLoginContext == context)
+
+        router.dismissMallLogin(completed: true)
+
+        #expect(router.mallLoginContext == nil)
+        #expect(router.selectedTab == .mall)
+        #expect(router.consumeMallRestoreRequest() == .loginReturn(completed: true))
     }
 
     @Test("markContainerReady consumes pending search route")
