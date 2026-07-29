@@ -12,6 +12,7 @@ import com.djs66256.short_drama.core.auth.AuthStateHolder
 import com.djs66256.short_drama.core.config.AppConfig
 import com.djs66256.short_drama.core.config.BuildConfigAppConfig
 import com.djs66256.short_drama.core.storage.AuthSessionStore
+import com.djs66256.short_drama.core.storage.DataStoreCheckInLocalStore
 import com.djs66256.short_drama.core.storage.DataStorePlaybackSessionStore
 import com.djs66256.short_drama.core.storage.EncryptedPrefsAuthSessionStore
 import com.djs66256.short_drama.domain.repository.AuthSessionProvider
@@ -75,6 +76,19 @@ object AppModule {
         return PreferenceDataStoreFactory.create(
             produceFile = {
                 context.preferencesDataStoreFile(DataStorePlaybackSessionStore.PLAYBACK_SESSION_PREFERENCES)
+            },
+        )
+    }
+
+    @Provides
+    @Singleton
+    @CheckInDataStore
+    fun provideCheckInPreferencesDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(
+            produceFile = {
+                context.preferencesDataStoreFile(DataStoreCheckInLocalStore.CHECK_IN_PREFERENCES)
             },
         )
     }

@@ -26,6 +26,8 @@ enum AppRoute: Hashable, Sendable {
     case earnLogin(context: EarnLoginContext)
     /// Earn player handoff route.
     case earnPlayer(context: EarnTaskContext)
+    /// Message center page pushed from the menu panel.
+    case messages
     /// Placeholder page pushed from the menu panel.
     case menuPlaceholder(kind: MenuPlaceholderKind)
     /// Settings screen under profile tab.
@@ -42,6 +44,7 @@ enum AppRoute: Hashable, Sendable {
              .actorHub,
              .player,
              .dramaDetail,
+             .messages,
              .menuPlaceholder:
             return .home
         case .mallLogin:
@@ -80,6 +83,8 @@ enum AppRoute: Hashable, Sendable {
             return "earn/login"
         case .earnPlayer:
             return "earn/player"
+        case .messages:
+            return "messages"
         case .menuPlaceholder:
             return "menu/placeholder"
         case .settings:

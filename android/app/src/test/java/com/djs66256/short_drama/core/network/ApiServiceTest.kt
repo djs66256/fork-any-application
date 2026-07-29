@@ -2,6 +2,7 @@ package com.djs66256.short_drama.core.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -129,6 +130,50 @@ class ApiServiceTest {
         assertNotNull(getAnnotation)
         assertEquals("player/recently-viewed", getAnnotation.value)
         assertEquals("X-Playback-Session-Id", headerAnnotation.value)
+    }
+
+    @Test
+    fun `T-01 check in api routes use canonical contracts`() {
+        val statusMethod = ApiService::class.java.declaredMethods.single { it.name == "getCheckInStatus" }
+        val statusAnnotation = requireNotNull(statusMethod.getAnnotation(GET::class.java))
+        assertEquals("check-ins/status", statusAnnotation.value)
+        assertEquals(
+            "X-Installation-Id",
+            statusMethod.parameterAnnotations[0].filterIsInstance<Header>().single().value,
+        )
+
+        val submitMethod = ApiService::class.java.declaredMethods.single { it.name == "submitCheckIn" }
+        val submitAnnotation = requireNotNull(submitMethod.getAnnotation(POST::class.java))
+        assertEquals("check-ins", submitAnnotation.value)
+        assertEquals(
+            "X-Installation-Id",
+            submitMethod.parameterAnnotations[0].filterIsInstance<Header>().single().value,
+        )
+    }
+
+    @Test
+    fun `T-01 message api routes use canonical contracts`() {
+        val previewMethod = ApiService::class.java.declaredMethods.single { it.name == "getMessagePreview" }
+        val previewAnnotation = requireNotNull(previewMethod.getAnnotation(GET::class.java))
+        assertEquals("messages/preview", previewAnnotation.value)
+        assertEquals(Any::class.java, previewMethod.returnType)
+        assertTrue(
+            previewMethod.genericParameterTypes.last().typeName.contains(
+                "Response<com.djs66256.short_drama.data.dto.MessagePreviewDto>",
+            ),
+        )
+
+        val systemMethod = ApiService::class.java.declaredMethods.single { it.name == "getSystemMessages" }
+        val systemAnnotation = requireNotNull(systemMethod.getAnnotation(GET::class.java))
+        assertEquals("messages/system", systemAnnotation.value)
+        assertEquals("page", systemMethod.parameterAnnotations[0].filterIsInstance<Query>().single().value)
+        assertEquals("pageSize", systemMethod.parameterAnnotations[1].filterIsInstance<Query>().single().value)
+
+        val interactionMethod = ApiService::class.java.declaredMethods.single { it.name == "getInteractionMessages" }
+        val interactionAnnotation = requireNotNull(interactionMethod.getAnnotation(GET::class.java))
+        assertEquals("messages/interactions", interactionAnnotation.value)
+        assertEquals("page", interactionMethod.parameterAnnotations[0].filterIsInstance<Query>().single().value)
+        assertEquals("pageSize", interactionMethod.parameterAnnotations[1].filterIsInstance<Query>().single().value)
     }
 
     @Test

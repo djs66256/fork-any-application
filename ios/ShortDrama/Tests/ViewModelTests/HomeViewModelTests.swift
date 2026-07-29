@@ -23,12 +23,21 @@ struct HomeViewModelTests {
     private func makeViewModel(
         repository: MockDramaRepository,
         commentRepository: MockCommentRepository = MockCommentRepository(),
-        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
+        checkInRepository: MockCheckInRepository = MockCheckInRepository(),
+        installationIdStore: MockInstallationIdStore = MockInstallationIdStore(),
+        dismissStore: MockCheckInPopupDismissStore = MockCheckInPopupDismissStore(),
+        isUserLoggedIn: @escaping @Sendable () -> Bool = { false },
+        accessTokenProvider: @escaping @Sendable () -> String? = { nil }
     ) -> HomeViewModel {
         HomeViewModel(
             fetchDramasUseCase: FetchDramasUseCase(repository: repository),
             commentRepository: commentRepository,
-            isUserLoggedIn: isUserLoggedIn
+            fetchCheckInStatusUseCase: FetchCheckInStatusUseCase(repository: checkInRepository),
+            submitCheckInUseCase: SubmitCheckInUseCase(repository: checkInRepository),
+            installationIdStore: installationIdStore,
+            dismissStore: dismissStore,
+            isUserLoggedIn: isUserLoggedIn,
+            accessTokenProvider: accessTokenProvider
         )
     }
 
@@ -36,7 +45,9 @@ struct HomeViewModelTests {
     func testLoadIfNeededSuccessContent() async {
         let mock = MockDramaRepository()
         mock.behavior = .success([makeDrama()])
-        let viewModel = makeViewModel(repository: mock)
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository)
 
         await viewModel.loadIfNeeded()
 
@@ -45,18 +56,22 @@ struct HomeViewModelTests {
         #expect(mock.fetchDramasCallCount == 1)
         #expect(mock.lastRequestedPage == 1)
         #expect(mock.lastRequestedPageSize == 10)
+        #expect(viewModel.checkInPopupState?.serverDate == "2026-07-29")
     }
 
     @Test("T-04: HomeViewModel first load enters empty state")
     func testLoadIfNeededEmpty() async {
         let mock = MockDramaRepository()
         mock.behavior = .success([])
-        let viewModel = makeViewModel(repository: mock)
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture(shouldShowPopup: false))
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository)
 
         await viewModel.loadIfNeeded()
 
         #expect(viewModel.viewState == .empty)
         #expect(mock.fetchDramasCallCount == 1)
+        #expect(viewModel.checkInPopupState == nil)
     }
 
     @Test("T-04: HomeViewModel can retry from empty state to content")
@@ -196,5 +211,124 @@ struct HomeViewModelTests {
 
         #expect(viewModel.pendingCommentLoginContext == context)
         #expect(viewModel.activeCommentSheet == .init(id: "drama-login"))
+    }
+
+    @Test("T-03: dismissed server date suppresses popup")
+    func testDismissedServerDateSuppressesPopup() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture(serverDate: "2026-07-29"))
+        let dismissStore = MockCheckInPopupDismissStore()
+        dismissStore.dismissedDates.insert("2026-07-29")
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository, dismissStore: dismissStore)
+
+        await viewModel.loadIfNeeded()
+
+        #expect(viewModel.checkInPopupState == nil)
+    }
+
+    @Test("T-03: logged-in state sends access token and keeps installation id for precedence")
+    func testLoggedInCheckInUsesAccessTokenAndInstallationId() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        checkInRepository.submitCheckInResult = .success(.signedFixture())
+        let installationIdStore = MockInstallationIdStore()
+        installationIdStore.installationId = "installation-auth-001"
+        let viewModel = makeViewModel(
+            repository: mock,
+            checkInRepository: checkInRepository,
+            installationIdStore: installationIdStore,
+            isUserLoggedIn: { true },
+            accessTokenProvider: { "access-token-001" }
+        )
+
+        await viewModel.loadIfNeeded()
+        await viewModel.submitCheckIn()
+
+        #expect(checkInRepository.calls == [
+            .fetchStatus(installationId: "installation-auth-001", accessToken: "access-token-001"),
+            .submitCheckIn(installationId: "installation-auth-001", accessToken: "access-token-001")
+        ])
+    }
+
+    @Test("T-03: blocking login overlay skips popup for this cold start")
+    func testBlockingLoginOverlaySkipsPopup() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository, isUserLoggedIn: { true })
+        viewModel.updateAuthState(isUserLoggedIn: true, accessToken: nil)
+
+        await viewModel.loadIfNeeded()
+
+        #expect(viewModel.checkInPopupState == nil)
+        #expect(checkInRepository.calls.isEmpty)
+    }
+
+    @Test("T-03: active comment sheet causes popup to be skipped for this cold start")
+    func testExistingCommentSheetSkipsPopup() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama(id: "drama-001")])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository)
+        viewModel.openComments(dramaId: "drama-001")
+
+        await viewModel.loadIfNeeded()
+
+        #expect(viewModel.checkInPopupState == nil)
+    }
+
+    @Test("T-03: dismissing popup records server date")
+    func testDismissCheckInPopupMarksDismissedDate() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        let dismissStore = MockCheckInPopupDismissStore()
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository, dismissStore: dismissStore)
+
+        await viewModel.loadIfNeeded()
+        viewModel.dismissCheckInPopup()
+
+        #expect(dismissStore.markedDates == ["2026-07-29"])
+        #expect(viewModel.checkInPopupState == nil)
+    }
+
+    @Test("T-03: successful check-in updates popup to signed state")
+    func testSubmitCheckInUpdatesPopupState() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        checkInRepository.submitCheckInResult = .success(.signedFixture())
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository)
+
+        await viewModel.loadIfNeeded()
+        await viewModel.submitCheckIn()
+
+        #expect(viewModel.checkInPopupState?.todaySigned == true)
+        #expect(viewModel.checkInPopupState?.feedbackMessage == "签到成功")
+    }
+
+    @Test("T-03: failed check-in keeps popup open and retryable")
+    func testSubmitCheckInFailureKeepsPopupOpen() async {
+        let mock = MockDramaRepository()
+        mock.behavior = .success([makeDrama()])
+        let checkInRepository = MockCheckInRepository()
+        checkInRepository.fetchStatusResult = .success(.fixture())
+        checkInRepository.submitCheckInResult = .failure(APIError.server(code: 503, message: "服务暂不可用，请稍后重试"))
+        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository)
+
+        await viewModel.loadIfNeeded()
+        await viewModel.submitCheckIn()
+
+        #expect(viewModel.checkInPopupState?.todaySigned == false)
+        #expect(viewModel.checkInPopupState?.isError == true)
+        #expect(viewModel.checkInPopupState?.feedbackMessage == "服务暂不可用，请稍后重试")
     }
 }

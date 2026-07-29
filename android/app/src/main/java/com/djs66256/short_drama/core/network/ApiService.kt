@@ -12,6 +12,8 @@ import com.djs66256.short_drama.data.dto.CreateCommentRequestDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.EpisodeListResponseDto
 import com.djs66256.short_drama.data.dto.HotSearchListResponseDto
+import com.djs66256.short_drama.data.dto.InteractionMessageListResponseDto
+import com.djs66256.short_drama.data.dto.MessagePreviewDto
 import com.djs66256.short_drama.data.dto.PlayerProgressResponseDto
 import com.djs66256.short_drama.data.dto.PlayerStartRequestDto
 import com.djs66256.short_drama.data.dto.PlayerStartResponseDto
@@ -22,8 +24,11 @@ import com.djs66256.short_drama.data.dto.RecentlyViewedResponseDto
 import com.djs66256.short_drama.data.dto.RefreshAuthSessionRequestDto
 import com.djs66256.short_drama.data.dto.SendOtpPayloadDto
 import com.djs66256.short_drama.data.dto.SendOtpRequestDto
+import com.djs66256.short_drama.data.dto.SignInStatusDto
+import com.djs66256.short_drama.data.dto.SystemMessageListResponseDto
 import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
 import com.djs66256.short_drama.data.dto.ToggleCommentLikeResponseDto
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -125,6 +130,31 @@ interface ApiService {
     suspend fun getRecentlyViewed(
         @Header("X-Playback-Session-Id") playbackSessionId: String,
     ): RecentlyViewedResponseDto
+
+    @GET("check-ins/status")
+    suspend fun getCheckInStatus(
+        @Header("X-Installation-Id") installationId: String? = null,
+    ): SignInStatusDto
+
+    @POST("check-ins")
+    suspend fun submitCheckIn(
+        @Header("X-Installation-Id") installationId: String? = null,
+    ): SignInStatusDto
+
+    @GET("messages/preview")
+    suspend fun getMessagePreview(): Response<MessagePreviewDto>
+
+    @GET("messages/system")
+    suspend fun getSystemMessages(
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+    ): SystemMessageListResponseDto
+
+    @GET("messages/interactions")
+    suspend fun getInteractionMessages(
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+    ): InteractionMessageListResponseDto
 
     @POST("player/start")
     suspend fun startPlayback(

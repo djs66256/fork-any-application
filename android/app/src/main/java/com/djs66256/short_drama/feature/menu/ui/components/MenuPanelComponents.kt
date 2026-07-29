@@ -46,7 +46,8 @@ import com.djs66256.short_drama.feature.menu.model.MenuCommonFunctionEntry
 import com.djs66256.short_drama.feature.menu.model.MenuGameCenterEntry
 import com.djs66256.short_drama.feature.menu.model.MenuLoginHeaderEntry
 import com.djs66256.short_drama.feature.menu.model.MenuMessagePreviewEntry
-import com.djs66256.short_drama.feature.menu.viewmodel.MenuPanelUiState
+import com.djs66256.short_drama.feature.menu.viewmodel.MessagePreviewUiState
+import com.djs66256.short_drama.feature.menu.viewmodel.RecentlyViewedSectionUiState
 
 @Composable
 fun MenuLoginHeader(
@@ -104,9 +105,18 @@ fun MenuLoginHeader(
 @Composable
 fun MenuMessagePreview(
     entry: MenuMessagePreviewEntry,
+    uiState: MessagePreviewUiState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val summary = when {
+        uiState.preview != null -> uiState.preview.summary
+        uiState.isEmpty -> "暂无消息"
+        uiState.errorMessage != null -> entry.defaultSummary
+        else -> entry.defaultSummary
+    }
+    val relativeTime = uiState.preview?.relativeTime
+
     SectionCard(
         modifier = modifier,
         title = entry.title,
@@ -124,18 +134,30 @@ fun MenuMessagePreview(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 2.dp),
             )
-            Text(
-                text = entry.summary,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (relativeTime != null) {
+                    Text(
+                        text = relativeTime,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 fun MenuRecentlyViewedSection(
-    uiState: MenuPanelUiState,
+    uiState: RecentlyViewedSectionUiState,
     onRetry: () -> Unit,
     onItemClick: (RecentlyViewed) -> Unit,
     modifier: Modifier = Modifier,

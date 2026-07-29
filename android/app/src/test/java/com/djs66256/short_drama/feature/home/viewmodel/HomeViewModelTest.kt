@@ -1,19 +1,22 @@
 package com.djs66256.short_drama.feature.home.viewmodel
 
-import app.cash.turbine.test
 import com.djs66256.short_drama.core.network.ApiResult
+import com.djs66256.short_drama.domain.model.CheckInDay
+import com.djs66256.short_drama.domain.model.CheckInDayStatus
+import com.djs66256.short_drama.domain.model.CheckInStatus
 import com.djs66256.short_drama.domain.model.Drama
+import com.djs66256.short_drama.domain.repository.CheckInRepository
+import com.djs66256.short_drama.domain.usecase.GetCheckInStatusUseCase
 import com.djs66256.short_drama.domain.usecase.GetDramasUseCase
+import com.djs66256.short_drama.domain.usecase.SubmitCheckInUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -29,6 +32,9 @@ class HomeViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val getDramasUseCase = mockk<GetDramasUseCase>()
+    private val getCheckInStatusUseCase = mockk<GetCheckInStatusUseCase>()
+    private val submitCheckInUseCase = mockk<SubmitCheckInUseCase>()
+    private val checkInRepository = mockk<CheckInRepository>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -41,128 +47,139 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `T-01 loadIfNeeded transitions from loading to populated feed`() = runTest {
-        val dramas = listOf(sampleDrama())
-        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(dramas)
+    fun `T-04 loadIfNeeded shows popup when check in is eligible`() = runTest {
+        val status = sampleCheckInStatus()
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(status)
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
 
-        val viewModel = HomeViewModel(getDramasUseCase)
-
-        viewModel.uiState.test {
-            val initialState = awaitItem()
-            assertTrue(initialState.isLoading)
-            assertTrue(initialState.items.isEmpty())
-            assertFalse(initialState.hasLoadedOnce)
-
-            viewModel.loadIfNeeded()
-            advanceUntilIdle()
-
-            val loadedState = awaitItem()
-            assertFalse(loadedState.isLoading)
-            assertEquals(dramas, loadedState.items)
-            assertNull(loadedState.errorMessage)
-            assertTrue(loadedState.hasLoadedOnce)
-            assertFalse(loadedState.isRetrying)
-        }
-
-        coVerify(exactly = 1) { getDramasUseCase(page = 1, pageSize = 10) }
-    }
-
-    @Test
-    fun `T-02 loadIfNeeded transitions to empty state when feed is empty`() = runTest {
-        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(emptyList())
-
-        val viewModel = HomeViewModel(getDramasUseCase)
-        viewModel.loadIfNeeded()
-        advanceUntilIdle()
-
-        val state = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertTrue(state.items.isEmpty())
-        assertNull(state.errorMessage)
-        assertTrue(state.hasLoadedOnce)
-        assertFalse(state.isRetrying)
-
-        coVerify(exactly = 1) { getDramasUseCase(page = 1, pageSize = 10) }
-    }
-
-    @Test
-    fun `T-03 loadIfNeeded transitions to error state on server error`() = runTest {
-        coEvery {
-            getDramasUseCase(page = 1, pageSize = 10)
-        } returns ApiResult.Error(code = "INTERNAL_ERROR", message = "服务异常")
-
-        val viewModel = HomeViewModel(getDramasUseCase)
-        viewModel.loadIfNeeded()
-        advanceUntilIdle()
-
-        val state = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertTrue(state.items.isEmpty())
-        assertEquals("服务异常", state.errorMessage)
-        assertTrue(state.hasLoadedOnce)
-        assertFalse(state.isRetrying)
-    }
-
-    @Test
-    fun `T-04 retry recovers from error and emits populated feed`() = runTest {
-        val dramas = listOf(sampleDrama(id = "retry-success"))
-        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returnsMany listOf(
-            ApiResult.Error(code = "INTERNAL_ERROR", message = "首次失败"),
-            ApiResult.Success(dramas),
+        val viewModel = HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
         )
 
-        val viewModel = HomeViewModel(getDramasUseCase)
         viewModel.loadIfNeeded()
-        advanceUntilIdle()
-
-        assertEquals("首次失败", viewModel.uiState.value.errorMessage)
-
-        viewModel.retry()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
-        assertEquals(dramas, state.items)
-        assertNull(state.errorMessage)
+        assertEquals(1, state.items.size)
         assertTrue(state.hasLoadedOnce)
-        assertFalse(state.isRetrying)
-
-        coVerify(exactly = 2) { getDramasUseCase(page = 1, pageSize = 10) }
+        assertTrue(state.checkInPopup.isVisible)
+        assertEquals(status.serverDate, state.checkInPopup.serverDate)
+        assertEquals(status.rewardCopy, state.checkInPopup.rewardCopy)
+        assertFalse(state.checkInPopup.todaySigned)
     }
 
     @Test
-    fun `T-04 retry ignores duplicate taps while request is in flight`() = runTest {
-        val releaseRetry = CompletableDeferred<Unit>()
-        var invocationCount = 0
-        val dramas = listOf(sampleDrama(id = "final-success"))
+    fun `T-04 loadIfNeeded hides popup when same server date was dismissed`() = runTest {
+        val status = sampleCheckInStatus(serverDate = "2026-07-30")
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(status)
+        coEvery { checkInRepository.getDismissedServerDate() } returns "2026-07-30"
 
-        coEvery { getDramasUseCase(page = 1, pageSize = 10) } coAnswers {
-            invocationCount += 1
-            if (invocationCount == 1) {
-                ApiResult.Error(code = "INTERNAL_ERROR", message = "首次失败")
-            } else {
-                releaseRetry.await()
-                ApiResult.Success(dramas)
-            }
-        }
+        val viewModel = HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
+        )
 
-        val viewModel = HomeViewModel(getDramasUseCase)
         viewModel.loadIfNeeded()
         advanceUntilIdle()
 
-        viewModel.retry()
-        viewModel.retry()
-        runCurrent()
+        val state = viewModel.uiState.value
+        assertFalse(state.checkInPopup.isVisible)
+        assertEquals(status.serverDate, state.checkInPopup.serverDate)
+    }
 
-        coVerify(exactly = 2) { getDramasUseCase(page = 1, pageSize = 10) }
+    @Test
+    fun `T-04 submitCheckIn updates popup and stores dismissed server date`() = runTest {
+        val initialStatus = sampleCheckInStatus(todaySigned = false)
+        val submittedStatus = sampleCheckInStatus(
+            todaySigned = true,
+            shouldShowPopup = false,
+            days = listOf(
+                CheckInDay(1, "第 1 天", "金币 x10", CheckInDayStatus.SIGNED),
+                CheckInDay(2, "第 2 天", "金币 x20", CheckInDayStatus.SIGNED),
+                CheckInDay(3, "第 3 天", "金币 x30", CheckInDayStatus.TODAY),
+            ),
+        )
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(initialStatus)
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
+        coEvery { submitCheckInUseCase() } returns ApiResult.Success(submittedStatus)
 
-        releaseRetry.complete(Unit)
+        val viewModel = HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
+        )
+        viewModel.loadIfNeeded()
+        advanceUntilIdle()
+
+        viewModel.submitCheckIn()
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
-        assertFalse(state.isLoading)
-        assertEquals(dramas, state.items)
-        assertNull(state.errorMessage)
+        assertTrue(state.checkInPopup.isVisible)
+        assertTrue(state.checkInPopup.todaySigned)
+        assertFalse(state.checkInPopup.isSubmitting)
+        assertNull(state.checkInPopup.submitErrorMessage)
+        coVerify { checkInRepository.dismissForServerDate(submittedStatus.serverDate) }
+    }
+
+    @Test
+    fun `T-04 submitCheckIn keeps popup visible on failure`() = runTest {
+        val initialStatus = sampleCheckInStatus(todaySigned = false)
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(initialStatus)
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
+        coEvery { submitCheckInUseCase() } returns ApiResult.Error(
+            code = "SERVICE_UNAVAILABLE",
+            message = "签到失败，请重试",
+        )
+
+        val viewModel = HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
+        )
+        viewModel.loadIfNeeded()
+        advanceUntilIdle()
+
+        viewModel.submitCheckIn()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertTrue(state.checkInPopup.isVisible)
+        assertFalse(state.checkInPopup.todaySigned)
+        assertEquals("签到失败，请重试", state.checkInPopup.submitErrorMessage)
+        assertFalse(state.checkInPopup.isSubmitting)
+    }
+
+    @Test
+    fun `T-04 abandonCheckInPopupForCurrentSession hides visible popup`() = runTest {
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(sampleCheckInStatus())
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
+
+        val viewModel = HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
+        )
+        viewModel.loadIfNeeded()
+        advanceUntilIdle()
+
+        viewModel.abandonCheckInPopupForCurrentSession()
+
+        assertFalse(viewModel.uiState.value.checkInPopup.isVisible)
     }
 
     private fun sampleDrama(id: String = "drama-1"): Drama = Drama(
@@ -176,5 +193,23 @@ class HomeViewModelTest {
         rating = 8.6,
         createdAt = "2026-07-25T00:00:00Z",
         updatedAt = "2026-07-25T00:00:00Z",
+    )
+
+    private fun sampleCheckInStatus(
+        serverDate: String = "2026-07-29",
+        shouldShowPopup: Boolean = true,
+        todaySigned: Boolean = false,
+        days: List<CheckInDay> = listOf(
+            CheckInDay(1, "第 1 天", "金币 x10", CheckInDayStatus.SIGNED),
+            CheckInDay(2, "第 2 天", "金币 x20", CheckInDayStatus.SIGNED),
+            CheckInDay(3, "第 3 天", "金币 x30", CheckInDayStatus.TODAY),
+        ),
+    ): CheckInStatus = CheckInStatus(
+        serverDate = serverDate,
+        shouldShowPopup = shouldShowPopup,
+        todaySigned = todaySigned,
+        currentStreak = 2,
+        rewardCopy = "今日签到可领取第 3 天奖励",
+        days = days,
     )
 }

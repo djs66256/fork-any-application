@@ -169,6 +169,8 @@ struct LoginView: View {
             return "登录后即可继续完成预约。"
         case .profileEntry:
             return "登录后可在“我的”中查看你的账号信息。"
+        case .messagesEntry:
+            return "登录后即可继续查看互动消息。"
         case .unknown, .none:
             return "验证码仅用于本次登录验证。"
         }

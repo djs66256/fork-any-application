@@ -24,7 +24,7 @@ data class MenuLoginHeaderEntry(
 
 data class MenuMessagePreviewEntry(
     val title: String,
-    val summary: String,
+    val defaultSummary: String,
     val action: MenuPanelStaticAction.Navigate,
 )
 
@@ -67,7 +67,7 @@ object MenuPanelStaticEntries {
         ),
         messagePreview = MenuMessagePreviewEntry(
             title = "我的消息",
-            summary = "系统通知、活动提醒与互动消息都会在这里汇总。",
+            defaultSummary = "系统通知、活动提醒与互动消息都会在这里汇总。",
             action = MenuPanelStaticAction.Navigate(PendingRoute.MenuMessages),
         ),
         gameCenterEntries = listOf(

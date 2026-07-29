@@ -50,6 +50,14 @@ describe('config', () => {
     expect(config.supabase.serviceRoleKey).toBeDefined();
   });
 
+  it('should default PRD-10 repositories to mock', async () => {
+    const { config } = await import('../config');
+
+    expect(config.checkIns.repository).toBe('mock');
+    expect(config.systemMessages.repository).toBe('mock');
+    expect(config.interactionMessages.repository).toBe('mock');
+  });
+
   it('should read auth bypass settings from current env', async () => {
     vi.stubEnv('AUTH_ALLOW_TEST_OTP_BYPASS', 'true');
     vi.stubEnv('AUTH_TEST_PHONE', '13900139000');

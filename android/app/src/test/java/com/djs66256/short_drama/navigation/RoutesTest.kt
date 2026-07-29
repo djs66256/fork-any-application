@@ -65,6 +65,17 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-07 menu messages login return route is encoded`() {
+        assertEquals(
+            "login?returnRoute=menu%2Fmessages&source=menu_messages",
+            AppDestination.login(
+                returnRoute = AppDestination.menuMessages(),
+                source = "menu_messages",
+            ),
+        )
+    }
+
+    @Test
     fun `T-08 classification tags still reuse canonical search result route`() {
         assertEquals(
             "search/result?query=%E8%90%8C%E5%AE%9D",

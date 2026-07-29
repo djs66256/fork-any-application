@@ -8,6 +8,8 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AuthInterceptorTest {
@@ -35,13 +37,45 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `T-03 interceptor leaves request unchanged when token missing`() {
+    fun `T-03 interceptor adds bearer header to optional auth check in routes`() {
+        every { authSessionProvider.accessToken() } returns "access-token"
+        val statusChain = RecordingChain(request("https://example.com/api/check-ins/status"))
+        val submitChain = RecordingChain(request("https://example.com/api/check-ins"))
+
+        interceptor.intercept(statusChain)
+        interceptor.intercept(submitChain)
+
+        assertEquals("Bearer access-token", statusChain.proceededRequest.header("Authorization"))
+        assertEquals("Bearer access-token", submitChain.proceededRequest.header("Authorization"))
+    }
+
+    @Test
+    fun `T-03 interceptor adds bearer header to interaction messages route`() {
+        every { authSessionProvider.accessToken() } returns "access-token"
+        val chain = RecordingChain(request("https://example.com/api/messages/interactions?page=1&pageSize=20"))
+
+        interceptor.intercept(chain)
+
+        assertEquals("Bearer access-token", chain.proceededRequest.header("Authorization"))
+    }
+
+    @Test
+    fun `T-03 interceptor leaves protected requests unchanged when token missing`() {
         every { authSessionProvider.accessToken() } returns null
-        val chain = RecordingChain(request("https://example.com/api/dramas/rankings?type=booking&contentType=all"))
+        val chain = RecordingChain(request("https://example.com/api/messages/interactions?page=1&pageSize=20"))
 
         interceptor.intercept(chain)
 
         assertEquals(null, chain.proceededRequest.header("Authorization"))
+    }
+
+    @Test
+    fun `T-03 requiresAuth covers interactions and check ins but not preview or system messages`() {
+        assertTrue(request("https://example.com/api/messages/interactions").requiresAuth())
+        assertTrue(request("https://example.com/api/check-ins/status").requiresAuth())
+        assertTrue(request("https://example.com/api/check-ins").requiresAuth())
+        assertFalse(request("https://example.com/api/messages/preview").requiresAuth())
+        assertFalse(request("https://example.com/api/messages/system").requiresAuth())
     }
 }
 

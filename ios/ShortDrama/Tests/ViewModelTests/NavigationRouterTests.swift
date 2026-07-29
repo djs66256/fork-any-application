@@ -21,10 +21,11 @@ extension NavigationRouterTests {
         #expect(router.pendingMenuNavigation == nil)
     }
 
-    @Test("menu placeholder routes belong to home tab and keep public naming")
+    @Test("menu placeholder routes belong to home tab and messages uses canonical route name")
     func testMenuPlaceholderRoutesBelongToHomeTab() {
         #expect(AppRoute.menuPlaceholder(kind: .login).owningTab == .home)
-        #expect(AppRoute.menuPlaceholder(kind: .messages).publicRouteName == "menu/placeholder")
+        #expect(AppRoute.messages.publicRouteName == "messages")
+        #expect(AppRoute.messages.owningTab == .home)
     }
 
     @Test("search discovery routes belong to home tab")
@@ -369,15 +370,15 @@ extension NavigationRouterTests {
         #expect(router.isMenuPanelVisible == false)
     }
 
-    @Test("placeholder navigation waits until panel close completes")
-    func testCloseMenuPanelThenNavigateToPlaceholder() {
+    @Test("message navigation waits until panel close completes")
+    func testCloseMenuPanelThenNavigateToMessages() {
         let router = NavigationRouter()
         router.openMenuPanel()
 
-        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .messages))
+        router.closeMenuPanelThenNavigate(to: .messages)
 
         #expect(router.menuPanelState == .closing)
-        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .messages))
+        #expect(router.pendingMenuNavigation == .messages)
         #expect(router.pathsByTab[.home]?.isEmpty == true)
 
         router.markMenuPanelDidClose()
@@ -422,10 +423,10 @@ extension NavigationRouterTests {
         let router = NavigationRouter()
         router.openMenuPanel()
 
-        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .messages))
+        router.closeMenuPanelThenNavigate(to: .messages)
         router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .downloads))
 
-        #expect(router.pendingMenuNavigation == .menuPlaceholder(kind: .messages))
+        #expect(router.pendingMenuNavigation == .messages)
 
         router.markMenuPanelDidClose()
 
@@ -488,5 +489,25 @@ extension NavigationRouterTests {
         #expect(router.presentedLoginContext == nil)
         #expect(router.selectedTab == .profile)
         #expect(router.pathsByTab[.profile]?.count == 1)
+    }
+
+    @Test("router completes login and stays in messages route when requested")
+    func testCompleteLoginWithMessagesReturnRoute() {
+        let router = NavigationRouter()
+        router.navigate(to: .messages)
+        router.presentLogin(context: LoginInterceptionContext(source: .messagesEntry, returnRoute: .messages))
+
+        router.completeLogin()
+
+        #expect(router.presentedLoginContext == nil)
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("dismiss on empty path is safe")
+    func testDismissEmptyPathSafe() {
+        let router = NavigationRouter()
+        router.dismiss()
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
     }
 }

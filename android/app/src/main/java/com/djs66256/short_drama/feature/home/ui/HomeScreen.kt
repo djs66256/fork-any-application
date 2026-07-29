@@ -70,39 +70,56 @@ fun HomeScreen(
 
     val errorMessage = uiState.errorMessage
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        HomeTopBar(
-            onOpenMenu = onOpenMenu,
-            onOpenSearch = onOpenSearch,
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            HomeTopBar(
+                onOpenMenu = onOpenMenu,
+                onOpenSearch = onOpenSearch,
+            )
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            when {
-                uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
-                errorMessage != null -> HomeFeedErrorState(
-                    message = errorMessage,
-                    onRetry = viewModel::retry,
-                )
-                uiState.items.isEmpty() -> HomeFeedEmptyState()
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    items(items = uiState.items, key = { it.id }) { drama ->
-                        HomeDramaCard(
-                            drama = drama,
-                            onPlay = { onOpenPlay(drama.id) },
-                            onDetail = { onOpenDetail(drama.id) },
-                            onComment = { activeCommentDramaId = drama.id },
-                        )
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
+                    errorMessage != null -> HomeFeedErrorState(
+                        message = errorMessage,
+                        onRetry = viewModel::retry,
+                    )
+                    uiState.items.isEmpty() -> HomeFeedEmptyState()
+                    else -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        items(items = uiState.items, key = { it.id }) { drama ->
+                            HomeDramaCard(
+                                drama = drama,
+                                onPlay = { onOpenPlay(drama.id) },
+                                onDetail = { onOpenDetail(drama.id) },
+                                onComment = { activeCommentDramaId = drama.id },
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        val hasBlockingModal = activeCommentDramaId != null || pendingCommentLoginContext != null
+        if (hasBlockingModal) {
+            LaunchedEffect(hasBlockingModal) {
+                viewModel.abandonCheckInPopupForCurrentSession()
+            }
+        }
+
+        if (shouldRenderCheckInPopup(uiState.checkInPopup.isVisible, hasBlockingModal)) {
+            CheckInPopup(
+                state = uiState.checkInPopup,
+                onClose = viewModel::dismissCheckInPopup,
+                onSubmit = viewModel::submitCheckIn,
+            )
         }
     }
 
@@ -369,6 +386,10 @@ private fun DramaCoverPlaceholder(drama: Drama) {
 
 internal const val HOME_MENU_ENTRY_CONTENT_DESCRIPTION = "打开菜单"
 internal const val HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION = "打开搜索"
+
+internal fun shouldRenderCheckInPopup(isPopupVisible: Boolean, hasBlockingModal: Boolean): Boolean {
+    return isPopupVisible && !hasBlockingModal
+}
 
 internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.trim().isNotEmpty()
 

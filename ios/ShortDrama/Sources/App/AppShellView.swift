@@ -5,6 +5,7 @@ struct AppShellView: View {
     @EnvironmentObject private var authStore: AuthStore
     @StateObject private var menuPanelViewModel = MenuPanelViewModel(
         fetchRecentlyViewedUseCase: FetchRecentlyViewedUseCase(repository: MenuPanelRepository()),
+        fetchMessagePreviewUseCase: FetchMessagePreviewUseCase(repository: MessageRepository()),
         playbackSessionStore: KeychainPlaybackSessionStore()
     )
 

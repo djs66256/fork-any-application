@@ -88,6 +88,7 @@ final class NavigationRouter: ObservableObject {
              .player,
              .dramaDetail,
              .earnPlayer,
+             .messages,
              .menuPlaceholder,
              .settings:
             var path = pathsByTab[tab] ?? NavigationPath()
@@ -203,6 +204,8 @@ final class NavigationRouter: ObservableObject {
         case .earnLogin,
              .earnPlayer:
             select(tab: .earn)
+        case .messages:
+            select(tab: .home)
         case .settings:
             select(tab: .profile)
             navigate(to: .settings)

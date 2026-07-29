@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MenuMessagePreviewView: View {
+    let state: MenuPanelViewModel.MessagePreviewState
     let onTapMessages: () -> Void
 
     var body: some View {
@@ -12,13 +13,18 @@ struct MenuMessagePreviewView: View {
                     .padding(.top, 6)
 
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                    Text("系统通知")
+                    Text(title)
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    Text("精选续播与新内容提醒即将接入，后续会在这里展示你的最新消息。")
+                    Text(summary)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.leading)
+                    if let relativeTime {
+                        Text(relativeTime)
+                            .font(.footnote)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
 
                 Spacer(minLength: DesignTokens.Spacing.sm)
@@ -34,5 +40,32 @@ struct MenuMessagePreviewView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    private var title: String {
+        switch state {
+        case .content(let preview):
+            return preview.title
+        default:
+            return "系统通知"
+        }
+    }
+
+    private var summary: String {
+        switch state {
+        case .idle, .loading:
+            return "正在加载最新消息…"
+        case .content(let preview):
+            return preview.summary
+        case .empty:
+            return "暂无消息"
+        case .error(let fallback):
+            return fallback
+        }
+    }
+
+    private var relativeTime: String? {
+        guard case .content(let preview) = state else { return nil }
+        return preview.relativeTime
     }
 }

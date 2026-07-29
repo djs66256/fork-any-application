@@ -33,6 +33,13 @@ class HomeScreenTest {
     }
 
     @Test
+    fun `T-04 check in popup is suppressed when home already has blocking modal`() {
+        assertFalse(shouldRenderCheckInPopup(isPopupVisible = true, hasBlockingModal = true))
+        assertTrue(shouldRenderCheckInPopup(isPopupVisible = true, hasBlockingModal = false))
+        assertFalse(shouldRenderCheckInPopup(isPopupVisible = false, hasBlockingModal = false))
+    }
+
+    @Test
     fun `home card meta text includes category tags episodes and rating`() {
         val drama = Drama(
             id = "drama-1",
@@ -49,5 +56,4 @@ class HomeScreenTest {
 
         assertEquals("都市 · 逆袭 / 甜宠 · 12 集 · 评分 8.6", buildDramaMeta(drama))
     }
-
 }

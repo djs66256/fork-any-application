@@ -24,6 +24,11 @@ final class APIClient: @unchecked Sendable {
     }
 
     /// Internal initializer for testing with custom URLSession.
+    convenience init(session: URLSession) {
+        self.init(session: session, baseURL: AppConfig.apiBaseURL())
+    }
+
+    /// Internal initializer for testing with custom URLSession.
     init(session: URLSession, baseURL: String) {
         self.session = session
         self.baseURL = baseURL
@@ -74,6 +79,13 @@ final class APIClient: @unchecked Sendable {
 
         switch httpResponse.statusCode {
         case 200...299:
+            if httpResponse.statusCode == 204 {
+                if let emptyResponse = EmptySuccessDTO() as? T {
+                    return emptyResponse
+                }
+                throw APIError.server(code: 204, message: "No Content")
+            }
+
             do {
                 return try decoder.decode(T.self, from: data)
             } catch {

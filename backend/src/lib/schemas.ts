@@ -95,6 +95,69 @@ export const PaginationSchema = z.object({
   total_pages: z.number().int().min(0),
 });
 
+export const InstallationIdHeaderSchema = z.string().uuid();
+export type InstallationIdHeader = z.infer<typeof InstallationIdHeaderSchema>;
+
+export const MessageListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(20).default(20),
+});
+export type MessageListQuery = z.infer<typeof MessageListQuerySchema>;
+
+export const SignInDaySchema = z.object({
+  day: z.number().int().min(1).max(7),
+  title: z.string().min(1),
+  reward_label: z.string().min(1),
+  status: z.enum(['signed', 'today', 'locked']),
+});
+export type SignInDay = z.infer<typeof SignInDaySchema>;
+
+export const SignInStatusSchema = z.object({
+  server_date: z.string().min(1),
+  should_show_popup: z.boolean(),
+  today_signed: z.boolean(),
+  current_streak: z.number().int().min(0).max(7),
+  reward_copy: z.string().min(1),
+  days: z.array(SignInDaySchema).length(7),
+});
+export type SignInStatus = z.infer<typeof SignInStatusSchema>;
+
+export const MessagePreviewSchema = z.object({
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  relative_time: z.string().min(1),
+});
+export type MessagePreview = z.infer<typeof MessagePreviewSchema>;
+
+export const SystemMessageSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  sent_at: z.string(),
+});
+export type SystemMessage = z.infer<typeof SystemMessageSchema>;
+
+export const InteractionMessageSchema = z.object({
+  id: z.string().uuid(),
+  type: z.enum(['comment_reply', 'comment_like', 'system_hint']).default('system_hint'),
+  title: z.string().min(1),
+  summary: z.string().min(1),
+  sent_at: z.string(),
+});
+export type InteractionMessage = z.infer<typeof InteractionMessageSchema>;
+
+export const SystemMessageListResponseSchema = z.object({
+  data: z.array(SystemMessageSchema),
+  pagination: PaginationSchema,
+});
+export type SystemMessageListResponse = z.infer<typeof SystemMessageListResponseSchema>;
+
+export const InteractionMessageListResponseSchema = z.object({
+  data: z.array(InteractionMessageSchema),
+  pagination: PaginationSchema,
+});
+export type InteractionMessageListResponse = z.infer<typeof InteractionMessageListResponseSchema>;
+
 export const MallProductSchema = z.object({
   id: z.string().uuid(),
   title: z.string().trim().min(1).max(200),

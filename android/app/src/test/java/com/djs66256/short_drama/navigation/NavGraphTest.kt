@@ -16,6 +16,11 @@ class NavGraphTest {
     }
 
     @Test
+    fun `T-08 message center route hides bottom bar`() {
+        assertFalse(shouldShowBottomBar(AppDestination.Route.MENU_MESSAGES))
+    }
+
+    @Test
     fun `T-08 alias route remains part of player route set`() {
         assertTrue(AppDestination.isPlayerRoute(AppDestination.Route.PLAYER_ALIAS))
         assertTrue(AppDestination.isPlayerRoute(AppDestination.Route.PLAY))
@@ -29,23 +34,18 @@ class NavGraphTest {
     }
 
     @Test
-    fun `T-08 menu placeholder specs register all placeholder routes`() {
+    fun `T-08 menu placeholder specs exclude real message center route`() {
         val specs = menuPlaceholderSpecs()
 
         assertEquals(
             listOf(
                 AppDestination.menuLogin(),
-                AppDestination.menuMessages(),
                 AppDestination.menuBooking(),
                 AppDestination.menuDownloads(),
             ),
             specs.map { it.route },
         )
-        assertEquals(
-            listOf("登录", "我的消息", "我的预约", "我的下载"),
-            specs.map { it.title },
-        )
-        assertTrue(specs.all { it.description.contains("Native 承接页") })
+        assertFalse(specs.any { it.route == AppDestination.menuMessages() })
     }
 
     @Test

@@ -43,5 +43,8 @@ internal fun Request.requiresAuth(): Boolean {
     return normalizedPath == "users/me" ||
         normalizedPath == "auth/session" ||
         normalizedPath == "dramas/rankings" ||
+        normalizedPath == "check-ins/status" ||
+        normalizedPath == "check-ins" ||
+        normalizedPath == "messages/interactions" ||
         normalizedPath.matches(Regex("dramas/[^/]+/book"))
 }

@@ -19,12 +19,13 @@ struct MenuPanelContainerView: View {
 
                 MenuPanelView(
                     state: viewModel.viewState,
+                    messagePreviewState: viewModel.messagePreviewState,
                     isRetrying: viewModel.isRetrying,
                     onTapLogin: {
                         router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .login))
                     },
                     onTapMessages: {
-                        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .messages))
+                        router.closeMenuPanelThenNavigate(to: .messages)
                     },
                     onTapRecentlyViewed: { item in
                         guard let route = viewModel.route(for: item) else { return }

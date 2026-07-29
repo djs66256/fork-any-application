@@ -104,10 +104,11 @@ fun MenuPanelScreen(
         )
         MenuMessagePreview(
             entry = staticContent.messagePreview,
+            uiState = uiState.messagePreview,
             onClick = onMessageClick,
         )
         MenuRecentlyViewedSection(
-            uiState = uiState,
+            uiState = uiState.recentlyViewed,
             onRetry = onRetryRecentlyViewed,
             onItemClick = onRecentlyViewedClick,
         )

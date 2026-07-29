@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuPanelView: View {
     let state: MenuPanelViewModel.RecentlyViewedState
+    let messagePreviewState: MenuPanelViewModel.MessagePreviewState
     let isRetrying: Bool
     let onTapLogin: () -> Void
     let onTapMessages: () -> Void
@@ -15,7 +16,7 @@ struct MenuPanelView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
                 MenuLoginHeaderView(onTapLogin: onTapLogin)
-                MenuMessagePreviewView(onTapMessages: onTapMessages)
+                MenuMessagePreviewView(state: messagePreviewState, onTapMessages: onTapMessages)
                 MenuRecentlyViewedSection(
                     state: state,
                     isRetrying: isRetrying,

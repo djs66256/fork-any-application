@@ -17,3 +17,7 @@ annotation class AuthCooldownDataStore
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class AuthSessionPreferences
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CheckInDataStore

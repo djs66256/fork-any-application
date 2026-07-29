@@ -4,37 +4,60 @@ import SwiftUI
 struct HomeView: View {
 
     @EnvironmentObject private var router: NavigationRouter
+    @EnvironmentObject private var authStore: AuthStore
     @StateObject private var viewModel: HomeViewModel
     @State private var loginAlertContext: CommentLoginContext?
 
-    init() {
-        let repository: DramaRepositoryProtocol = DramaRepository()
-        let useCase = FetchDramasUseCase(repository: repository)
-        _viewModel = StateObject(wrappedValue: HomeViewModel(fetchDramasUseCase: useCase))
+    init(viewModel: HomeViewModel? = nil) {
+        if let viewModel {
+            _viewModel = StateObject(wrappedValue: viewModel)
+        } else {
+            let repository: DramaRepositoryProtocol = DramaRepository()
+            let useCase = FetchDramasUseCase(repository: repository)
+            _viewModel = StateObject(
+                wrappedValue: HomeViewModel(fetchDramasUseCase: useCase)
+            )
+        }
     }
 
     var body: some View {
-        Group {
-            switch viewModel.viewState {
-            case .loading:
-                HomeFeedLoadingView()
-            case .content(let dramas):
-                HomeFeedListView(
-                    dramas: dramas,
-                    onPlay: handlePlay(for:),
-                    onComment: handleComment(for:),
-                    onDetail: handleDetail(for:)
-                )
-            case .empty:
-                HomeFeedEmptyView(
-                    isRetrying: viewModel.isRetrying,
-                    onRetry: { await viewModel.retry() }
-                )
-            case .error(let message):
-                HomeFeedErrorView(
-                    message: message,
-                    isRetrying: viewModel.isRetrying,
-                    onRetry: { await viewModel.retry() }
+        ZStack {
+            Group {
+                switch viewModel.viewState {
+                case .loading:
+                    HomeFeedLoadingView()
+                case .content(let dramas):
+                    HomeFeedListView(
+                        dramas: dramas,
+                        onPlay: handlePlay(for:),
+                        onComment: handleComment(for:),
+                        onDetail: handleDetail(for:)
+                    )
+                case .empty:
+                    HomeFeedEmptyView(
+                        isRetrying: viewModel.isRetrying,
+                        onRetry: { await viewModel.retry() }
+                    )
+                case .error(let message):
+                    HomeFeedErrorView(
+                        message: message,
+                        isRetrying: viewModel.isRetrying,
+                        onRetry: { await viewModel.retry() }
+                    )
+                }
+            }
+
+            if let popupState = viewModel.checkInPopupState,
+               loginAlertContext == nil,
+               viewModel.activeCommentSheet == nil {
+                CheckInPopupView(
+                    state: popupState,
+                    onClose: viewModel.dismissCheckInPopup,
+                    onSubmit: {
+                        Task {
+                            await viewModel.submitCheckIn()
+                        }
+                    }
                 )
             }
         }
@@ -60,7 +83,17 @@ struct HomeView: View {
             }
         }
         .task {
+            viewModel.updateAuthState(
+                isUserLoggedIn: authStore.isAuthenticated,
+                accessToken: authStore.status.currentSession?.accessToken
+            )
             await viewModel.loadIfNeeded()
+        }
+        .onReceive(authStore.$status) { status in
+            viewModel.updateAuthState(
+                isUserLoggedIn: authStore.isAuthenticated,
+                accessToken: status.currentSession?.accessToken
+            )
         }
         .sheet(item: activeCommentSheetBinding) { context in
             CommentSheetView(

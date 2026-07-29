@@ -35,4 +35,13 @@ export const config = {
   comments: {
     repository: process.env.COMMENTS_REPOSITORY ?? 'mock',
   },
+  checkIns: {
+    repository: process.env.CHECK_INS_REPOSITORY ?? 'mock',
+  },
+  systemMessages: {
+    repository: process.env.SYSTEM_MESSAGES_REPOSITORY ?? 'mock',
+  },
+  interactionMessages: {
+    repository: 'mock',
+  },
 } as const;

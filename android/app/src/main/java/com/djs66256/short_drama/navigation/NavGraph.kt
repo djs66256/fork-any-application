@@ -57,6 +57,7 @@ import com.djs66256.short_drama.feature.mall.ui.MallLoginScreen
 import com.djs66256.short_drama.feature.mall.ui.MallScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelDrawer
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelRoute
+import com.djs66256.short_drama.feature.messages.ui.MessageCenterScreen
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
 import com.djs66256.short_drama.feature.profile.ui.ProfileScreen
 import com.djs66256.short_drama.feature.profile.ui.SettingsScreen
@@ -294,6 +295,19 @@ fun NavGraph(
                                 description = spec.description,
                             )
                         }
+                    }
+                    composable(route = AppDestination.Route.MENU_MESSAGES) {
+                        MessageCenterScreen(
+                            onBack = { navController.popBackStack() },
+                            onLogin = {
+                                navController.navigate(
+                                    AppDestination.login(
+                                        returnRoute = AppDestination.menuMessages(),
+                                        source = "menu_messages",
+                                    ),
+                                )
+                            },
+                        )
                     }
                     composable(
                         route = AppDestination.Route.PLAY,
@@ -650,7 +664,8 @@ fun NavGraph(
 internal fun shouldShowBottomBar(route: String?): Boolean {
     return !AppDestination.isPlayerRoute(route) &&
         route != AppDestination.Route.LOGIN &&
-        route != AppDestination.Route.SETTINGS
+        route != AppDestination.Route.SETTINGS &&
+        route != AppDestination.Route.MENU_MESSAGES
 }
 
 internal data class MenuPlaceholderSpec(
@@ -664,11 +679,6 @@ internal fun menuPlaceholderSpecs(): List<MenuPlaceholderSpec> = listOf(
         route = AppDestination.menuLogin(),
         title = "登录",
         description = "登录功能建设中，当前为 Native 承接页。",
-    ),
-    MenuPlaceholderSpec(
-        route = AppDestination.menuMessages(),
-        title = "我的消息",
-        description = "消息能力建设中，当前为 Native 承接页。",
     ),
     MenuPlaceholderSpec(
         route = AppDestination.menuBooking(),

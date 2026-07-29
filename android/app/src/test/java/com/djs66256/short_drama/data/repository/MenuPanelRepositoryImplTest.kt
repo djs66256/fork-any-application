@@ -15,7 +15,8 @@ import org.junit.Test
 class MenuPanelRepositoryImplTest {
 
     private val remoteDataSource = mockk<MenuPanelRemoteDataSource>()
-    private val repository = MenuPanelRepositoryImpl(remoteDataSource)
+    private val messageRemoteDataSource = mockk<com.djs66256.short_drama.data.datasource.MessageRemoteDataSource>()
+    private val repository = MenuPanelRepositoryImpl(remoteDataSource, messageRemoteDataSource)
 
     @Test
     fun `T-04 repository maps dto list into domain recently viewed items`() = runTest {

@@ -37,6 +37,8 @@ struct TabNavigationHostView: View {
                     case .mallLogin,
                          .earnLogin:
                         EmptyView()
+                    case .messages:
+                        MessageCenterView(viewModel: makeMessageCenterViewModel())
                     case .menuPlaceholder(let kind):
                         MenuPlaceholderView(kind: kind)
                     case .settings:
@@ -52,7 +54,7 @@ struct TabNavigationHostView: View {
     private var rootView: some View {
         switch tab {
         case .home:
-            HomeView()
+            HomeView(viewModel: makeHomeViewModel())
         case .theater:
             TheaterView()
         case .mall:
@@ -62,6 +64,15 @@ struct TabNavigationHostView: View {
         case .profile:
             ProfileHomeView()
         }
+    }
+
+    private func makeHomeViewModel() -> HomeViewModel {
+        let repository: DramaRepositoryProtocol = DramaRepository()
+        return HomeViewModel(
+            fetchDramasUseCase: FetchDramasUseCase(repository: repository),
+            isUserLoggedIn: { authStore.isAuthenticated },
+            accessTokenProvider: { authStore.status.currentSession?.accessToken }
+        )
     }
 
     private func makePlayerViewModel(
@@ -79,6 +90,17 @@ struct TabNavigationHostView: View {
             stopPlaybackUseCase: StopPlaybackUseCase(repository: repository),
             playbackSessionStore: KeychainPlaybackSessionStore(),
             isUserLoggedIn: { authStore.isAuthenticated }
+        )
+    }
+
+    private func makeMessageCenterViewModel() -> MessageCenterViewModel {
+        let repository = MessageRepository()
+        return MessageCenterViewModel(
+            fetchSystemMessagesUseCase: FetchSystemMessagesUseCase(repository: repository),
+            fetchInteractionMessagesUseCase: FetchInteractionMessagesUseCase(repository: repository),
+            authTokenProvider: {
+                authStore.status.currentSession?.accessToken
+            }
         )
     }
 }

@@ -27,6 +27,7 @@ class MenuPanelStaticEntriesTest {
 
         assertEquals(PendingRoute.MenuLogin, content.loginHeader.action.pendingRoute)
         assertEquals(PendingRoute.MenuMessages, content.messagePreview.action.pendingRoute)
+        assertEquals("系统通知、活动提醒与互动消息都会在这里汇总。", content.messagePreview.defaultSummary)
     }
 
     @Test

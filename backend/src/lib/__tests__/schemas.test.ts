@@ -25,6 +25,11 @@ import {
   HealthResponseSchema,
   HotSearchItemSchema,
   HotSearchListResponseSchema,
+  InstallationIdHeaderSchema,
+  InteractionMessageListResponseSchema,
+  InteractionMessageSchema,
+  MessageListQuerySchema,
+  MessagePreviewSchema,
   OtpCodeSchema,
   PhoneSchema,
   MallProductSchema,
@@ -46,6 +51,9 @@ import {
   PlayerStopRequestSchema,
   PlayerStopResponseSchema,
   RecentlyViewedResponseSchema,
+  SignInStatusSchema,
+  SystemMessageListResponseSchema,
+  SystemMessageSchema,
   RankingDramaSchema,
   RankingListResponseSchema,
   RankingQuerySchema,
@@ -155,6 +163,116 @@ describe('DramaSchema', () => {
         updated_at: validDrama.updated_at,
       }),
     ).toThrow();
+  });
+});
+
+describe('PRD-10 schemas', () => {
+  it('should parse installation header and message list defaults', () => {
+    expect(InstallationIdHeaderSchema.parse('770e8400-e29b-41d4-a716-446655440000')).toBe(
+      '770e8400-e29b-41d4-a716-446655440000',
+    );
+    expect(MessageListQuerySchema.parse({})).toEqual({
+      page: 1,
+      pageSize: 20,
+    });
+    expect(MessageListQuerySchema.parse({ page: '2', pageSize: '5' })).toEqual({
+      page: 2,
+      pageSize: 5,
+    });
+  });
+
+  it('should reject invalid installation header and message list params', () => {
+    expect(() => InstallationIdHeaderSchema.parse('missing')).toThrow();
+    expect(() => MessageListQuerySchema.parse({ page: 0 })).toThrow();
+    expect(() => MessageListQuerySchema.parse({ pageSize: 21 })).toThrow();
+  });
+
+  it('should parse PRD-10 message and sign-in payloads', () => {
+    const signInStatus = SignInStatusSchema.parse({
+      server_date: '2026-07-29',
+      should_show_popup: true,
+      today_signed: false,
+      current_streak: 3,
+      reward_copy: '今日签到可领取第 4 天奖励',
+      days: [
+        { day: 1, title: '第 1 天', reward_label: '金币 x10', status: 'signed' },
+        { day: 2, title: '第 2 天', reward_label: '金币 x20', status: 'signed' },
+        { day: 3, title: '第 3 天', reward_label: '金币 x30', status: 'signed' },
+        { day: 4, title: '第 4 天', reward_label: '金币 x40', status: 'today' },
+        { day: 5, title: '第 5 天', reward_label: '金币 x50', status: 'locked' },
+        { day: 6, title: '第 6 天', reward_label: '金币 x60', status: 'locked' },
+        { day: 7, title: '第 7 天', reward_label: '金币 x70', status: 'locked' },
+      ],
+    });
+    expect(signInStatus.days).toHaveLength(7);
+
+    const preview = MessagePreviewSchema.parse({
+      title: '系统通知',
+      summary: '你关注的剧集已更新第 12 集。',
+      relative_time: '2小时前',
+    });
+    expect(preview.title).toBe('系统通知');
+
+    const systemMessage = SystemMessageSchema.parse({
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      title: '系统通知',
+      summary: '你关注的剧集已更新第 12 集。',
+      sent_at: '2026-07-29T08:00:00.000Z',
+    });
+    expect(systemMessage.id).toBe('550e8400-e29b-41d4-a716-446655440001');
+
+    const interactionMessage = InteractionMessageSchema.parse({
+      id: '660e8400-e29b-41d4-a716-446655440010',
+      type: 'comment_reply',
+      title: '有人回复了你的评论',
+      summary: '“这集反转真不错” 收到一条新回复。',
+      sent_at: '2026-07-29T09:00:00.000Z',
+    });
+    expect(interactionMessage.type).toBe('comment_reply');
+
+    const systemList = SystemMessageListResponseSchema.parse({
+      data: [systemMessage],
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
+    });
+    expect(systemList.data).toHaveLength(1);
+
+    const interactionList = InteractionMessageListResponseSchema.parse({
+      data: [interactionMessage],
+      pagination: { page: 1, page_size: 20, total: 1, total_pages: 1 },
+    });
+    expect(interactionList.data).toHaveLength(1);
+  });
+
+  it('should reject malformed PRD-10 payloads', () => {
+    expect(() => SignInStatusSchema.parse({
+      server_date: '2026-07-29',
+      should_show_popup: true,
+      today_signed: false,
+      current_streak: 3,
+      reward_copy: 'copy',
+      days: [],
+    })).toThrow();
+
+    expect(() => MessagePreviewSchema.parse({
+      title: '',
+      summary: 'summary',
+      relative_time: '1分钟前',
+    })).toThrow();
+
+    expect(() => SystemMessageSchema.parse({
+      id: 'bad-id',
+      title: 'x',
+      summary: 'y',
+      sent_at: '2026-07-29T08:00:00.000Z',
+    })).toThrow();
+
+    expect(() => InteractionMessageSchema.parse({
+      id: '660e8400-e29b-41d4-a716-446655440010',
+      type: 'unknown',
+      title: 'x',
+      summary: 'y',
+      sent_at: '2026-07-29T09:00:00.000Z',
+    })).toThrow();
   });
 });
 

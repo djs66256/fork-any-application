@@ -4,6 +4,7 @@ struct LoginInterceptionContext: Equatable, Identifiable, Sendable {
     enum Source: String, Codable, Equatable, Sendable {
         case profileEntry
         case rankingBooking
+        case messagesEntry
         case unknown
     }
 
