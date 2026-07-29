@@ -57,7 +57,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         let response = try await dataSource.sendOtp(phone: "13800138000", countryCode: "+86", scene: "login")
@@ -108,7 +108,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         let response = try await dataSource.createSession(
@@ -161,7 +161,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         let response = try await dataSource.refreshSession(refreshToken: "refresh-token")
@@ -198,7 +198,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         let response = try await dataSource.getCurrentUser(accessToken: "access-token")
@@ -227,7 +227,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         try await dataSource.logout(accessToken: "access-token")
@@ -245,7 +245,7 @@ struct AuthRemoteDataSourceTests {
         }
 
         let session = makeSession(handler: handler)
-        let client = APIClient(session: session)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
         let dataSource = AuthRemoteDataSource(client: client)
 
         do {

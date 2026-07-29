@@ -48,7 +48,7 @@ struct MenuPanelRepositoryTests {
         }
 
         let repository = MenuPanelRepository(
-            dataSource: PlayerRemoteDataSource(client: APIClient(session: session))
+            dataSource: PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         let items = try await repository.fetchRecentlyViewed(playbackSessionId: "session-001")
@@ -77,7 +77,7 @@ struct MenuPanelRepositoryTests {
         }
 
         let repository = MenuPanelRepository(
-            dataSource: PlayerRemoteDataSource(client: APIClient(session: session))
+            dataSource: PlayerRemoteDataSource(client: APIClient(session: session, baseURL: "https://api.example.com"))
         )
 
         await #expect(throws: APIError.self) {

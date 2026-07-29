@@ -20,6 +20,8 @@ enum AppRoute: Hashable, Sendable {
     case player(videoId: String)
     /// Detail screen for a specific drama.
     case dramaDetail(dramaId: String)
+    /// Mall login handoff placeholder.
+    case mallLogin(context: MallLoginContext)
     /// Placeholder page pushed from the menu panel.
     case menuPlaceholder(kind: MenuPlaceholderKind)
     /// Settings screen under profile tab.
@@ -38,6 +40,8 @@ enum AppRoute: Hashable, Sendable {
              .dramaDetail,
              .menuPlaceholder:
             return .home
+        case .mallLogin:
+            return .mall
         case .settings:
             return .profile
         }
@@ -63,6 +67,8 @@ enum AppRoute: Hashable, Sendable {
             return "play"
         case .dramaDetail:
             return "detail"
+        case .mallLogin:
+            return "mall/login"
         case .menuPlaceholder:
             return "menu/placeholder"
         case .settings:

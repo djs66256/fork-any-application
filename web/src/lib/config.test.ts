@@ -32,4 +32,18 @@ describe('config', () => {
     const { config } = await import('@/lib/config');
     expect(config.app.env).toBeDefined();
   });
+
+  it('should expose mall defaults', async () => {
+    const { config } = await import('@/lib/config');
+    expect(config.mall.route).toBe('/mall');
+    expect(config.mall.searchFallbackRoute).toBe('/search');
+    expect(config.mall.pageSize).toBe(20);
+    expect(config.mall.bridgeEnabled).toBe(true);
+  });
+
+  it('should honor mall bridge env override', async () => {
+    vi.stubEnv('NEXT_PUBLIC_MALL_BRIDGE_ENABLED', 'false');
+    const { config } = await import('@/lib/config');
+    expect(config.mall.bridgeEnabled).toBe(false);
+  });
 });

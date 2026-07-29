@@ -1,11 +1,21 @@
 import { ApiError, NetworkError, TimeoutError } from '@/lib/types';
 
-/**
- * Returns the base URL for API requests.
- * Reads from NEXT_PUBLIC_API_URL env var, falls back to http://localhost:3001.
- */
 function getBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  if (
+    configuredBaseUrl &&
+    configuredBaseUrl !== 'undefined' &&
+    configuredBaseUrl !== 'null'
+  ) {
+    return configuredBaseUrl;
+  }
+
+  if (typeof window !== 'undefined' && window.location.origin !== 'null') {
+    return window.location.origin;
+  }
+
+  throw new Error('NEXT_PUBLIC_API_URL is required when window origin is unavailable');
 }
 
 interface FetchConfig {
@@ -16,9 +26,28 @@ interface FetchConfig {
   timeoutMs?: number;
 }
 
-/**
- * Generic fetch wrapper with timeout, error handling, and query params.
- */
+function extractErrorMessage(errorBody: unknown): string | null {
+  if (!errorBody || typeof errorBody !== 'object') {
+    return null;
+  }
+
+  if ('message' in errorBody && typeof errorBody.message === 'string') {
+    return errorBody.message;
+  }
+
+  if (
+    'error' in errorBody &&
+    errorBody.error &&
+    typeof errorBody.error === 'object' &&
+    'message' in errorBody.error &&
+    typeof errorBody.error.message === 'string'
+  ) {
+    return errorBody.error.message;
+  }
+
+  return null;
+}
+
 export async function apiFetch<T = unknown>(
   endpoint: string,
   config: FetchConfig = {},
@@ -26,7 +55,6 @@ export async function apiFetch<T = unknown>(
   const { method = 'GET', body, params, headers, timeoutMs = 30000 } = config;
   const baseUrl = getBaseUrl();
 
-  // Build URL with query params
   const url = new URL(endpoint, baseUrl);
   if (params) {
     for (const [key, value] of Object.entries(params)) {
@@ -36,14 +64,16 @@ export async function apiFetch<T = unknown>(
     }
   }
 
-  // Setup abort controller for timeout
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...headers,
   };
+
+  if (body !== undefined) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
 
   try {
     const response = await fetch(url.toString(), {
@@ -57,16 +87,16 @@ export async function apiFetch<T = unknown>(
       let message = `HTTP ${response.status}: ${response.statusText}`;
       try {
         const errorBody = await response.json();
-        if (errorBody.message) {
-          message = errorBody.message;
+        const extractedMessage = extractErrorMessage(errorBody);
+        if (extractedMessage) {
+          message = extractedMessage;
         }
       } catch {
-        // use default message
+        // use default message when error response is not json
       }
       throw new ApiError(response.status, message);
     }
 
-    // Handle 204 No Content
     if (response.status === 204) {
       return undefined as T;
     }
@@ -80,9 +110,7 @@ export async function apiFetch<T = unknown>(
       throw new TimeoutError(`Request to ${endpoint} timed out after ${timeoutMs}ms`);
     }
     if (error instanceof TypeError) {
-      throw new NetworkError(
-        error.message || `Network error while fetching ${endpoint}`,
-      );
+      throw new NetworkError(error.message || `Network error while fetching ${endpoint}`);
     }
     throw error;
   } finally {
@@ -90,9 +118,6 @@ export async function apiFetch<T = unknown>(
   }
 }
 
-/**
- * Convenience methods for common HTTP verbs.
- */
 export const api = {
   get<T = unknown>(endpoint: string, config?: Omit<FetchConfig, 'method' | 'body'>) {
     return apiFetch<T>(endpoint, { ...config, method: 'GET' });

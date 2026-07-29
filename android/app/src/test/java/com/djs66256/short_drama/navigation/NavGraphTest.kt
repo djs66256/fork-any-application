@@ -57,6 +57,12 @@ class NavGraphTest {
     }
 
     @Test
+    fun `T-06 mall placeholder is replaced by mall screen and login route`() {
+        assertEquals(AppDestination.Route.MALL_LOGIN, "mall/login?productId={productId}&returnTarget={returnTarget}")
+        assertFalse(menuPlaceholderSpecs().any { it.route == AppDestination.Route.MALL })
+    }
+
+    @Test
     fun `T-08 drawer renders while animating and hides after fully closed`() {
         assertTrue(shouldRenderMenuDrawer(MenuPanelPresentationState.OPEN, progress = 1f))
         assertTrue(shouldRenderMenuDrawer(MenuPanelPresentationState.CLOSING, progress = 0.3f))

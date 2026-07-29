@@ -95,6 +95,30 @@ export const PaginationSchema = z.object({
   total_pages: z.number().int().min(0),
 });
 
+export const MallProductSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(1).max(200),
+  image_url: z.string().url(),
+  price: z.number().nonnegative(),
+  tags: z.array(z.string().trim().min(1).max(20)).max(3).default([]),
+});
+
+export type MallProduct = z.infer<typeof MallProductSchema>;
+
+export const MallProductsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export type MallProductsQuery = z.infer<typeof MallProductsQuerySchema>;
+
+export const MallProductsResponseSchema = z.object({
+  data: z.array(MallProductSchema),
+  pagination: PaginationSchema,
+});
+
+export type MallProductsResponse = z.infer<typeof MallProductsResponseSchema>;
+
 export const DramaListResponseSchema = z.object({
   data: z.array(DramaSchema),
   pagination: PaginationSchema,

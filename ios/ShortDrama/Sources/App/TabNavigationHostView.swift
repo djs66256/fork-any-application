@@ -32,6 +32,8 @@ struct TabNavigationHostView: View {
                         PlayerView(viewModel: makePlayerViewModel(videoId: videoId))
                     case .dramaDetail(let dramaId):
                         DramaDetailView(viewModel: DramaDetailViewModel(dramaId: dramaId))
+                    case .mallLogin:
+                        EmptyView()
                     case .menuPlaceholder(let kind):
                         MenuPlaceholderView(kind: kind)
                     case .settings:
@@ -50,10 +52,12 @@ struct TabNavigationHostView: View {
             HomeView()
         case .theater:
             TheaterView()
+        case .mall:
+            MallContainerView()
+        case .earn:
+            PlaceholderTabView(tab: tab)
         case .profile:
             ProfileHomeView()
-        case .mall, .earn:
-            PlaceholderTabView(tab: tab)
         }
     }
 

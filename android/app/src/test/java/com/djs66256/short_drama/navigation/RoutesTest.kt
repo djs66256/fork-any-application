@@ -95,6 +95,14 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-06 mall login route generates canonical destination`() {
+        assertEquals(
+            "mall/login?productId=product-001&returnTarget=%2Fmall",
+            AppDestination.mallLogin(productId = "product-001", returnTarget = "/mall"),
+        )
+    }
+
+    @Test
     fun `T-10 login route encodes return route and source`() {
         assertEquals(
             "login?returnRoute=ranking%3FcontentType%3Dall%26type%3Dbooking&source=ranking_booking",

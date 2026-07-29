@@ -1,0 +1,15 @@
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.searchButton {
+  justify-content: flex-start;
+  min-height: 44px;
+}
+
+.cartButton {
+  min-height: 44px;
+}
