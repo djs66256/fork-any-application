@@ -141,24 +141,24 @@
       "completed_at": "2026-07-29T03:41:15.460573+00:00"
     },
     "worktree-merge": {
-      "status": "in_progress",
+      "status": "completed",
       "started_at": "2026-07-29T03:41:15.466473+00:00",
-      "completed_at": null
+      "completed_at": "2026-07-29T04:29:08.844031+00:00"
     },
     "wiki-inclusion": {
-      "status": "pending",
-      "started_at": null,
-      "completed_at": null
+      "status": "completed",
+      "started_at": "2026-07-29T04:29:08.844203+00:00",
+      "completed_at": "2026-07-29T04:41:04.140720+00:00"
     },
     "completed": {
-      "status": "pending",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-07-29T04:41:04.141907+00:00",
       "completed_at": null
     }
   },
   "metadata": {
     "created_at": "2026-07-28T08:56:26.697439+00:00",
-    "updated_at": "2026-07-29T03:41:15.467174+00:00",
+    "updated_at": "2026-07-29T04:41:04.142598+00:00",
     "version": "1.0"
   }
 }

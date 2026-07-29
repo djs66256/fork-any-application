@@ -1,10 +1,11 @@
 # 功能域索引
 
-- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、菜单抽屉、搜索发现、排行、分类，“赚钱”频道承载 H5 容器与登录/任务回流，“我的”频道承载登录 / 设置等真实 Native 子页面的关系
+- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、菜单抽屉、搜索发现、排行、分类，“赚钱”频道承载 H5 容器与登录/任务回流，“我的”频道承载登录 / 设置等真实 Native 子页面；商城频道继续按 H5 容器策略承载
 - [认证体系 (Auth)](auth/index.md) — 移动端手机号验证码登录、自动注册、会话恢复 / refresh / logout、Profile 登录后态、排行预约登录拦截、评论写操作当前对齐的鉴权基线，以及赚钱 H5 容器的宿主登录态同步
 - [首页信息流 (Homepage Feed)](homepage-feed/index.md) — Android / iOS 首页首屏 Feed、Backend `GET /api/dramas` 契约、卡片到播放/详情页主链路，以及首页评论入口与页面内评论容器
 - [剧场频道 (Theater)](theater/index.md) — Android / iOS 独立剧场一级 Tab、`GET /api/dramas/channel`、8 频道切换、剧场快捷入口与 `play` 主路径复用
-- [搜索发现 (Search Discovery)](search-discovery/index.md) — 首页搜索入口与剧场搜索入口延伸出的搜索发现页、搜索结果页、热搜/历史、快捷入口与搜索 API 主链路
+- [商城频道 (Mall)](mall/index.md) — Web `/mall` 与 `/mall/product/[id]`、Android / iOS H5 容器接入、商品 Feed、搜索/登录 bridge 与商城上下文恢复
+- [搜索发现 (Search Discovery)](search-discovery/index.md) — 首页搜索入口与剧场搜索入口延伸出的搜索发现页、搜索结果页、热搜/历史、快捷入口与搜索 API 主链路，并承接商城搜索 bridge 复用
 - [排行体系 (Ranking)](ranking/index.md) — 搜索发现页与剧场快捷入口的排行承接、双层 Tab 榜单浏览、分页、预约拦截、可选鉴权榜单与登录后继续操作
 - [分类浏览 (Classification)](classification/index.md) — 搜索发现页分类入口、固定三维度标签矩阵、`GET /api/dramas/tags`、标签点击复用搜索结果页与 Native / Web 范围边界
 - [赚钱中心 (Earn Center)](earn/index.md) — Web `/earn` H5 页面、Android / iOS 原生容器接入、earn 专属 bridge / host sync、代表性任务播放回流与奖励闭环

@@ -5,6 +5,8 @@
 
 ## 功能概述
 
+PRD-08 为移动端补齐了从匿名态到登录态的完整认证闭环：Android 与 iOS 都提供手机号验证码登录页；Backend 提供 OTP 请求、验证码创建会话、刷新会话、当前用户查询与登出接口；“我的”频道、排行预约拦截，以及后续 H5 容器承接链路，都基于同一套 `AuthSession` 与 bearer token contract 运作。当前不提供独立注册页，首次验证码校验成功会自动注册用户，并通过 `isNewUser` 向客户端暴露首登语义（`docs/specs/2026-07-28-prd-08-login/spec.md:421-429,488-500`）。
+
 当前仓库中的认证体系已经形成三条并存但职责不同的链路：
 
 1. **移动端用户认证闭环**：Android 与 iOS 已接通手机号验证码登录、自动注册、会话恢复、refresh、`me` 校验与幂等 logout；Backend 通过 Auth API 与 canonical auth middleware 统一提供 access token / refresh token 语义。
@@ -25,10 +27,12 @@
 | Android | “我的”匿名态登录按钮 | `AppDestination.login(returnRoute = profile)` | `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/profile/ui/ProfileScreen.kt` |
 | Android | 排行预约登录拦截 | `RankingEffect.RequireLogin(returnRoute)` → `login?returnRoute=...&source=ranking_booking` | `android/app/src/main/java/com/djs66256/short_drama/feature/ranking/viewmodel/RankingViewModel.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt` |
 | Android | 评论写操作登录拦截 | `CommentEffect.RequireLogin(CommentLoginContext)`，宿主层当前以 placeholder dialog / Toast 承接 | `android/app/src/main/java/com/djs66256/short_drama/feature/comments/viewmodel/CommentSheetViewModel.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/home/ui/HomeScreen.kt`、`android/app/src/main/java/com/djs66256/short_drama/feature/player/viewmodel/PlayerViewModel.kt` |
+| Android | 商城商品点击登录承接 | `mall.requestLogin` → `AppDestination.Route.MALL_LOGIN`，并保留 `returnTarget=/mall` | `android/app/src/main/java/com/djs66256/short_drama/feature/mall/viewmodel/MallViewModel.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt` |
 | Android | 赚钱页登录承接 | `earn/login?returnTarget=/earn` | `android/app/src/main/java/com/djs66256/short_drama/navigation/AppDestination.kt`、`android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt` |
 | iOS | “我的”匿名态登录按钮 | `router.presentLogin(LoginInterceptionContext(source: .profileEntry))` | `ios/ShortDrama/Sources/Features/Profile/Views/ProfileHomeView.swift` |
 | iOS | 排行预约登录拦截 | `RankingRouteBuilder.loginContext(for:)` → `LoginInterceptionContext(source: .rankingBooking, returnRoute: .rankingHome)` | `ios/ShortDrama/Sources/Features/Ranking/Views/RankingHomeView.swift`、`ios/ShortDrama/Sources/Features/Ranking/RankingRouteBuilder.swift` |
 | iOS | 评论写操作登录拦截 | `.requireLogin(CommentLoginContext)`，宿主层当前以 alert 承接 | `ios/ShortDrama/Sources/Features/Comments/ViewModels/CommentSheetViewModel.swift`、`ios/ShortDrama/Sources/Features/Home/Views/HomeView.swift`、`ios/ShortDrama/Sources/Features/Player/Views/PlayerView.swift` |
+| iOS | 商城商品点击登录承接 | `MallContainerViewModel` 发出 `.requestLogin`，由 `NavigationRouter.presentMallLogin(_:)` 通过 `fullScreenCover` 承载 | `ios/ShortDrama/Sources/Features/Mall/ViewModels/MallContainerViewModel.swift`、`ios/ShortDrama/Sources/App/NavigationRouter.swift`、`ios/ShortDrama/Sources/Features/Mall/Views/MallContainerView.swift` |
 | iOS | 登录页承载方式 | `AppShellView.fullScreenCover(item: presentedLoginContext)` | `ios/ShortDrama/Sources/App/AppShellView.swift` |
 | iOS | 赚钱页登录承接 | `.earnLogin(context:)` → `router.dismissEarnLogin(completed:)` | `ios/ShortDrama/Sources/App/AppRoute.swift`、`ios/ShortDrama/Sources/App/NavigationRouter.swift` |
 | Backend | 用户 Auth API | `/api/auth/otp-requests`、`/api/auth/sessions`、`/api/auth/session-refreshes`、`/api/users/me`、`/api/auth/session` | `backend/src/app/api/auth/otp-requests/route.ts`、`backend/src/app/api/auth/sessions/route.ts`、`backend/src/app/api/auth/session-refreshes/route.ts`、`backend/src/app/api/users/me/route.ts`、`backend/src/app/api/auth/session/route.ts` |
@@ -185,6 +189,7 @@
 | 我的频道 | 主登录入口与登录后态展示 | 匿名态提供登录入口，登录后展示用户摘要与设置入口 |
 | 排行体系 | 预约拦截与登录后继续操作 | 预约榜未登录时统一进入登录流，并保留 return route |
 | 评论能力 | 写接口鉴权与容器恢复 | 评论写操作复用当前 auth 基线，并在登录后只恢复评论容器 |
+| 商城频道 | 商品点击登录承接 | 匿名点击商品时先出现 H5 页内拦截，再复用统一 Native 登录承接并保持 `returnTarget=/mall` |
 | 赚钱中心 | 宿主登录同步 | `/earn` 不自持久化 token，而是消费 Native 同步过来的权威快照 |
 | 数据模型 | `AuthSession` / `AuthUser` 共享契约 | Backend、Android、iOS 需保持字段语义一致 |
 | 管理平台 | 真实 role 校验 | Admin routes 依赖 `requireRole(...)` 与 Supabase role metadata |
@@ -213,7 +218,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
-| 2026-07-29 | 更新：以当前代码为准重写认证体系文档，统一收录移动端用户认证闭环、评论与预约接口对 canonical auth middleware 的复用、赚钱 H5 对宿主登录同步的依赖，以及 Web Admin 的真实 JWT + role 校验 |
+| 2026-07-29 | 更新：以当前代码为准重写认证体系文档，统一收录移动端用户认证闭环、评论与预约接口对 canonical auth middleware 的复用、商城匿名商品点击登录承接、赚钱 H5 对宿主登录同步的依赖，以及 Web Admin 的真实 JWT + role 校验 |
 | 2026-07-29 | 初始创建：收录 PRD-08 认证体系，覆盖移动端登录页、自动注册、会话恢复 / refresh / logout、“我的”频道登录后态与排行预约登录拦截 |
 
 ---

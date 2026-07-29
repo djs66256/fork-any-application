@@ -4,11 +4,11 @@
 
 ## 功能概述
 
-应用壳负责承载各端应用的启动入口、路由容器与基础页面骨架。PRD-01 已将移动端应用从单页占位结构演进为 5 个一级频道的底部导航容器；PRD-02 让首页频道从“应用信息占位页”演进为 Native 首页 Feed 首屏；PRD-05 把排行能力挂载到首页频道所属的搜索发现链路下；PRD-06 继续把分类浏览能力挂载到同一条发现链路中；PRD-07 再在首页根页左上角补充汉堡菜单触发的左侧抽屉式菜单面板，由 App Shell 统一承载 overlay/menu state，并在关闭动画完成后再执行菜单内导航；PRD-08 再把“我的”频道从纯占位容器推进为真实登录 / 账号承载入口，并在应用壳中补齐登录弹层 / 登录路由、设置页与退出登录回跳链路；PRD-12 则把“剧场”从占位一级频道推进为真实 Native 内容入口，并明确剧场内搜索/分类/排行/新剧会切回首页所属导航栈复用既有页面，只有剧场 feed 本身留在 theater tab 内承载；PRD-14 进一步把“赚钱”频道从占位 tab 推进为由 Native 容器承载的 H5 页面，并补齐 earn 专属登录承接、任务播放承接与 host message 回流。Web 端继续维持 SSR-first 的 Next.js App Router 结构；商城（mall）继续由 H5 承载但移动端仍为 placeholder，赚钱（earn）同样保持 H5 页面实现，不过 Android / iOS 已接入真实 WebView/WKWebView 容器（`PRODUCT.md:22-25`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:416-570`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:53-82`）。
+应用壳负责承载各端应用的启动入口、路由容器与基础页面骨架。PRD-01 已将移动端应用从单页占位结构演进为 5 个一级频道的底部导航容器；PRD-02 让首页频道从“应用信息占位页”演进为 Native 首页 Feed 首屏；PRD-05 把排行能力挂载到首页频道所属的搜索发现链路下；PRD-06 继续把分类浏览能力挂载到同一条发现链路中；PRD-07 再在首页根页左上角补充汉堡菜单触发的左侧抽屉式菜单面板，由 App Shell 统一承载 overlay/menu state，并在关闭动画完成后再执行菜单内导航；PRD-08 再把“我的”频道从纯占位容器推进为真实登录 / 账号承载入口，并在应用壳中补齐登录弹层 / 登录路由、设置页与退出登录回跳链路；PRD-12 则把“剧场”从占位一级频道推进为真实 Native 内容入口，并明确剧场内搜索/分类/排行/新剧会切回首页所属导航栈复用既有页面，只有剧场 feed 本身留在 theater tab 内承载；PRD-13 把“商城”推进为真实 H5 容器入口，补齐 Web `/mall` 与 `/mall/product/[id]`、Android / iOS WebView/WKWebView 容器、搜索/登录 bridge 与商城上下文恢复；PRD-14 再把“赚钱”频道从占位 tab 推进为由 Native 容器承载的 H5 页面，并补齐 earn 专属登录承接、任务播放承接与 host message 回流。Web 端继续维持 SSR-first 的 Next.js App Router 结构，用户端首页仍不是移动端同构实现；商城与赚钱都遵循 H5 承载策略，且 Android / iOS 已分别接入对应容器（`PRODUCT.md:22-25`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:416-570`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:53-82`）。
 
 - **覆盖端**：Web、Android、iOS、Backend
-- **核心价值**：为首页 Feed、剧场频道、菜单抽屉、搜索发现、排行页、分类页、播放页、详情页，以及“我的”频道的登录 / 设置链路提供统一承载容器
-- **当前状态**：移动端导航骨架已落地，其中首页频道已接入 Feed、左侧菜单抽屉、搜索发现、排行与分类等真实 Native 子页面；剧场频道已接入真实 feed；“我的”频道也已接入真实登录 / 设置 / 退出登录承接；赚钱频道已接入真实 H5 容器与 Native 登录/任务承接，商城仍以占位实现为主
+- **核心价值**：为首页 Feed、剧场频道、商城频道、赚钱频道、菜单抽屉、搜索发现、排行页、分类页、播放页、详情页，以及“我的”频道的登录 / 设置链路提供统一承载容器
+- **当前状态**：移动端导航骨架已落地，其中首页频道已接入 Feed、左侧菜单抽屉、搜索发现、排行与分类等真实 Native 子页面；剧场频道已接入真实 feed；商城与赚钱频道都已接入真实 H5 容器；“我的”频道也已接入真实登录 / 设置 / 退出登录承接
 
 ## 入口与路由
 
@@ -56,7 +56,7 @@
 1. `web/src/app/layout.tsx` 提供全局 metadata 和字体注入（`web/src/app/layout.tsx:15-33`）。
 2. 首页 `HomeScreen` 展示应用元信息，并提供代表性导航链接到 `/play/sample`、`/detail/sample`、`/search`、`/rankings`、`/mall`（`web/src/features/home/HomeScreen.tsx:27-50`）。
 3. 动态路由页在服务端先对 `id` 做 `trim()` + 非空校验，非法参数走 `notFound()`（`web/src/app/play/[id]/page.tsx:9-39`、`web/src/app/detail/[id]/page.tsx:9-39`）。
-4. 搜索、榜单、商城页统一复用 `PlaceholderRouteScreen`，只承担路由骨架职责（`web/src/features/placeholder-route/PlaceholderRouteScreen.tsx:3-21`, `web/src/app/rankings/page.tsx:1-9`）。
+4. 搜索与榜单页当前仍复用 `PlaceholderRouteScreen`，只承担路由骨架职责；但 `/mall` 已切换为真实 `MallPageScreen`，`/mall/product/[id]` 也已提供带 ID guard 的商品详情占位页（`web/src/features/placeholder-route/PlaceholderRouteScreen.tsx:3-21`、`web/src/app/rankings/page.tsx:1-9`、`web/src/app/mall/page.tsx:1-5`、`web/src/app/mall/product/[id]/page.tsx:1-39`）。
 
 ### Backend 端
 1. 服务首页继续作为运行信息与入口页，不参与移动端首页容器渲染。
@@ -78,7 +78,7 @@
 1. `ShortDramaApp` 持有单例 `NavigationRouter` 并通过 `.environmentObject(router)` 注入全局导航状态（`ios/ShortDrama/Sources/App/ShortDramaApp.swift:7-23`）。
 2. `AppShellView` 以 `TabView` 渲染 5 个一级频道，并在最外层 `ZStack` 中叠加 `MenuPanelContainerView`；同时在 `.task` 中先调用 `authStore.restoreIfNeeded()`、再调用 `router.markContainerReady()`；并通过 `.fullScreenCover(item: presentedLoginContext)` 承载登录页（`ios/ShortDrama/Sources/App/AppShellView.swift:7-49`）。
 3. `NavigationRouter` 为每个 Tab 维护独立 `NavigationPath`，并同时维护 `menuPanelState`、`pendingMenuNavigation` 与登录上下文；菜单只允许在 home Tab 打开，关闭动画结束后才会真正执行菜单内导航，而登录成功后会根据 `returnRoute` 回到 profile 或 ranking 等目标页（`ios/ShortDrama/Sources/App/NavigationRouter.swift:7-145`）。
-4. `TabNavigationHostView` 为每个 Tab 提供独立 `NavigationStack`，首页注册 `HomeView`、`SearchHomeView`、`SearchResultView`、`RankingHomeView`、`ClassificationHomeView`、`MenuPlaceholderView`、`PlayerView`、`DramaDetailView`，剧场 tab 直接渲染 `TheaterView()`，profile tab 注册 `ProfileHomeView` 并把 `.settings` 绑定到真实 `SettingsView`，仅商城与赚钱继续复用 `PlaceholderTabView`。
+4. `TabNavigationHostView` 为每个 Tab 提供独立 `NavigationStack`，首页注册 `HomeView`、`SearchHomeView`、`SearchResultView`、`RankingHomeView`、`ClassificationHomeView`、`MenuPlaceholderView`、`PlayerView`、`DramaDetailView`，剧场 tab 直接渲染 `TheaterView()`，商城 tab 已切换为 `MallContainerView()`，profile tab 注册 `ProfileHomeView` 并把 `.settings` 绑定到真实 `SettingsView`，当前仅赚钱频道继续复用 `PlaceholderTabView`。
 5. `HomeView` 左上角 toolbar 汉堡按钮调用 `router.openMenuPanel()`；`MenuPanelContainerView` 负责最近在看加载、登录/消息/预约/下载先关菜单再导航，以及游戏中心 `Alert` 本地反馈。
 6. `ProfileHomeView` 会根据 `authStore.status` 在匿名态 / restoring / authenticated 三态间切换；匿名态可拉起登录页，已登录态可进入设置页，排行预约未登录时则由 `RankingHomeView` 通过 `RankingRouteBuilder.loginContext(for:)` 复用同一登录承载。
 
@@ -195,9 +195,9 @@
 
 ## 已知限制
 
-- Android / iOS 的“我的”频道已接入真实登录 / 设置承载；赚钱也已接入真实 H5 容器，但商城仍是占位页，真实业务内容尚未接入。
-- Web 端当前只补齐路由骨架，没有实现移动端同等的底部导航 UI，也没有实现首页汉堡菜单、剧场频道或独立用户端登录页。
-- 商城（mall）与赚钱（earn）都保持 H5 承载策略，但当前移动端只有赚钱已接入真实 WebView/WKWebView 容器，商城仍是 placeholder tab（`PRODUCT.md:22-25`, `android/app/src/main/java/com/djs66256/short_drama/navigation/NavGraph.kt:416-570`, `ios/ShortDrama/Sources/App/TabNavigationHostView.swift:53-82`）。
+- Android / iOS 的“我的”频道已接入真实登录 / 设置承载，商城与赚钱频道也都已接入真实 H5 容器。
+- Web 端当前只补齐用户端路由承接，没有实现移动端同等的底部导航 UI，也没有实现首页汉堡菜单、剧场频道或独立用户端登录页。
+- 商城（mall）与赚钱（earn）都保持 H5 承载策略，并已由移动端容器接入；但对应 H5 页面仍不是完整线上业务，只覆盖当前 PRD 所需范围（`PRODUCT.md:22-25`）。
 - 菜单中的登录、消息、预约、下载仍是 Native 占位承接页；游戏中心仅提供“即将上线”本地反馈，不导航到真实页面。
 - 播放页与详情页仍是占位实现，仅展示路由参数，不含真实业务数据或播放能力。
 - Backend 最近在看、播放进度与首页内容当前仍主要来自 mock repository / in-memory history，不是线上内容服务或持久化用户体系；但排行 / 预约与 auth 已切到真实 Supabase 路径。
@@ -208,7 +208,7 @@
 
 | 日期 | 变更摘要 |
 |------|---------|
-| 2026-07-29 | 更新：同步 PRD-14 赚钱中心落地结果，补充赚钱 tab 已接入真实 H5 容器、Native 登录 / 任务承接与 host message 回流，并修正商城与赚钱不再同属 placeholder 的过时描述 |
+| 2026-07-29 | 更新：同步 PRD-14 赚钱中心落地结果，补充赚钱 tab 已接入真实 H5 容器、Native 登录 / 任务承接与 host message 回流，并与 PRD-13 商城容器现状一并对齐，修正文档中过时的 placeholder 描述 |
 | 2026-07-29 | 更新：同步 PRD-08 登录闭环后“我的”频道已接入真实登录 / 设置 / 退出登录承载，补充移动端登录入口与回跳、Backend 认证接口、排行预约登录拦截，以及 Web 仍无用户端登录页的现状 |
 | 2026-07-28 | 更新：同步 PRD-12 剧场频道落地结果，补充剧场一级 tab、`GET /api/dramas/channel`、剧场到首页拥有页面的跨 tab 复用策略，并修正文档中剧场仍为占位页的过时描述 |
 | 2026-07-28 | 更新：同步 PRD-07 菜单面板落地结果，补充首页左上角汉堡菜单触发的抽屉 overlay、菜单承接页路由、最近在看状态与关闭后导航时序，并明确 Web 不涉及本期菜单面板 |
