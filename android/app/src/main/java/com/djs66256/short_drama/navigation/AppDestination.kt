@@ -36,6 +36,7 @@ object Arg {
     const val RETURN_ROUTE = "returnRoute"
     const val SOURCE = "source"
     const val PRODUCT_ID = "productId"
+    const val TASK_ID = "taskId"
     const val RETURN_TARGET = "returnTarget"
 }
 
@@ -58,6 +59,8 @@ object Route {
     const val NEW_RELEASES = "new-releases"
     const val ACTORS = "actors"
     const val MALL_LOGIN = "mall/login?productId={productId}&returnTarget={returnTarget}"
+    const val EARN_LOGIN = "earn/login?returnTarget={returnTarget}"
+    const val EARN_PLAY = "earn/play?taskId={taskId}&source={source}&returnTarget={returnTarget}&videoId={videoId}"
     const val MENU_LOGIN = "menu/login"
     const val MENU_MESSAGES = "menu/messages"
     const val MENU_BOOKING = "menu/booking"
@@ -92,6 +95,8 @@ object AppDestination {
         const val NEW_RELEASES = com.djs66256.short_drama.navigation.Route.NEW_RELEASES
         const val ACTORS = com.djs66256.short_drama.navigation.Route.ACTORS
         const val MALL_LOGIN = com.djs66256.short_drama.navigation.Route.MALL_LOGIN
+        const val EARN_LOGIN = com.djs66256.short_drama.navigation.Route.EARN_LOGIN
+        const val EARN_PLAY = com.djs66256.short_drama.navigation.Route.EARN_PLAY
         const val MENU_LOGIN = com.djs66256.short_drama.navigation.Route.MENU_LOGIN
         const val MENU_MESSAGES = com.djs66256.short_drama.navigation.Route.MENU_MESSAGES
         const val MENU_BOOKING = com.djs66256.short_drama.navigation.Route.MENU_BOOKING
@@ -108,6 +113,7 @@ object AppDestination {
         const val RETURN_ROUTE = com.djs66256.short_drama.navigation.Arg.RETURN_ROUTE
         const val SOURCE = com.djs66256.short_drama.navigation.Arg.SOURCE
         const val PRODUCT_ID = com.djs66256.short_drama.navigation.Arg.PRODUCT_ID
+        const val TASK_ID = com.djs66256.short_drama.navigation.Arg.TASK_ID
         const val RETURN_TARGET = com.djs66256.short_drama.navigation.Arg.RETURN_TARGET
     }
 
@@ -147,6 +153,19 @@ object AppDestination {
 
     fun mallLogin(productId: String, returnTarget: String): String {
         return "mall/login?productId=${encodeRouteParam(productId)}&returnTarget=${encodeRouteParam(returnTarget)}"
+    }
+
+    fun earnLogin(returnTarget: String): String {
+        return "earn/login?returnTarget=${encodeRouteParam(returnTarget)}"
+    }
+
+    fun earnPlay(taskId: String, source: String, returnTarget: String, videoId: String): String {
+        return buildString {
+            append("earn/play?taskId=${encodeRouteParam(taskId)}")
+            append("&source=${encodeRouteParam(source)}")
+            append("&returnTarget=${encodeRouteParam(returnTarget)}")
+            append("&videoId=${encodeRouteParam(videoId)}")
+        }
     }
 
     fun menuLogin(): String = Route.MENU_LOGIN

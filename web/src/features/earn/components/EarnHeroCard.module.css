@@ -1,0 +1,67 @@
+.card {
+  padding: var(--space-4);
+  border-radius: calc(var(--radius) * 3);
+  background: linear-gradient(135deg, #1b3b7a 0%, #4d7cff 100%);
+  color: var(--color-fg-on-emphasis);
+  border: none;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.eyebrow {
+  font-size: var(--font-size-small);
+  opacity: 0.9;
+}
+
+.title {
+  margin-top: var(--space-1);
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-top: var(--space-2);
+  max-width: 32ch;
+  font-size: var(--font-size-body);
+  opacity: 0.92;
+}
+
+.summary {
+  min-width: 128px;
+  padding: var(--space-3);
+  border-radius: calc(var(--radius) * 2);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.summaryLabel {
+  display: block;
+  font-size: var(--font-size-small);
+  opacity: 0.8;
+}
+
+.summaryValue {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: clamp(32px, 10vw, 44px);
+  line-height: 1;
+}
+
+.loginHint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 767px) {
+  .hero,
+  .loginHint {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

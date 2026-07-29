@@ -23,7 +23,13 @@ export function useEpisodes(dramaId: string) {
   }, [dramaId]);
 
   useEffect(() => {
-    fetchEpisodes();
+    const timeoutId = window.setTimeout(() => {
+      void fetchEpisodes();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchEpisodes]);
 
   return { episodes, isLoading, error, refetch: fetchEpisodes };

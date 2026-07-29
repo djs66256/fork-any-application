@@ -1,0 +1,12 @@
+.toast {
+  position: sticky;
+  bottom: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: calc(var(--radius) * 2);
+  background: var(--color-header-bg);
+  color: var(--color-fg-on-emphasis);
+}

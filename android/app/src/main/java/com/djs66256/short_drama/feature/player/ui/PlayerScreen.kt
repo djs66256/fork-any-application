@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.djs66256.short_drama.domain.model.Episode
 import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
 import com.djs66256.short_drama.feature.comments.ui.CommentBottomSheet
 import com.djs66256.short_drama.feature.comments.ui.CommentLoginPlaceholderDialog
@@ -39,10 +42,10 @@ import com.djs66256.short_drama.feature.player.ui.components.PlayerRightActionBa
 import com.djs66256.short_drama.feature.player.ui.components.PlayerStatusContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerTopBar
 import com.djs66256.short_drama.feature.player.ui.components.SpeedPickerSheetContent
+import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerEffect
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
-import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerViewModel
 
 internal enum class PlayerContentVariant {
@@ -52,10 +55,28 @@ internal enum class PlayerContentVariant {
     CONTENT,
 }
 
+private data class PlayerContentCallbacks(
+    val onBack: () -> Unit,
+    val onToggleSpeedSheet: () -> Unit,
+    val onToggleMoreSheet: () -> Unit,
+    val onToggleEpisodeSheet: () -> Unit,
+    val onToggleLike: () -> Unit,
+    val onToggleFavorite: () -> Unit,
+    val onOpenComments: () -> Unit,
+    val onSelectSpeed: (PlaybackSpeed) -> Unit,
+    val onSelectEpisode: (Episode) -> Unit,
+    val onCommentLoginRequired: (CommentLoginContext) -> Unit,
+    val onCommentMessage: (String) -> Unit,
+    val onDismissComments: () -> Unit,
+    val onPlaybackCompleted: (() -> Unit)? = null,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     navController: NavController? = null,
+    onBack: (() -> Unit)? = null,
+    onPlaybackCompleted: (() -> Unit)? = null,
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -63,6 +84,7 @@ fun PlayerScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val fallbackNavController = rememberNavController()
     val activeNavController = navController ?: fallbackNavController
+    val resolvedOnBack: () -> Unit = onBack ?: { activeNavController.popBackStack(); Unit }
     var pendingCommentLoginContext by remember { mutableStateOf<CommentLoginContext?>(null) }
 
     LaunchedEffect(Unit) {
@@ -123,7 +145,7 @@ fun PlayerScreen(
         PlayerContentVariant.CONTENT -> PlayerContent(
             uiState = uiState,
             callbacks = PlayerContentCallbacks(
-                onBack = { activeNavController.popBackStack() },
+                onBack = resolvedOnBack,
                 onToggleSpeedSheet = viewModel::toggleSpeedSheet,
                 onToggleMoreSheet = {},
                 onToggleEpisodeSheet = viewModel::toggleEpisodeSheet,
@@ -135,6 +157,7 @@ fun PlayerScreen(
                 onCommentLoginRequired = viewModel::onCommentLoginRequired,
                 onCommentMessage = viewModel::onCommentMessage,
                 onDismissComments = viewModel::closeComments,
+                onPlaybackCompleted = onPlaybackCompleted,
             ),
         )
     }
@@ -154,21 +177,6 @@ fun PlayerScreen(
         )
     }
 }
-
-private data class PlayerContentCallbacks(
-    val onBack: () -> Unit,
-    val onToggleSpeedSheet: () -> Unit,
-    val onToggleMoreSheet: () -> Unit,
-    val onToggleEpisodeSheet: () -> Unit,
-    val onToggleLike: () -> Unit,
-    val onToggleFavorite: () -> Unit,
-    val onOpenComments: () -> Unit,
-    val onSelectSpeed: (PlaybackSpeed) -> Unit,
-    val onSelectEpisode: (com.djs66256.short_drama.domain.model.Episode) -> Unit,
-    val onCommentLoginRequired: (com.djs66256.short_drama.feature.comments.model.CommentLoginContext) -> Unit,
-    val onCommentMessage: (String) -> Unit,
-    val onDismissComments: () -> Unit,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,6 +217,11 @@ private fun PlayerContent(
                 statusLabel = uiState.seriesStatus.label,
                 onOpenEpisodeSheet = callbacks.onToggleEpisodeSheet,
             )
+            callbacks.onPlaybackCompleted?.let { completionHandler ->
+                Button(onClick = completionHandler) {
+                    Text("模拟任务完成")
+                }
+            }
         }
     }
 

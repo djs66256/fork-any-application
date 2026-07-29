@@ -240,6 +240,7 @@ class MallViewModelTest {
 
     private data class FakeAppConfig(
         override val mallBaseUrl: String = "https://mall.example.com",
+        override val earnBaseUrl: String = "https://earn.example.com",
     ) : AppConfig {
         override val isDebug: Boolean = true
         override val apiBaseUrl: String = "https://api.example.com/api/"

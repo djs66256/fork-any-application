@@ -30,9 +30,12 @@ struct TabNavigationHostView: View {
                         DiscoveryPlaceholderView(kind: .actorHub)
                     case .player(let videoId):
                         PlayerView(viewModel: makePlayerViewModel(videoId: videoId))
+                    case .earnPlayer(let context):
+                        PlayerView(viewModel: makePlayerViewModel(videoId: context.videoId, earnTaskContext: context))
                     case .dramaDetail(let dramaId):
                         DramaDetailView(viewModel: DramaDetailViewModel(dramaId: dramaId))
-                    case .mallLogin:
+                    case .mallLogin,
+                         .earnLogin:
                         EmptyView()
                     case .menuPlaceholder(let kind):
                         MenuPlaceholderView(kind: kind)
@@ -55,22 +58,27 @@ struct TabNavigationHostView: View {
         case .mall:
             MallContainerView()
         case .earn:
-            PlaceholderTabView(tab: tab)
+            EarnContainerView()
         case .profile:
             ProfileHomeView()
         }
     }
 
-    private func makePlayerViewModel(videoId: String) -> PlayerViewModel {
+    private func makePlayerViewModel(
+        videoId: String,
+        earnTaskContext: EarnTaskContext? = nil
+    ) -> PlayerViewModel {
         let repository = PlayerRepository()
         return PlayerViewModel(
             videoId: videoId,
             router: router,
+            earnTaskContext: earnTaskContext,
             fetchPlayerProgressUseCase: FetchPlayerProgressUseCase(repository: repository),
             fetchDramaEpisodesUseCase: FetchDramaEpisodesUseCase(repository: repository),
             startPlaybackUseCase: StartPlaybackUseCase(repository: repository),
             stopPlaybackUseCase: StopPlaybackUseCase(repository: repository),
-            playbackSessionStore: KeychainPlaybackSessionStore()
+            playbackSessionStore: KeychainPlaybackSessionStore(),
+            isUserLoggedIn: { authStore.isAuthenticated }
         )
     }
 }

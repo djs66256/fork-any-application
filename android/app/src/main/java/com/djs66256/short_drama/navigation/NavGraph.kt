@@ -1,5 +1,6 @@
 package com.djs66256.short_drama.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -41,6 +42,14 @@ import com.djs66256.short_drama.feature.auth.ui.LoginScreen
 import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
 import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
+import com.djs66256.short_drama.feature.earn.model.EARN_SOURCE
+import com.djs66256.short_drama.feature.earn.model.EarnLoginContext
+import com.djs66256.short_drama.feature.earn.model.EarnLoginResult
+import com.djs66256.short_drama.feature.earn.model.EarnTaskContext
+import com.djs66256.short_drama.feature.earn.model.EarnTaskPlayerResult
+import com.djs66256.short_drama.feature.earn.model.EarnTaskPlayerResultReason
+import com.djs66256.short_drama.feature.earn.ui.EarnLoginScreen
+import com.djs66256.short_drama.feature.earn.ui.EarnScreen
 import com.djs66256.short_drama.feature.home.ui.HomeScreen
 import com.djs66256.short_drama.feature.mall.model.MallLoginContext
 import com.djs66256.short_drama.feature.mall.model.MallLoginResult
@@ -70,6 +79,10 @@ fun NavGraph(
     var mallSearchReturnSignal by remember { mutableStateOf(0) }
     var mallLoginResultSignal by remember { mutableStateOf(0) }
     var latestMallLoginResult by remember { mutableStateOf<MallLoginResult?>(null) }
+    var earnLoginResultSignal by remember { mutableStateOf(0) }
+    var latestEarnLoginResult by remember { mutableStateOf<EarnLoginResult?>(null) }
+    var earnTaskPlayerResultSignal by remember { mutableStateOf(0) }
+    var latestEarnTaskPlayerResult by remember { mutableStateOf<EarnTaskPlayerResult?>(null) }
 
     LaunchedEffect(uiState.pendingRoute) {
         when (val pendingRoute = uiState.pendingRoute) {
@@ -405,10 +418,154 @@ fun NavGraph(
                     route = AppDestination.Graph.EARN,
                 ) {
                     composable(route = AppDestination.Route.EARN) {
-                        PlaceholderScreen(
-                            title = TopLevelTab.EARN.label,
-                            description = "赚钱频道占位页，后续 PRD 会在这里接入真实内容。",
+                        EarnScreen(
+                            onOpenEarnLogin = { context: EarnLoginContext ->
+                                navController.navigate(
+                                    AppDestination.earnLogin(context.returnTarget),
+                                )
+                            },
+                            onOpenEarnTaskPlayer = { context: EarnTaskContext ->
+                                navController.navigate(
+                                    AppDestination.earnPlay(
+                                        taskId = context.taskId,
+                                        source = context.source,
+                                        returnTarget = context.returnTarget,
+                                        videoId = context.videoId,
+                                    ),
+                                )
+                            },
+                            loginResultSignal = earnLoginResultSignal,
+                            latestLoginResult = latestEarnLoginResult,
+                            taskPlayerResultSignal = earnTaskPlayerResultSignal,
+                            latestTaskPlayerResult = latestEarnTaskPlayerResult,
                         )
+                    }
+                    composable(
+                        route = AppDestination.Route.EARN_LOGIN,
+                        arguments = listOf(
+                            navArgument(AppDestination.Arg.RETURN_TARGET) {
+                                type = NavType.StringType
+                                defaultValue = "/earn"
+                            },
+                        ),
+                    ) { backStackEntry ->
+                        val returnTarget = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.RETURN_TARGET)
+                            .orEmpty()
+                        EarnLoginScreen(
+                            returnTarget = returnTarget,
+                            onClose = {
+                                latestEarnLoginResult = EarnLoginResult.CLOSED
+                                earnLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
+                            onCancel = {
+                                latestEarnLoginResult = EarnLoginResult.CANCELLED
+                                earnLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
+                            onSuccess = {
+                                latestEarnLoginResult = EarnLoginResult.SUCCESS
+                                earnLoginResultSignal += 1
+                                navController.popBackStack()
+                            },
+                        )
+                    }
+                    composable(
+                        route = AppDestination.Route.EARN_PLAY,
+                        arguments = listOf(
+                            navArgument(AppDestination.Arg.TASK_ID) {
+                                type = NavType.StringType
+                                defaultValue = ""
+                            },
+                            navArgument(AppDestination.Arg.SOURCE) {
+                                type = NavType.StringType
+                                defaultValue = EARN_SOURCE
+                            },
+                            navArgument(AppDestination.Arg.RETURN_TARGET) {
+                                type = NavType.StringType
+                                defaultValue = "/earn"
+                            },
+                            navArgument(AppDestination.Arg.VIDEO_ID) {
+                                type = NavType.StringType
+                                defaultValue = ""
+                            },
+                        ),
+                    ) { backStackEntry ->
+                        val taskId = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.TASK_ID)
+                            .orEmpty()
+                        val source = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.SOURCE)
+                            .orEmpty()
+                        val returnTarget = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.RETURN_TARGET)
+                            .orEmpty()
+                        val videoId = backStackEntry.arguments
+                            ?.getString(AppDestination.Arg.VIDEO_ID)
+                            .orEmpty()
+                        val taskContext = EarnTaskContext(
+                            taskId = taskId,
+                            source = source,
+                            returnTarget = returnTarget,
+                            videoId = videoId,
+                        )
+
+                        if (!taskContext.isValid()) {
+                            LaunchedEffect(taskId, videoId) {
+                                latestEarnTaskPlayerResult = EarnTaskPlayerResult(
+                                    taskId = taskId,
+                                    videoId = videoId,
+                                    completed = false,
+                                    reason = EarnTaskPlayerResultReason.ERROR,
+                                    source = source.ifBlank { EARN_SOURCE },
+                                )
+                                earnTaskPlayerResultSignal += 1
+                                navController.popBackStack()
+                            }
+                        } else {
+                            val resultDeliveredKey = "earn_result_delivered"
+                            var resultDelivered by remember(taskId, videoId) {
+                                mutableStateOf(
+                                    backStackEntry.savedStateHandle.get<Boolean>(resultDeliveredKey) == true,
+                                )
+                            }
+
+                            BackHandler {
+                                if (!resultDelivered) {
+                                    latestEarnTaskPlayerResult = EarnTaskPlayerResult(
+                                        taskId = taskId,
+                                        videoId = videoId,
+                                        completed = false,
+                                        reason = EarnTaskPlayerResultReason.USER_EXIT,
+                                        source = source,
+                                    )
+                                    earnTaskPlayerResultSignal += 1
+                                    backStackEntry.savedStateHandle[resultDeliveredKey] = true
+                                    resultDelivered = true
+                                }
+                                navController.popBackStack()
+                            }
+
+                            PlayerScreen(
+                                navController = navController,
+                                onPlaybackCompleted = {
+                                    if (!resultDelivered) {
+                                        latestEarnTaskPlayerResult = EarnTaskPlayerResult(
+                                            taskId = taskId,
+                                            videoId = videoId,
+                                            completed = true,
+                                            reason = EarnTaskPlayerResultReason.PLAYBACK_ENDED,
+                                            source = source,
+                                        )
+                                        earnTaskPlayerResultSignal += 1
+                                        backStackEntry.savedStateHandle[resultDeliveredKey] = true
+                                        resultDelivered = true
+                                    }
+                                    navController.popBackStack()
+                                },
+                            )
+                        }
                     }
                 }
 

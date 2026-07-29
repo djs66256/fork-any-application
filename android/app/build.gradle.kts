@@ -39,9 +39,13 @@ android {
         val mallBaseUrl = normalizeMallBaseUrl(
             localProperties.getProperty("mall.base.url", apiBaseUrl),
         )
+        val earnBaseUrl = normalizeMallBaseUrl(
+            localProperties.getProperty("earn.base.url", apiBaseUrl),
+        )
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         buildConfigField("String", "MALL_BASE_URL", "\"$mallBaseUrl\"")
+        buildConfigField("String", "EARN_BASE_URL", "\"$earnBaseUrl\"")
         buildConfigField("String", "APP_NAME", "\"ShortDrama\"")
         buildConfigField("String", "APP_VERSION", "\"${versionName}\"")
     }

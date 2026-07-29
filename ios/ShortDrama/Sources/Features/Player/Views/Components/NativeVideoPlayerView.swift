@@ -5,9 +5,13 @@ struct NativeVideoPlayerView: View {
     let url: URL?
     let playbackRate: Float
     let onProgressChange: (Double) -> Void
+    let onPlaybackEnded: () -> Void
+    let onPlaybackFailed: (String) -> Void
 
     @State private var player = AVPlayer()
     @State private var timeObserverToken: Any?
+    @State private var playbackEndObserver: NSObjectProtocol?
+    @State private var playbackFailureObserver: NSObjectProtocol?
 
     var body: some View {
         VideoPlayer(player: player)
@@ -23,6 +27,7 @@ struct NativeVideoPlayerView: View {
                 }
             }
             .onDisappear {
+                removePlaybackObservers()
                 if let timeObserverToken {
                     player.removeTimeObserver(timeObserverToken)
                     self.timeObserverToken = nil
@@ -40,6 +45,7 @@ struct NativeVideoPlayerView: View {
         let item = AVPlayerItem(url: url)
         player.replaceCurrentItem(with: item)
         attachObserverIfNeeded()
+        attachPlaybackObservers(for: item)
         player.playImmediately(atRate: playbackRate)
     }
 
@@ -50,6 +56,36 @@ struct NativeVideoPlayerView: View {
             queue: .main
         ) { time in
             onProgressChange(max(time.seconds, 0))
+        }
+    }
+
+    private func attachPlaybackObservers(for item: AVPlayerItem) {
+        removePlaybackObservers()
+        playbackEndObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { _ in
+            onPlaybackEnded()
+        }
+        playbackFailureObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemFailedToPlayToEndTime,
+            object: item,
+            queue: .main
+        ) { notification in
+            let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
+            onPlaybackFailed(error?.localizedDescription ?? "播放失败")
+        }
+    }
+
+    private func removePlaybackObservers() {
+        if let playbackEndObserver {
+            NotificationCenter.default.removeObserver(playbackEndObserver)
+            self.playbackEndObserver = nil
+        }
+        if let playbackFailureObserver {
+            NotificationCenter.default.removeObserver(playbackFailureObserver)
+            self.playbackFailureObserver = nil
         }
     }
 }

@@ -103,6 +103,27 @@ class RoutesTest {
     }
 
     @Test
+    fun `T-07 earn login route generates canonical destination`() {
+        assertEquals(
+            "earn/login?returnTarget=%2Fearn",
+            AppDestination.earnLogin(returnTarget = "/earn"),
+        )
+    }
+
+    @Test
+    fun `T-07 earn play route preserves task source return target and video id`() {
+        assertEquals(
+            "earn/play?taskId=task-001&source=earn&returnTarget=%2Fearn&videoId=drama-001-episode-01",
+            AppDestination.earnPlay(
+                taskId = "task-001",
+                source = "earn",
+                returnTarget = "/earn",
+                videoId = "drama-001-episode-01",
+            ),
+        )
+    }
+
+    @Test
     fun `T-10 login route encodes return route and source`() {
         assertEquals(
             "login?returnRoute=ranking%3FcontentType%3Dall%26type%3Dbooking&source=ranking_booking",

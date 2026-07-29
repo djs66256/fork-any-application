@@ -22,6 +22,10 @@ enum AppRoute: Hashable, Sendable {
     case dramaDetail(dramaId: String)
     /// Mall login handoff placeholder.
     case mallLogin(context: MallLoginContext)
+    /// Earn login handoff placeholder.
+    case earnLogin(context: EarnLoginContext)
+    /// Earn player handoff route.
+    case earnPlayer(context: EarnTaskContext)
     /// Placeholder page pushed from the menu panel.
     case menuPlaceholder(kind: MenuPlaceholderKind)
     /// Settings screen under profile tab.
@@ -42,6 +46,9 @@ enum AppRoute: Hashable, Sendable {
             return .home
         case .mallLogin:
             return .mall
+        case .earnLogin,
+             .earnPlayer:
+            return .earn
         case .settings:
             return .profile
         }
@@ -69,6 +76,10 @@ enum AppRoute: Hashable, Sendable {
             return "detail"
         case .mallLogin:
             return "mall/login"
+        case .earnLogin:
+            return "earn/login"
+        case .earnPlayer:
+            return "earn/player"
         case .menuPlaceholder:
             return "menu/placeholder"
         case .settings:

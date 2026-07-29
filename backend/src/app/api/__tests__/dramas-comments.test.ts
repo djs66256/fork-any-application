@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
+import { clearLocalAuthSessions, createLocalAuthSession } from '@/services/auth/local-auth-session.store';
 import {
   resetRepositoryRegistry,
   setCommentRepository,
@@ -37,6 +38,7 @@ class MissingCommentRepository implements CommentRepositoryInterface {
 
 describe('comments routes', () => {
   beforeEach(() => {
+    clearLocalAuthSessions();
     resetRepositoryRegistry();
     setDramaRepository(new DramaMockRepository());
     setCommentRepository(new CommentMockRepository());
@@ -69,7 +71,13 @@ describe('comments routes', () => {
       `https://example.com/api/dramas/${DRAMA_ID}/comments?sort=hot&page=1&pageSize=2`,
       {
         headers: {
-          'x-user-id': USER_ID,
+          Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
         },
       },
     );
@@ -123,7 +131,13 @@ describe('comments routes', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-user-id': USER_ID,
+        Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
       },
       body: JSON.stringify({ content: '  新评论  ' }),
     });
@@ -156,7 +170,7 @@ describe('comments routes', () => {
     const createBody = await createResponse.json();
 
     expect(createResponse.status).toBe(401);
-    expect(createBody.error.code).toBe('UNAUTHORIZED');
+    expect(createBody.error.code).toBe('AUTH_UNAUTHORIZED');
 
     const likeRequest = new NextRequest(
       `https://example.com/api/dramas/${DRAMA_ID}/comments/${COMMENT_ID}/like`,
@@ -168,7 +182,7 @@ describe('comments routes', () => {
     const likeBody = await likeResponse.json();
 
     expect(likeResponse.status).toBe(401);
-    expect(likeBody.error.code).toBe('UNAUTHORIZED');
+    expect(likeBody.error.code).toBe('AUTH_UNAUTHORIZED');
   });
 
   it('should return 400 for invalid create body and like path', async () => {
@@ -176,7 +190,13 @@ describe('comments routes', () => {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-user-id': USER_ID,
+        Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
       },
       body: JSON.stringify({ content: '   ' }),
     });
@@ -191,7 +211,13 @@ describe('comments routes', () => {
     const likeRequest = new NextRequest('https://example.com/api/dramas/bad/comments/bad/like', {
       method: 'POST',
       headers: {
-        'x-user-id': USER_ID,
+        Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
       },
     });
     const likeResponse = await POST_LIKE(likeRequest, {
@@ -209,7 +235,13 @@ describe('comments routes', () => {
       {
         method: 'POST',
         headers: {
-          'x-user-id': USER_ID,
+          Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
         },
       },
     );
@@ -235,7 +267,13 @@ describe('comments routes', () => {
       {
         method: 'POST',
         headers: {
-          'x-user-id': USER_ID,
+          Authorization: `Bearer ${createLocalAuthSession({
+            userId: USER_ID,
+            phone: '13800138000',
+            role: 'viewer',
+            accessTokenTtlSeconds: 3600,
+            refreshTokenTtlSeconds: 2592000,
+          }).accessToken}`,
         },
       },
     );

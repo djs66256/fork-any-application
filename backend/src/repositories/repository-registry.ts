@@ -2,10 +2,12 @@ import { config } from '@/lib/config';
 import { CommentRepositoryInterface } from '@/repositories/interfaces/comment.repository.interface';
 import { DramaRepositoryInterface } from '@/repositories/interfaces/drama.repository.interface';
 import { EpisodeRepositoryInterface } from '@/repositories/interfaces/episode.repository.interface';
+import { EarnRepositoryInterface } from '@/repositories/interfaces/earn.repository.interface';
 import { MallRepositoryInterface } from '@/repositories/interfaces/mall.repository.interface';
 import { PlaybackHistoryRepositoryInterface } from '@/repositories/interfaces/playback-history.repository.interface';
 import { CommentMockRepository } from '@/repositories/mock/comment.mock.repository';
 import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
+import { EarnMockRepository } from '@/repositories/mock/earn.mock.repository';
 import { EpisodeMockRepository } from '@/repositories/mock/episode.mock.repository';
 import { MallMockRepository } from '@/repositories/mock/mall.mock.repository';
 import { PlaybackHistoryMockRepository } from '@/repositories/mock/playback-history.mock.repository';
@@ -22,6 +24,10 @@ export function createDefaultEpisodeRepository(): EpisodeRepositoryInterface {
 
 export function createDefaultMallRepository(): MallRepositoryInterface {
   return new MallMockRepository();
+}
+
+export function createDefaultEarnRepository(): EarnRepositoryInterface {
+  return new EarnMockRepository();
 }
 
 export function createDefaultPlaybackHistoryRepository(): PlaybackHistoryRepositoryInterface {
@@ -43,6 +49,7 @@ export function createDefaultCommentRepository(): CommentRepositoryInterface {
 let dramaRepository: DramaRepositoryInterface = createDefaultDramaRepository();
 let episodeRepository: EpisodeRepositoryInterface = createDefaultEpisodeRepository();
 let mallRepository: MallRepositoryInterface = createDefaultMallRepository();
+let earnRepository: EarnRepositoryInterface = createDefaultEarnRepository();
 let playbackHistoryRepository: PlaybackHistoryRepositoryInterface = createDefaultPlaybackHistoryRepository();
 let commentRepository: CommentRepositoryInterface = createDefaultCommentRepository();
 
@@ -70,6 +77,14 @@ export function setMallRepository(repository: MallRepositoryInterface): void {
   mallRepository = repository;
 }
 
+export function getEarnRepository(): EarnRepositoryInterface {
+  return earnRepository;
+}
+
+export function setEarnRepository(repository: EarnRepositoryInterface): void {
+  earnRepository = repository;
+}
+
 export function getPlaybackHistoryRepository(): PlaybackHistoryRepositoryInterface {
   return playbackHistoryRepository;
 }
@@ -90,6 +105,7 @@ export function resetRepositoryRegistry(): void {
   dramaRepository = createDefaultDramaRepository();
   episodeRepository = createDefaultEpisodeRepository();
   mallRepository = createDefaultMallRepository();
+  earnRepository = createDefaultEarnRepository();
   playbackHistoryRepository = createDefaultPlaybackHistoryRepository();
   commentRepository = createDefaultCommentRepository();
 }

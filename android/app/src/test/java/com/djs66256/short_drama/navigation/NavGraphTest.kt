@@ -63,6 +63,17 @@ class NavGraphTest {
     }
 
     @Test
+    fun `T-07 earn graph uses dedicated earn routes instead of placeholder`() {
+        assertEquals("earn", AppDestination.Route.EARN)
+        assertEquals("earn/login?returnTarget={returnTarget}", AppDestination.Route.EARN_LOGIN)
+        assertEquals(
+            "earn/play?taskId={taskId}&source={source}&returnTarget={returnTarget}&videoId={videoId}",
+            AppDestination.Route.EARN_PLAY,
+        )
+        assertFalse(menuPlaceholderSpecs().any { it.route == AppDestination.Route.EARN })
+    }
+
+    @Test
     fun `T-08 drawer renders while animating and hides after fully closed`() {
         assertTrue(shouldRenderMenuDrawer(MenuPanelPresentationState.OPEN, progress = 1f))
         assertTrue(shouldRenderMenuDrawer(MenuPanelPresentationState.CLOSING, progress = 0.3f))

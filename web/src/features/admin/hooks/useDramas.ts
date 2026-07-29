@@ -25,7 +25,13 @@ export function useDramas(page = 1, pageSize = 20) {
   }, [page, pageSize]);
 
   useEffect(() => {
-    fetchDramas();
+    const timeoutId = window.setTimeout(() => {
+      void fetchDramas();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchDramas]);
 
   return { dramas, pagination, isLoading, error, refetch: fetchDramas };

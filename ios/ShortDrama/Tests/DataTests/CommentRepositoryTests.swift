@@ -49,7 +49,9 @@ struct CommentRepositoryTests {
         }
 
         let repository = CommentRepository(
-            dataSource: CommentRemoteDataSource(client: APIClient(session: session))
+            dataSource: CommentRemoteDataSource(
+                client: APIClient(session: session, baseURL: "https://example.com")
+            )
         )
 
         let page = try await repository.fetchComments(
@@ -123,7 +125,9 @@ struct CommentRepositoryTests {
         }
 
         let repository = CommentRepository(
-            dataSource: CommentRemoteDataSource(client: APIClient(session: session))
+            dataSource: CommentRemoteDataSource(
+                client: APIClient(session: session, baseURL: "https://example.com")
+            )
         )
 
         let created = try await repository.createComment(dramaId: "drama-001", content: "创建成功")

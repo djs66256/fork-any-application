@@ -83,7 +83,9 @@ struct PlayerView: View {
             NativeVideoPlayerView(
                 url: viewModel.playbackURL,
                 playbackRate: viewModel.playbackRate,
-                onProgressChange: viewModel.updateCurrentProgress
+                onProgressChange: viewModel.updateCurrentProgress,
+                onPlaybackEnded: viewModel.handlePlaybackEnded,
+                onPlaybackFailed: viewModel.handlePlaybackFailure(message:)
             )
             .ignoresSafeArea()
 

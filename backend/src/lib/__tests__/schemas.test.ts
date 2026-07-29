@@ -30,6 +30,12 @@ import {
   MallProductSchema,
   MallProductsQuerySchema,
   MallProductsResponseSchema,
+  CompleteEarnTaskRequestSchema,
+  CompleteEarnTaskResponseSchema,
+  EarnDailyRewardSchema,
+  EarnOverviewResponseSchema,
+  EarnTaskActionSchema,
+  EarnTaskSchema,
   PlaybackHistorySchema,
   ToggleCommentLikeResponseSchema,
   PlaybackSessionIdHeaderSchema,
@@ -230,6 +236,100 @@ describe('MallProductsResponseSchema', () => {
 
     expect(result.data).toHaveLength(1);
     expect(result.pagination.page_size).toBe(20);
+  });
+});
+
+describe('Earn schemas', () => {
+  const validEarnTask = {
+    id: '11111111-1111-4111-8111-111111111111',
+    title: '新人7天保底6元',
+    description: '完成首次看剧任务即可领取金币奖励',
+    reward_coins: 600,
+    status: 'available' as const,
+    action: {
+      type: 'play' as const,
+      video_id: 'drama-001-episode-01',
+    },
+  };
+
+  it('should parse valid earn task and action payloads', () => {
+    expect(EarnTaskSchema.parse(validEarnTask)).toEqual(validEarnTask);
+    expect(EarnTaskActionSchema.parse({ type: 'placeholder', feedback: '敬请期待' })).toEqual({
+      type: 'placeholder',
+      feedback: '敬请期待',
+    });
+    expect(EarnTaskActionSchema.parse({ type: 'login' })).toEqual({ type: 'login' });
+  });
+
+  it('should reject invalid earn task payloads', () => {
+    expect(() => EarnTaskSchema.parse({ ...validEarnTask, id: 'invalid-uuid' })).toThrow();
+    expect(() => EarnTaskSchema.parse({ ...validEarnTask, reward_coins: -1 })).toThrow();
+    expect(() => EarnTaskSchema.parse({ ...validEarnTask, status: 'done' })).toThrow();
+    expect(() => EarnTaskActionSchema.parse({ type: 'play', video_id: '' })).toThrow();
+    expect(() => EarnTaskActionSchema.parse({ type: 'placeholder', feedback: '' })).toThrow();
+  });
+
+  it('should parse valid daily rewards, overview, and complete-task payloads', () => {
+    const dailyRewards = Array.from({ length: 7 }, (_, index) =>
+      EarnDailyRewardSchema.parse({
+        day: index + 1,
+        coins: (index + 1) * 10,
+        status: index === 0 ? 'claimable' : 'locked',
+      }),
+    );
+
+    const overview = EarnOverviewResponseSchema.parse({
+      coins: 0,
+      is_logged_in: false,
+      new_user_task: validEarnTask,
+      daily_rewards: dailyRewards,
+      cash_tasks: [{ ...validEarnTask, id: '22222222-2222-4222-8222-222222222222', is_representative: true }],
+    });
+
+    const completeTaskRequest = CompleteEarnTaskRequestSchema.parse({
+      task_id: '22222222-2222-4222-8222-222222222222',
+    });
+
+    const completeTaskResponse = CompleteEarnTaskResponseSchema.parse({
+      success: true,
+      task_id: '22222222-2222-4222-8222-222222222222',
+      coins_earned: 500,
+      total_coins: 500,
+      task_status: 'completed',
+    });
+
+    expect(overview.daily_rewards).toHaveLength(7);
+    expect(completeTaskRequest.task_id).toBe('22222222-2222-4222-8222-222222222222');
+    expect(completeTaskResponse.total_coins).toBe(500);
+  });
+
+  it('should reject invalid overview and complete-task payloads', () => {
+    const invalidRewards = Array.from({ length: 6 }, (_, index) => ({
+      day: index + 1,
+      coins: 10,
+      status: 'locked' as const,
+    }));
+
+    expect(() =>
+      EarnOverviewResponseSchema.parse({
+        coins: -1,
+        is_logged_in: true,
+        new_user_task: validEarnTask,
+        daily_rewards: invalidRewards,
+        cash_tasks: [],
+      }),
+    ).toThrow();
+
+    expect(() => CompleteEarnTaskRequestSchema.parse({ task_id: 'not-a-uuid' })).toThrow();
+    expect(() =>
+      CompleteEarnTaskResponseSchema.parse({
+        success: true,
+        task_id: '22222222-2222-4222-8222-222222222222',
+        coins_earned: -1,
+        total_coins: 500,
+        task_status: 'completed',
+      }),
+    ).toThrow();
   });
 });
 

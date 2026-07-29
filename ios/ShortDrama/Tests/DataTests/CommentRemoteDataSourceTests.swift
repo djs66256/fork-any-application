@@ -50,7 +50,9 @@ struct CommentRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = CommentRemoteDataSource(client: APIClient(session: session))
+        let dataSource = CommentRemoteDataSource(
+            client: APIClient(session: session, baseURL: "https://example.com")
+        )
         let response = try await dataSource.fetchComments(
             query: CommentQuery(dramaId: "drama-001", page: 2, pageSize: 20, sort: .hot)
         )
@@ -98,7 +100,9 @@ struct CommentRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = CommentRemoteDataSource(client: APIClient(session: session))
+        let dataSource = CommentRemoteDataSource(
+            client: APIClient(session: session, baseURL: "https://example.com")
+        )
         let response = try await dataSource.createComment(dramaId: "drama-001", content: "新评论")
 
         #expect(response.id == "comment-002")
@@ -127,7 +131,9 @@ struct CommentRemoteDataSourceTests {
             return (response, Data(responseBody.utf8))
         }
 
-        let dataSource = CommentRemoteDataSource(client: APIClient(session: session))
+        let dataSource = CommentRemoteDataSource(
+            client: APIClient(session: session, baseURL: "https://example.com")
+        )
         let response = try await dataSource.toggleLike(dramaId: "drama-001", commentId: "comment-001")
 
         #expect(response.commentId == "comment-001")

@@ -40,6 +40,7 @@ export function DramaList() {
       width: '60px',
       render: (row: AdminDrama) =>
         row.cover_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             className={styles.coverThumb}
             src={row.cover_url}
