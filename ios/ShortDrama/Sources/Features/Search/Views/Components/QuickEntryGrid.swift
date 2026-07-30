@@ -5,31 +5,35 @@ struct QuickEntryGrid: View {
     let entries: [QuickEntry]
     let onTap: (QuickEntry) -> Void
 
-    private let columns = [
-        GridItem(.flexible(), spacing: DesignTokens.Spacing.md),
-        GridItem(.flexible(), spacing: DesignTokens.Spacing.md)
-    ]
-
     var body: some View {
-        LazyVGrid(columns: columns, spacing: DesignTokens.Spacing.md) {
-            ForEach(entries) { entry in
-                Button {
-                    onTap(entry)
-                } label: {
-                    VStack(spacing: DesignTokens.Spacing.sm) {
-                        Image(systemName: entry.systemImage)
-                            .font(.system(size: DesignTokens.IconSize.md))
-                        Text(entry.title)
-                            .font(.subheadline)
-                            .lineLimit(1)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 18) {
+                ForEach(entries) { entry in
+                    Button {
+                        onTap(entry)
+                    } label: {
+                        HStack(spacing: 7) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(entry.symbolBackgroundColor)
+                                    .frame(width: 30, height: 30)
+
+                                Image(systemName: entry.systemImage)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(entry.accentColor)
+                            }
+
+                            Text(entry.title)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, DesignTokens.Spacing.lg)
-                    .background(Color(.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(.vertical, 4)
+            .padding(.trailing, 18)
         }
     }
 }

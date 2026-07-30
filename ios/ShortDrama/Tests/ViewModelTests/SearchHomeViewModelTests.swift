@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 @testable import ShortDrama
 import Testing
 
@@ -37,7 +38,7 @@ struct SearchHomeViewModelTests {
         await viewModel.loadIfNeeded()
 
         #expect(viewModel.historyItems.map(\.keyword) == ["豪门", "逆袭"])
-        #expect(viewModel.quickEntries.map(\.title) == ["排行", "新剧", "分类", "演员"])
+        #expect(viewModel.quickEntries.map(\.title) == ["识剧", "排行", "上新", "演员", "分类"])
         #expect(viewModel.hotSearchState == .content([
             HotSearchItem(rank: 1, keyword: "逆袭", score: 9821),
             HotSearchItem(rank: 2, keyword: "豪门", score: 9540),
@@ -64,7 +65,7 @@ struct SearchHomeViewModelTests {
 
         #expect(viewModel.historyItems.map(\.keyword) == ["逆袭"])
         #expect(viewModel.hotSearchState == .error("热搜加载失败"))
-        #expect(viewModel.quickEntries.count == 4)
+        #expect(viewModel.quickEntries.count == 5)
     }
 
     @Test("search home only loads hot searches once")
@@ -147,19 +148,43 @@ struct SearchHomeViewModelTests {
             clearSearchHistoryUseCase: ClearSearchHistoryUseCase(repository: repository)
         )
 
-        let rankingEntry = QuickEntry(type: .ranking, title: "排行", systemImage: "chart.bar")
+        let rankingEntry = QuickEntry(
+            type: .ranking,
+            title: "排行",
+            systemImage: "flame.fill",
+            accentColor: .orange,
+            symbolBackgroundColor: .yellow
+        )
+        let imageSearchEntry = QuickEntry(
+            type: .imageSearch,
+            title: "识剧",
+            systemImage: "camera.fill",
+            accentColor: .cyan,
+            symbolBackgroundColor: .mint
+        )
         let newReleasesEntry = QuickEntry(
             type: .newReleases,
-            title: "新剧",
-            systemImage: "sparkles.tv"
+            title: "上新",
+            systemImage: "play.fill",
+            accentColor: .teal,
+            symbolBackgroundColor: .cyan
         )
         let classificationEntry = QuickEntry(
             type: .classification,
             title: "分类",
-            systemImage: "square.grid.2x2"
+            systemImage: "square.grid.2x2.fill",
+            accentColor: .purple,
+            symbolBackgroundColor: .indigo
         )
-        let actorHubEntry = QuickEntry(type: .actorHub, title: "演员", systemImage: "person.2")
+        let actorHubEntry = QuickEntry(
+            type: .actorHub,
+            title: "演员",
+            systemImage: "person.fill",
+            accentColor: .orange,
+            symbolBackgroundColor: .yellow
+        )
 
+        #expect(viewModel.route(for: imageSearchEntry) == .searchHome)
         #expect(viewModel.route(for: rankingEntry) == .rankingHome)
         #expect(viewModel.route(for: newReleasesEntry) == .newReleases)
         #expect(viewModel.route(for: classificationEntry) == .classificationHome)

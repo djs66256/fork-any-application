@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -40,10 +38,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
-import com.djs66256.short_drama.core.theme.HomeFeedTabBarBackground
-import com.djs66256.short_drama.core.theme.HomeFeedTabBarIndicator
-import com.djs66256.short_drama.core.theme.HomeFeedTabBarSelected
-import com.djs66256.short_drama.core.theme.HomeFeedTabBarUnselected
 import com.djs66256.short_drama.feature.auth.ui.LoginScreen
 import com.djs66256.short_drama.feature.booking.ui.BookingAssetsScreen
 import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
@@ -64,7 +58,6 @@ import com.djs66256.short_drama.feature.mall.ui.MallLoginScreen
 import com.djs66256.short_drama.feature.mall.ui.MallScreen
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelDrawer
 import com.djs66256.short_drama.feature.menu.ui.MenuPanelRoute
-import com.djs66256.short_drama.feature.messages.ui.MessageCenterScreen
 import com.djs66256.short_drama.feature.player.ui.PlayerScreen
 import com.djs66256.short_drama.feature.profile.ui.ProfileScreen
 import com.djs66256.short_drama.feature.profile.ui.SettingsScreen
@@ -171,10 +164,7 @@ fun NavGraph(
         Scaffold(
             bottomBar = {
                 if (shouldShowBottomBar(currentDestination?.route)) {
-                    NavigationBar(
-                        containerColor = HomeFeedTabBarBackground,
-                        tonalElevation = 0.dp,
-                    ) {
+                    NavigationBar {
                         AppDestination.topLevelTabs.forEach { tab ->
                             val selected = currentDestination
                                 ?.hierarchy
@@ -187,13 +177,6 @@ fun NavGraph(
                                 onClick = {
                                     navigateToTopLevelTab(navController, tab)
                                 },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = HomeFeedTabBarSelected,
-                                    selectedTextColor = HomeFeedTabBarSelected,
-                                    unselectedIconColor = HomeFeedTabBarUnselected,
-                                    unselectedTextColor = HomeFeedTabBarUnselected,
-                                    indicatorColor = HomeFeedTabBarIndicator,
-                                ),
                                 icon = {
                                     Icon(
                                         imageVector = tab.icon(),
@@ -313,20 +296,7 @@ fun NavGraph(
                             )
                         }
                     }
-                    composable(route = AppDestination.Route.MENU_MESSAGES) {
-                        MessageCenterScreen(
-                            onBack = { navController.popBackStack() },
-                            onLogin = {
-                                navController.navigate(
-                                    AppDestination.login(
-                                        returnRoute = AppDestination.menuMessages(),
-                                        source = "menu_messages",
-                                    ),
-                                )
-                            },
-                        )
-                    }
-                    composable(route = AppDestination.menuBooking()) {
+                    composable(route = AppDestination.Route.MENU_BOOKING) {
                         BookingAssetsScreen(
                             onBack = { navController.popBackStack() },
                             onRequireLogin = { returnRoute ->
@@ -695,7 +665,8 @@ internal fun shouldShowBottomBar(route: String?): Boolean {
     return !AppDestination.isPlayerRoute(route) &&
         route != AppDestination.Route.LOGIN &&
         route != AppDestination.Route.SETTINGS &&
-        route != AppDestination.Route.MENU_MESSAGES
+        route != AppDestination.Route.MENU_MESSAGES &&
+        route != AppDestination.Route.MENU_BOOKING
 }
 
 internal data class MenuPlaceholderSpec(
@@ -718,7 +689,7 @@ internal fun menuPlaceholderSpecs(): List<MenuPlaceholderSpec> = listOf(
     MenuPlaceholderSpec(
         route = AppDestination.menuDownloads(),
         title = "我的下载",
-        description = "功能开发中，当前为 Native 占位页。",
+        description = "下载功能建设中，当前为 Native 占位页。",
     ),
 )
 

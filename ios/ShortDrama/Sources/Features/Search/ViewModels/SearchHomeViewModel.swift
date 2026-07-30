@@ -75,6 +75,8 @@ final class SearchHomeViewModel: ObservableObject {
 
     func route(for entry: QuickEntry) -> AppRoute {
         switch entry.type {
+        case .imageSearch:
+            return .searchHome
         case .ranking:
             return .rankingHome
         case .newReleases:
