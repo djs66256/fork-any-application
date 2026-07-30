@@ -21,15 +21,19 @@ final class MallContainerViewModel: ObservableObject {
     @Published private(set) var hostMessage: MallHostMessage?
 
     private let homeURLProvider: () -> URL?
-    private let isUserLoggedIn: @Sendable () -> Bool
+    private var isUserLoggedIn: Bool
     private var hasLoaded = false
 
     init(
         homeURLProvider: @escaping () -> URL? = { AppConfig.mallHomeURL() },
-        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
+        isUserLoggedIn: Bool = false
     ) {
         self.homeURLProvider = homeURLProvider
         self.isUserLoggedIn = isUserLoggedIn
+    }
+
+    func updateAuthSnapshot(isLoggedIn: Bool) {
+        isUserLoggedIn = isLoggedIn
     }
 
     func loadInitialPage() {
@@ -99,8 +103,13 @@ final class MallContainerViewModel: ObservableObject {
         restoreContext(reason: .loginReturn, preserveScroll: true)
     }
 
+    func handleAppResumed() {
+        syncAuthState(reason: "app-resume")
+    }
+
     func handleContainerRecreated() {
         reloadHome(resetState: true)
+        pendingLoginContext = nil
         restoreContext(reason: .containerRecreated, preserveScroll: false)
     }
 
@@ -108,7 +117,7 @@ final class MallContainerViewModel: ObservableObject {
         hostMessage = .syncAuthState(
             MallHostAuthState(
                 source: "mall",
-                isLoggedIn: isUserLoggedIn(),
+                isLoggedIn: isUserLoggedIn,
                 reason: reason,
                 returnTarget: "/mall"
             )

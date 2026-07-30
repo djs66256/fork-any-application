@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MallContainerView: View {
     @EnvironmentObject private var router: NavigationRouter
+    @EnvironmentObject private var authStore: AuthStore
     @StateObject private var viewModel = MallContainerViewModel()
 
     var body: some View {
@@ -25,6 +26,7 @@ struct MallContainerView: View {
         .navigationTitle("商城")
         .navigationBarTitleDisplayMode(.inline)
         .task {
+            syncAuthSnapshot()
             viewModel.loadInitialPage()
         }
         .onReceive(viewModel.$routeEffect) { effect in
@@ -37,6 +39,14 @@ struct MallContainerView: View {
             DispatchQueue.main.async {
                 viewModel.clearHostMessage()
             }
+        }
+        .onChange(of: authStore.status) { _, _ in
+            syncAuthSnapshot()
+            guard router.mallLoginContext == nil else { return }
+            viewModel.handleAppResumed()
+        }
+        .onChange(of: router.pendingMallRestoreRequest) { _, _ in
+            consumeRouterRestoreRequestIfNeeded()
         }
         .fullScreenCover(item: mallLoginContextBinding) { context in
             MallLoginPlaceholderView(
@@ -69,6 +79,26 @@ struct MallContainerView: View {
         case .requestLogin(let context):
             router.presentMallLogin(context)
         }
+    }
+
+    private func consumeRouterRestoreRequestIfNeeded() {
+        guard let request = router.consumeMallRestoreRequest() else { return }
+        syncAuthSnapshot()
+
+        switch request {
+        case .searchReturn:
+            viewModel.handleSearchReturn()
+        case .loginReturn(let completed):
+            if completed {
+                viewModel.handleLoginSuccess()
+            } else {
+                viewModel.handleLoginCompletion()
+            }
+        }
+    }
+
+    private func syncAuthSnapshot() {
+        viewModel.updateAuthSnapshot(isLoggedIn: authStore.isAuthenticated)
     }
 }
 

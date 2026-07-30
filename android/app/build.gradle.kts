@@ -37,7 +37,7 @@ android {
 
         val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/")
         val mallBaseUrl = normalizeMallBaseUrl(
-            localProperties.getProperty("mall.base.url", "http://10.0.2.2:3001"),
+            localProperties.getProperty("mall.base.url", "http://10.0.2.2:3002"),
         )
         val earnBaseUrl = normalizeMallBaseUrl(
             localProperties.getProperty("earn.base.url", "http://10.0.2.2:3001"),

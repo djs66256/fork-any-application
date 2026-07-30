@@ -19,7 +19,15 @@ struct MallWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        configuration.userContentController.add(context.coordinator, name: Coordinator.bridgeChannel)
+        let controller = configuration.userContentController
+        controller.add(context.coordinator, name: Coordinator.bridgeChannel)
+        controller.addUserScript(
+            WKUserScript(
+                source: Coordinator.bridgeBootstrapScript,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            )
+        )
 
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -49,6 +57,35 @@ struct MallWebView: UIViewRepresentable {
 
     final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         static let bridgeChannel = "mallBridge"
+        static let bridgeBootstrapScript = """
+        (function() {
+          const postToNative = function(message) {
+            try {
+              window.webkit.messageHandlers.mallBridge.postMessage(message);
+            } catch (error) {
+              console.error('mallBridge unavailable', error);
+            }
+          };
+
+          window.__MALL_NATIVE_BRIDGE__ = {
+            postMessage: postToNative,
+          };
+
+          window.addEventListener('mall.syncAuthState', function(event) {
+            window.postMessage({
+              type: 'mall.syncAuthState',
+              payload: event.detail,
+            }, '*');
+          });
+
+          window.addEventListener('mall.restoreContext', function(event) {
+            window.postMessage({
+              type: 'mall.restoreContext',
+              payload: event.detail,
+            }, '*');
+          });
+        })();
+        """
 
         let onPageLoaded: (URL?) -> Void
         let onPageLoadFailed: (URL?, String) -> Void

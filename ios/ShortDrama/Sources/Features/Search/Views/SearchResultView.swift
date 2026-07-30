@@ -42,6 +42,16 @@ struct SearchResultView: View {
         }
         .navigationTitle("搜索结果")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(router.isPresentingSearchFromMall)
+        .toolbar {
+            if router.isPresentingSearchFromMall {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: router.restoreMallContextAfterSearch) {
+                        Label("返回商城", systemImage: "chevron.left")
+                    }
+                }
+            }
+        }
         .task {
             await viewModel.loadIfNeeded()
         }

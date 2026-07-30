@@ -2,8 +2,10 @@ package com.djs66256.short_drama.feature.mall.ui
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.util.Log
 import android.view.View
 import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -42,14 +44,12 @@ fun MallWebViewContainer(
         val listener: (MallHostMessage) -> Unit = { message ->
             webViewRef?.post {
                 when (message) {
-                    is SyncAuthState -> webViewRef?.evaluateJavascript(
-                        message.toJavascript(),
-                        null,
-                    )
-                    is RestoreContext -> webViewRef?.evaluateJavascript(
-                        message.toJavascript(),
-                        null,
-                    )
+                    is SyncAuthState -> webViewRef?.evaluateJavascript(message.toJavascript()) { result ->
+                        Log.d(MALL_WEB_VIEW_TAG, "syncAuthState dispatchResult=$result")
+                    }
+                    is RestoreContext -> webViewRef?.evaluateJavascript(message.toJavascript()) { result ->
+                        Log.d(MALL_WEB_VIEW_TAG, "restoreContext dispatchResult=$result")
+                    }
                 }
             }
         }
@@ -99,6 +99,8 @@ private fun WebView.configureMallWebView(
     settings.cacheMode = WebSettings.LOAD_DEFAULT
     settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
     addJavascriptInterface(MallJavascriptBridge(onBridgeMessage), MALL_BRIDGE_NAME)
+    webChromeClient = WebChromeClient()
+    injectMallNativeBridge()
     webViewClient = MallWebViewClient(onPageStateChanged)
 }
 
@@ -107,7 +109,32 @@ private class MallJavascriptBridge(
 ) {
     @JavascriptInterface
     fun postMessage(rawPayload: String?) {
+        Log.d(MALL_WEB_VIEW_TAG, "mallBridge rawPayload=$rawPayload")
         onBridgeMessage(rawPayload.toMallBridgeMessage())
+    }
+}
+
+private fun WebView.injectMallNativeBridge() {
+    val script =
+        """
+        (function() {
+            window.__MALL_NATIVE_BRIDGE__ = {
+                postMessage: function(message) {
+                    if (!window.$MALL_BRIDGE_NAME || typeof window.$MALL_BRIDGE_NAME.postMessage !== 'function') {
+                        return;
+                    }
+                    window.$MALL_BRIDGE_NAME.postMessage(JSON.stringify(message));
+                }
+            };
+            return JSON.stringify({
+                hasBridge: !!window.__MALL_NATIVE_BRIDGE__,
+                hasJavascriptInterface: !!window.$MALL_BRIDGE_NAME,
+                bridgeEnabled: true
+            });
+        })();
+        """.trimIndent()
+    evaluateJavascript(script) { result ->
+        Log.d(MALL_WEB_VIEW_TAG, "injectMallNativeBridge result=$result")
     }
 }
 
@@ -121,6 +148,7 @@ private class MallWebViewClient(
 
     override fun onPageFinished(view: WebView?, url: String?) {
         super.onPageFinished(view, url)
+        view?.injectMallNativeBridge()
         onPageStateChanged(MallPageEvent.LoadSucceeded(url = url))
     }
 
@@ -190,22 +218,47 @@ private fun String?.toMallBridgeMessage(): MallBridgeMessage {
 
 private fun SyncAuthState.toJavascript(): String {
     val payload = JSONObject().apply {
-        put("source", payload.source)
-        put("isLoggedIn", payload.isLoggedIn)
-        put("reason", payload.reason.wireValue)
-        put("returnTarget", payload.returnTarget)
+        put("type", "mall.syncAuthState")
+        put(
+            "payload",
+            JSONObject().apply {
+                put("source", payload.source)
+                put("isLoggedIn", payload.isLoggedIn)
+                put("reason", payload.reason.wireValue)
+                put("returnTarget", payload.returnTarget)
+            },
+        )
     }.toString()
-    return "window.dispatchEvent(new CustomEvent('mall.syncAuthState', { detail: $payload }));"
+    return """
+        (function() {
+            var payload = $payload;
+            window.postMessage(payload, '*');
+            return JSON.stringify({ delivered: true, type: payload.type });
+        })();
+    """.trimIndent()
 }
 
 private fun RestoreContext.toJavascript(): String {
     val payload = JSONObject().apply {
-        put("source", payload.source)
-        put("reason", payload.reason.wireValue)
-        put("returnTarget", payload.returnTarget)
-        put("preserveScroll", payload.preserveScroll)
+        put("type", "mall.restoreContext")
+        put(
+            "payload",
+            JSONObject().apply {
+                put("source", payload.source)
+                put("reason", payload.reason.wireValue)
+                put("returnTarget", payload.returnTarget)
+                put("preserveScroll", payload.preserveScroll)
+            },
+        )
     }.toString()
-    return "window.dispatchEvent(new CustomEvent('mall.restoreContext', { detail: $payload }));"
+    return """
+        (function() {
+            var payload = $payload;
+            window.postMessage(payload, '*');
+            return JSON.stringify({ delivered: true, type: payload.type });
+        })();
+    """.trimIndent()
 }
 
 private const val MALL_BRIDGE_NAME = "mallBridge"
+private const val MALL_WEB_VIEW_TAG = "MallWebViewContainer"

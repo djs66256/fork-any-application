@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MallPageScreen } from '@/features/mall/MallPageScreen';
 
@@ -36,7 +36,7 @@ vi.mock('@/features/mall/bridge/mall-host-sync', () => ({
 }));
 
 const product = {
-  id: '550e8400-e29b-41d4-a716-446655440101',
+  id: '550e8400-e29b-41d4-a716-446655440201',
   title: '轻奢真丝睡衣礼盒',
   image_url: 'https://example.com/product.jpg',
   price: 199,
@@ -67,6 +67,19 @@ describe('MallPageScreen', () => {
     });
   });
 
+  it('renders stable mall page chrome while loading products', async () => {
+    fetchMallProducts.mockImplementation(() => new Promise(() => undefined));
+
+    render(<MallPageScreen />);
+
+    expect(screen.getByRole('button', { name: '打开商城搜索' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '打开购物车入口' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '首页' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '商城' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getAllByRole('button', { name: /查看商品/ }).length).toBeGreaterThanOrEqual(6);
+    expect(screen.getByText('商品加载中...')).toBeInTheDocument();
+  });
+
   it('renders mall page sections on success', async () => {
     fetchMallProducts.mockResolvedValueOnce(createResponse([product]));
 
@@ -76,33 +89,20 @@ describe('MallPageScreen', () => {
 
     expect(screen.getByRole('button', { name: '打开商城搜索' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '打开购物车入口' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '快捷入口' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '活动横幅' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '热门商品' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '加载更多' })).not.toBeInTheDocument();
-    expect(screen.getByText('已经到底啦，去看看其他活动吧。')).toBeInTheDocument();
+    expect(screen.getByLabelText('我的订单')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '活动横幅 mall-banner-holiday' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '赚钱' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /查看商品/ }).length).toBeGreaterThanOrEqual(7);
   });
 
-  it('renders empty state without hiding static sections', async () => {
-    fetchMallProducts.mockResolvedValueOnce(createResponse([]));
-
-    render(<MallPageScreen />);
-
-    await waitFor(() => {
-      expect(screen.getByText('暂无商品，去看看其他活动吧。')).toBeInTheDocument();
-    });
-
-    expect(screen.getByRole('heading', { name: '快捷入口' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '活动横幅' })).toBeInTheDocument();
-  });
-
-  it('renders initial error state and retries', async () => {
+  it('keeps stable products visible when initial load fails and retries', async () => {
     fetchMallProducts.mockRejectedValueOnce(new Error('服务开小差了，请稍后重试'));
     fetchMallProducts.mockResolvedValueOnce(createResponse([product]));
 
     render(<MallPageScreen />);
 
     expect(await screen.findByText('服务开小差了，请稍后重试')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /查看商品/ }).length).toBeGreaterThanOrEqual(6);
 
     fireEvent.click(screen.getByRole('button', { name: '重试' }));
 
@@ -114,9 +114,10 @@ describe('MallPageScreen', () => {
 
     render(<MallPageScreen />);
 
-    fireEvent.click(await screen.findByRole('button', { name: `查看商品 ${product.title}` }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /查看商品/ }))[0]);
 
-    expect(screen.getByText('登录后可继续查看商品')).toBeInTheDocument();
+    expect(screen.getByText('完成抖音登录抢购超值好物')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '继续登录' })).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
   });
 
@@ -152,8 +153,8 @@ describe('MallPageScreen', () => {
       });
     });
 
-    fireEvent.click(await screen.findByRole('button', { name: '活动横幅 mall-banner-newcomer' }));
+    fireEvent.click(await screen.findByRole('button', { name: '活动横幅 mall-banner-holiday' }));
 
-    expect(mockPush).toHaveBeenCalledWith(`/mall/product/${product.id}`);
+    expect(mockPush).toHaveBeenCalledWith('/mall/product/550e8400-e29b-41d4-a716-446655440102');
   });
 });

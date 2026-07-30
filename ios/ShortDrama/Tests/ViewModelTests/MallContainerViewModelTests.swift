@@ -7,7 +7,7 @@ struct MallContainerViewModelTests {
 
     private func makeViewModel(
         url: URL? = URL(string: "https://app.example.com/mall"),
-        isLoggedIn: @escaping @Sendable () -> Bool = { false }
+        isLoggedIn: Bool = false
     ) -> MallContainerViewModel {
         MallContainerViewModel(homeURLProvider: { url }, isUserLoggedIn: isLoggedIn)
     }
@@ -85,7 +85,7 @@ struct MallContainerViewModelTests {
 
     @Test("T-04: mall requestLogin bridge emits route effect and login return syncs auth")
     func testRequestLoginBridgeAndLoginCompletion() {
-        let viewModel = makeViewModel(isLoggedIn: { true })
+        let viewModel = makeViewModel(isLoggedIn: true)
         let context = MallLoginContext(source: "mall", productID: "product-001", returnTarget: "/mall")
 
         viewModel.handleBridgeMessage(.requestLogin(context))
@@ -144,6 +144,23 @@ struct MallContainerViewModelTests {
                 reason: .containerRecreated,
                 returnTarget: "/mall",
                 preserveScroll: false
+            )
+        ))
+    }
+
+    @Test("app resume syncs latest mall auth snapshot")
+    func testAppResumeSyncsLatestSnapshot() {
+        let viewModel = makeViewModel()
+        viewModel.updateAuthSnapshot(isLoggedIn: true)
+
+        viewModel.handleAppResumed()
+
+        #expect(viewModel.hostMessage == .syncAuthState(
+            MallHostAuthState(
+                source: "mall",
+                isLoggedIn: true,
+                reason: "app-resume",
+                returnTarget: "/mall"
             )
         ))
     }

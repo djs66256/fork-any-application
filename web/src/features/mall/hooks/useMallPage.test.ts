@@ -31,35 +31,35 @@ vi.mock('@/features/mall/bridge/mall-host-sync', () => ({
 }));
 
 const firstProduct: MallProduct = {
-  id: '550e8400-e29b-41d4-a716-446655440101',
-  title: '轻奢真丝睡衣礼盒',
-  image_url: 'https://example.com/1.jpg',
-  price: 199,
-  tags: ['热卖'],
-};
-
-const secondProduct: MallProduct = {
-  id: '550e8400-e29b-41d4-a716-446655440102',
+  id: '550e8400-e29b-41d4-a716-446655440201',
   title: '夏日清凉风扇',
-  image_url: 'https://example.com/2.jpg',
+  image_url: 'https://example.com/1.jpg',
   price: 89,
   tags: ['新品'],
 };
 
+const secondProduct: MallProduct = {
+  id: '550e8400-e29b-41d4-a716-446655440202',
+  title: '桌面补光小风扇',
+  image_url: 'https://example.com/2.jpg',
+  price: 129,
+  tags: ['热卖'],
+};
+
 const productBanner: MallBanner = {
-  id: 'mall-banner-product',
+  id: 'mall-banner-holiday',
   image_url: 'https://example.com/banner.jpg',
   target_type: 'product',
-  target_value: firstProduct.id,
-  sort_order: 0,
+  target_value: '550e8400-e29b-41d4-a716-446655440102',
+  sort_order: 2,
 };
 
 const offscreenProductBanner: MallBanner = {
   id: 'mall-banner-offscreen-product',
   image_url: 'https://example.com/banner-offscreen.jpg',
   target_type: 'product',
-  target_value: '550e8400-e29b-41d4-a716-446655440103',
-  sort_order: 1,
+  target_value: '550e8400-e29b-41d4-a716-446655440203',
+  sort_order: 3,
 };
 
 const invalidProductBanner: MallBanner = {
@@ -67,7 +67,7 @@ const invalidProductBanner: MallBanner = {
   image_url: 'https://example.com/banner-invalid.jpg',
   target_type: 'product',
   target_value: 'not-a-uuid',
-  sort_order: 2,
+  sort_order: 4,
 };
 
 function createResponse(data: MallProduct[], page: number, totalPages: number) {
@@ -94,21 +94,31 @@ describe('useMallPage', () => {
     });
   });
 
-  it('loads first page successfully on mount', async () => {
+  it('hydrates stable first-screen products before network completes', () => {
+    fetchMallProducts.mockImplementation(() => new Promise(() => undefined));
+
+    const { result } = renderHook(() => useMallPage());
+
+    expect(result.current.state.items.length).toBeGreaterThanOrEqual(6);
+    expect(result.current.state.isLoading).toBe(true);
+  });
+
+  it('loads first page successfully on mount and preserves stable feed first', async () => {
     fetchMallProducts.mockResolvedValueOnce(createResponse([firstProduct], 1, 2));
 
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.isLoading).toBe(false);
     });
 
-    expect(result.current.state.isLoading).toBe(false);
+    expect(result.current.state.items[0]?.id).toBe('550e8400-e29b-41d4-a716-446655440101');
+    expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     expect(result.current.state.errorMessage).toBeNull();
     expect(fetchMallProducts).toHaveBeenCalledWith({ page: 1, pageSize: 20 });
   });
 
-  it('keeps static sections when first page is empty', async () => {
+  it('keeps static sections and stable feed when first page is empty', async () => {
     fetchMallProducts.mockResolvedValueOnce(createResponse([], 1, 1));
 
     const { result } = renderHook(() => useMallPage());
@@ -117,12 +127,12 @@ describe('useMallPage', () => {
       expect(result.current.state.isLoading).toBe(false);
     });
 
-    expect(result.current.state.items).toEqual([]);
+    expect(result.current.state.items.length).toBeGreaterThanOrEqual(6);
     expect(result.current.shortcuts).toHaveLength(5);
     expect(result.current.banners.length).toBeGreaterThan(0);
   });
 
-  it('stores initial load errors and supports retry', async () => {
+  it('stores initial load errors and supports retry without losing stable feed', async () => {
     fetchMallProducts.mockRejectedValueOnce(new ApiError(400, '网络异常，请稍后重试'));
     fetchMallProducts.mockResolvedValueOnce(createResponse([firstProduct], 1, 1));
 
@@ -132,12 +142,14 @@ describe('useMallPage', () => {
       expect(result.current.state.errorMessage).toBe('商城商品暂时无法加载，请稍后重试');
     });
 
+    expect(result.current.state.items.length).toBeGreaterThanOrEqual(6);
+
     act(() => {
       result.current.retryInitialLoad();
     });
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
   });
 
@@ -148,7 +160,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -156,7 +168,7 @@ describe('useMallPage', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(2);
+      expect(result.current.state.items.some((item) => item.id === secondProduct.id)).toBe(true);
     });
 
     expect(result.current.state.appendError).toBeNull();
@@ -169,7 +181,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -180,7 +192,7 @@ describe('useMallPage', () => {
       expect(result.current.state.appendError).toBe('商城商品暂时无法加载，请稍后重试');
     });
 
-    expect(result.current.state.items).toEqual([firstProduct]);
+    expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
   });
 
   it('deduplicates in-flight append requests for the same page', async () => {
@@ -197,7 +209,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -212,7 +224,7 @@ describe('useMallPage', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(2);
+      expect(result.current.state.items.some((item) => item.id === secondProduct.id)).toBe(true);
     });
   });
 
@@ -222,17 +234,18 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
+    const clickableProduct = result.current.state.items[0];
     let target: string | null = null;
     act(() => {
-      target = result.current.handleProductClick(firstProduct);
+      target = result.current.handleProductClick(clickableProduct);
     });
 
     expect(target).toBeNull();
     expect(result.current.state.loginInterceptVisible).toBe(true);
-    expect(result.current.state.activeProduct).toEqual(firstProduct);
+    expect(result.current.state.activeProduct).toEqual(clickableProduct);
   });
 
   it('routes logged-in users to product placeholder pages', async () => {
@@ -241,7 +254,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -270,7 +283,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -296,11 +309,11 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {
-      result.current.handleProductClick(firstProduct);
+      result.current.handleProductClick(result.current.state.items[0]);
     });
 
     act(() => {
@@ -341,7 +354,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -361,7 +374,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {
@@ -378,7 +391,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.some((item) => item.id === firstProduct.id)).toBe(true);
     });
 
     act(() => {
@@ -403,7 +416,7 @@ describe('useMallPage', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.state.items).toEqual([secondProduct]);
+      expect(result.current.state.items.some((item) => item.id === secondProduct.id)).toBe(true);
     });
 
     expect(result.current.state.isLoggedIn).toBe(true);
@@ -417,11 +430,11 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {
-      result.current.handleProductClick(firstProduct);
+      result.current.handleProductClick(result.current.state.items[0]);
       hostHandler?.({
         type: 'mall.restoreContext',
         payload: {
@@ -447,7 +460,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {
@@ -462,7 +475,7 @@ describe('useMallPage', () => {
       });
     });
 
-    expect(result.current.handleBannerClick(productBanner)).toBe(`/mall/product/${firstProduct.id}`);
+    expect(result.current.handleBannerClick(productBanner)).toBe('/mall/product/550e8400-e29b-41d4-a716-446655440102');
   });
 
   it('shows login intercept for anonymous product banner clicks even when product is offscreen', async () => {
@@ -471,7 +484,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {
@@ -504,7 +517,7 @@ describe('useMallPage', () => {
     const { result } = renderHook(() => useMallPage());
 
     await waitFor(() => {
-      expect(result.current.state.items).toHaveLength(1);
+      expect(result.current.state.items.length).toBeGreaterThan(0);
     });
 
     act(() => {

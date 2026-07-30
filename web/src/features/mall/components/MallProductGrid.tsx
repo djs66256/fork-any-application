@@ -30,11 +30,9 @@ export function MallProductGrid({
 }: MallProductGridProps) {
   return (
     <section aria-labelledby="mall-products-heading" className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 id="mall-products-heading" className={styles.title}>
-          热门商品
-        </h2>
-      </div>
+      <h2 id="mall-products-heading" className={styles.title}>
+        热门商品
+      </h2>
 
       {isLoading ? <p className={styles.status}>商品加载中...</p> : null}
 
@@ -53,7 +51,7 @@ export function MallProductGrid({
         </div>
       ) : null}
 
-      {!errorMessage && items.length > 0 ? (
+      {items.length > 0 ? (
         <>
           <div className={styles.grid}>
             {items.map((product) => (
@@ -74,9 +72,6 @@ export function MallProductGrid({
               <Button type="button" variant="secondary" onClick={onLoadMore}>
                 加载更多
               </Button>
-            ) : null}
-            {!isAppending && !appendError && !hasNextPage ? (
-              <p className={styles.status}>已经到底啦，去看看其他活动吧。</p>
             ) : null}
           </div>
         </>

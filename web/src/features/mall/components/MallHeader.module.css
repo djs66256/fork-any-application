@@ -1,15 +1,91 @@
 .header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-2);
+  gap: 12px;
   align-items: center;
+  padding: 4px 4px 0;
 }
 
 .searchButton {
-  justify-content: flex-start;
-  min-height: 44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 7px 8px 7px 14px;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: 0 10px 22px rgb(29 107 132 / 0.14);
+  color: #b8b8be;
+}
+
+.searchButton:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.96);
+  color: #b8b8be;
+}
+
+.searchIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #9c9ca2;
+}
+
+.searchIconSvg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.searchPlaceholder {
+  overflow: hidden;
+  color: #909096;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.searchAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ff6f36 0%, #ff5a26 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .cartButton {
-  min-height: 44px;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 0;
+  color: #111111;
+}
+
+.cartButton:hover:not(:disabled) {
+  background: transparent;
+  color: #111111;
+}
+
+.cartIconSvg {
+  width: 36px;
+  height: 36px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }

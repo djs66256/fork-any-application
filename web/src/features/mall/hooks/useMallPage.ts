@@ -14,7 +14,12 @@ import {
 import { ApiError, NetworkError, TimeoutError } from '@/lib/types';
 import { requestMallLogin, openMallSearch } from '@/features/mall/bridge/mall-bridge';
 import { subscribeMallHostMessages } from '@/features/mall/bridge/mall-host-sync';
-import { mallBanners, mallShortcuts } from '@/features/mall/config/mall-seed';
+import {
+  buildMallStableFeed,
+  mallBanners,
+  mallShortcuts,
+  mergeMallProducts,
+} from '@/features/mall/config/mall-seed';
 
 export interface MallPageState {
   items: MallProduct[];
@@ -36,7 +41,13 @@ interface MallPageHookState extends MallPageState {
 
 type MallPageAction =
   | { type: 'load-start'; mode: 'initial' | 'append' }
-  | { type: 'load-success'; items: MallProduct[]; page: number; hasNextPage: boolean; mode: 'initial' | 'append' }
+  | {
+      type: 'load-success';
+      items: MallProduct[];
+      page: number;
+      hasNextPage: boolean;
+      mode: 'initial' | 'append';
+    }
   | { type: 'load-error'; message: string; mode: 'initial' | 'append' }
   | { type: 'set-auth'; isLoggedIn: boolean }
   | { type: 'show-login-intercept'; product: MallProduct }
@@ -46,7 +57,7 @@ type MallPageAction =
   | { type: 'clear-restore-context' };
 
 const initialState: MallPageHookState = {
-  items: [],
+  items: buildMallStableFeed([]),
   page: 0,
   hasNextPage: true,
   isLoading: false,
@@ -111,10 +122,15 @@ function reducer(state: MallPageHookState, action: MallPageAction): MallPageHook
         isAppending: true,
         appendError: null,
       };
-    case 'load-success':
+    case 'load-success': {
+      const items =
+        action.mode === 'initial'
+          ? action.items
+          : mergeMallProducts(state.items, action.items);
+
       return {
         ...state,
-        items: action.mode === 'initial' ? action.items : [...state.items, ...action.items],
+        items,
         page: action.page,
         hasNextPage: action.hasNextPage,
         isLoading: false,
@@ -122,12 +138,14 @@ function reducer(state: MallPageHookState, action: MallPageAction): MallPageHook
         errorMessage: null,
         appendError: null,
       };
+    }
     case 'load-error':
       if (action.mode === 'initial') {
         return {
           ...state,
           isLoading: false,
           errorMessage: action.message,
+          items: state.items.length > 0 ? state.items : buildMallStableFeed([]),
         };
       }
 
@@ -173,6 +191,14 @@ function reducer(state: MallPageHookState, action: MallPageAction): MallPageHook
   }
 }
 
+function normalizeMallProducts(items: MallProduct[], mode: 'initial' | 'append'): MallProduct[] {
+  return mode === 'initial' ? buildMallStableFeed(items) : items;
+}
+
+function getEffectiveHasNextPage(totalPages: number, page: number): boolean {
+  return totalPages > 0 ? page < totalPages : false;
+}
+
 export function useMallPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const requestIdRef = useRef(0);
@@ -199,9 +225,12 @@ export function useMallPage() {
 
       dispatch({
         type: 'load-success',
-        items: response.data,
+        items: normalizeMallProducts(response.data, mode),
         page: response.pagination.page,
-        hasNextPage: response.pagination.page < response.pagination.total_pages,
+        hasNextPage: getEffectiveHasNextPage(
+          response.pagination.total_pages,
+          response.pagination.page,
+        ),
         mode,
       });
     } catch (error) {
