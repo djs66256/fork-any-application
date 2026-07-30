@@ -1,7 +1,8 @@
 # 功能域索引
 
-- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、签到浮层、菜单抽屉、消息中心入口、搜索发现、排行、分类；剧场频道承载真实 Native Feed；商城与赚钱频道承载 H5 容器与登录 / 任务回流；“我的”频道承载登录 / 设置等真实 Native 子页面
-- [认证体系 (Auth)](auth/index.md) — 移动端手机号验证码登录、自动注册、会话恢复 / refresh / logout、Profile 登录后态、排行预约登录拦截、评论写操作鉴权基线、消息互动分区登录门槛、签到接口可选登录语义，以及商城商品点击登录承接与商城 / 赚钱 H5 宿主登录态同步
+- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、签到浮层、菜单抽屉、消息中心入口、预约资产页、搜索发现、排行、分类；剧场频道承载真实 Native Feed；商城与赚钱频道承载 H5 容器与登录 / 任务回流；“我的”频道承载登录 / 设置等真实 Native 子页面
+- [认证体系 (Auth)](auth/index.md) — 移动端手机号验证码登录、自动注册、会话恢复 / refresh / logout、Profile 登录后态、排行预约登录拦截、评论写操作鉴权基线、消息互动分区登录门槛、个人资产页登录承接与 booking route 回流、签到接口可选登录语义，以及商城商品点击登录承接与商城 / 赚钱 H5 宿主登录态同步
+- [个人资产管理 (User Assets)](user-assets/index.md) — 菜单“我的预约”真实页、`GET /api/users/me/bookings` contract、匿名登录承接后回 booking route、双 Tab `online/upcoming` 与 summary、“我的下载”占位策略，以及 Web skipped 边界
 - [首页信息流 (Homepage Feed)](homepage-feed/index.md) — Android / iOS 首页首屏 Feed、Backend `GET /api/dramas` 契约、首页签到浮层、卡片到播放/详情页主链路，以及首页评论入口与页面内评论容器
 - [签到能力 (Check-In)](check-in/index.md) — 首页冷启动签到浮层、7 日签到板、`GET /api/check-ins/status` / `POST /api/check-ins`、`X-Installation-Id` 匿名主体与服务端业务日规则
 - [消息系统 (Messages)](messages/index.md) — 菜单消息预览、独立消息中心、系统消息与互动消息分区、登录门槛、登录回流，以及 `messages/preview` / `messages/system` / `messages/interactions` contract
