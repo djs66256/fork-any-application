@@ -19,32 +19,75 @@ struct CommentComposerView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            HStack(alignment: .bottom, spacing: DesignTokens.Spacing.md) {
-                TextField("写下你的评论", text: $text, axis: .vertical)
-                    .textFieldStyle(.roundedBorder)
-                    .lineLimit(1...4)
+        VStack(spacing: 8) {
+            if let errorMessage, !errorMessage.isEmpty {
+                Text(errorMessage)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, DesignTokens.Spacing.lg)
+            }
 
-                Button(isSubmitting ? "发送中" : "发送", action: onSubmit)
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isSubmitDisabled)
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(red: 0.95, green: 0.95, blue: 0.95))
+                    .frame(height: 44)
+                    .overlay(alignment: .leading) {
+                        Group {
+                            if trimmedText.isEmpty {
+                                Text("有趣评论千千万，不如你也来一条？")
+                                    .foregroundStyle(Color.black.opacity(0.28))
+                            } else {
+                                Text(text)
+                                    .foregroundStyle(Color.black.opacity(0.88))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .font(.system(size: 15))
+                        .padding(.leading, 18)
+                        .padding(.trailing, 52)
+                    }
+                    .overlay(alignment: .trailing) {
+                        if !isSubmitDisabled {
+                            Button(isSubmitting ? "发送中" : "发送", action: onSubmit)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(Color.blue)
+                                .padding(.trailing, 14)
+                        }
+                    }
+                    .overlay {
+                        TextField("有趣评论千千万，不如你也来一条？", text: $text, axis: .vertical)
+                            .opacity(0.015)
+                            .padding(.horizontal, 18)
+                    }
+
+                composerIcon(systemName: "photo.on.rectangle")
+                composerIcon(systemName: "face.smiling")
             }
 
             HStack {
-                if let errorMessage, !errorMessage.isEmpty {
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-
                 Spacer()
-
                 Text("\(characterCount)/500")
-                    .font(.caption)
-                    .foregroundStyle(characterCount > 500 ? .red : .secondary)
+                    .font(.system(size: 10))
+                    .foregroundStyle(characterCount > 500 ? Color.red : Color.black.opacity(0.18))
             }
+            .padding(.horizontal, 2)
         }
-        .padding(DesignTokens.Spacing.lg)
-        .background(.ultraThinMaterial)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .padding(.horizontal, DesignTokens.Spacing.lg)
+        .background(Color.white)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.black.opacity(0.06))
+                .frame(height: 0.5)
+        }
+    }
+
+    private func composerIcon(systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 18, weight: .medium))
+            .foregroundStyle(Color.black.opacity(0.88))
+            .frame(width: 28, height: 28)
     }
 }

@@ -9,7 +9,7 @@ struct CommentListView: View {
     let onToggleLike: (Comment) -> Void
 
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 0) {
                 ForEach(Array(comments.enumerated()), id: \.element.id) { index, comment in
                     CommentRowView(
@@ -22,14 +22,14 @@ struct CommentListView: View {
                             onLoadMore()
                         }
                     }
-
-                    Divider()
-                        .padding(.leading, 52)
                 }
 
                 footer
             }
+            .padding(.top, 4)
+            .padding(.bottom, 8)
         }
+        .background(Color.white)
     }
 
     @ViewBuilder
@@ -39,6 +39,7 @@ struct CommentListView: View {
             EmptyView()
         case .loading:
             ProgressView()
+                .tint(Color.black.opacity(0.45))
                 .padding(DesignTokens.Spacing.lg)
         case .error(let message):
             VStack(spacing: DesignTokens.Spacing.sm) {
@@ -51,9 +52,9 @@ struct CommentListView: View {
             .padding(DesignTokens.Spacing.lg)
         case .noMore:
             Text("没有更多评论了")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(DesignTokens.Spacing.lg)
+                .font(.system(size: 12))
+                .foregroundStyle(Color.black.opacity(0.28))
+                .padding(.vertical, DesignTokens.Spacing.lg)
         }
     }
 }
