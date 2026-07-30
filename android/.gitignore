@@ -33,3 +33,5 @@ app/src/main/generated/
 
 # Testing
 app/src/androidTest/
+
+.kotlin/
