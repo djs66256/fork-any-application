@@ -2,10 +2,8 @@ import SwiftUI
 
 struct MenuPanelView: View {
     let state: MenuPanelViewModel.RecentlyViewedState
-    let messagePreviewState: MenuPanelViewModel.MessagePreviewState
     let isRetrying: Bool
     let onTapLogin: () -> Void
-    let onTapMessages: () -> Void
     let onTapRecentlyViewed: (RecentlyViewedItem) -> Void
     let onTapBooking: () -> Void
     let onTapDownloads: () -> Void
@@ -13,10 +11,9 @@ struct MenuPanelView: View {
     let onRetryRecentlyViewed: () async -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 18) {
                 MenuLoginHeaderView(onTapLogin: onTapLogin)
-                MenuMessagePreviewView(state: messagePreviewState, onTapMessages: onTapMessages)
                 MenuRecentlyViewedSection(
                     state: state,
                     isRetrying: isRetrying,
@@ -29,9 +26,12 @@ struct MenuPanelView: View {
                     onTapDownloads: onTapDownloads
                 )
             }
-            .padding(DesignTokens.Spacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 18)
+            .padding(.top, 26)
+            .padding(.bottom, 28)
         }
-        .scrollIndicators(.hidden)
-        .background(Color(.systemBackground))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(MenuPanelStyle.panelBackground)
     }
 }

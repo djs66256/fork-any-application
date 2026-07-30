@@ -177,7 +177,6 @@
 		8A90569748C9C5059FF370A6 /* EarnTaskPlayerResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 279BDD86AD129D986623AA9B /* EarnTaskPlayerResult.swift */; };
 		8ACE85524EE4FCE00930E7CE /* MallContainerStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16EF7F49E7B1385CA243485 /* MallContainerStateView.swift */; };
 		8B71372C9384DB3A1D61DFF0 /* SearchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 855FD4B574FC6506A90B6AE6 /* SearchHomeView.swift */; };
-		8C16B6830F036A6DF1548973 /* MenuMessagePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E3F71B02C97B2817E4931D /* MenuMessagePreviewView.swift */; };
 		8DFCCA4C64BAD744F4CFF564 /* CommentListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB9E3082F00CCB9888804F6F /* CommentListView.swift */; };
 		8F99426CE0476AA6CFCFA2EA /* BookingAssetsErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338EB8BE72CB04801CAB3DC3 /* BookingAssetsErrorView.swift */; };
 		90DA3035BE0CFA92F9A33279 /* PlayerRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1372539E0C2FBCEC6E623A60 /* PlayerRepositoryProtocol.swift */; };
@@ -213,6 +212,7 @@
 		A8ED7D5747CE1A64DAF93FF5 /* EarnTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4743A8B4CABE1A95FFDC47A3 /* EarnTestHelpers.swift */; };
 		AA140834ED6F9D49EA0CA47C /* MockPlaybackSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */; };
 		AB88635D5557F7DDE27C2E36 /* DiscoveryPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B929E3A144C38A93F9B1B16 /* DiscoveryPlaceholderView.swift */; };
+		AC3EF7AA8E590882EA8D802A /* MenuPanelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5026F9143180A962578139 /* MenuPanelStyle.swift */; };
 		ACB92ACD75DD6EBDEC5604B6 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AAD0F4CD2C4D2467259C76 /* CommentRowView.swift */; };
 		AD45ED3A78C60B1DA4C34438 /* AuthUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 740DACBB41B7B9B448899B88 /* AuthUser.swift */; };
 		ADA04791919B49CC82C11DAF /* BookingAssetDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59F5C95D0DD33E6A640BE0A4 /* BookingAssetDTO.swift */; };
@@ -505,7 +505,6 @@
 		9E1B0E2E566655505E66DD7A /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
 		9EFC230630CAC821E958F5D9 /* EarnLoginContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarnLoginContext.swift; sourceTree = "<group>"; };
 		A06CA5570703E00706A30373 /* RankingViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RankingViewModelTests.swift; sourceTree = "<group>"; };
-		A0E3F71B02C97B2817E4931D /* MenuMessagePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuMessagePreviewView.swift; sourceTree = "<group>"; };
 		A1C7522C8100006836500702 /* ClassificationTagChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassificationTagChip.swift; sourceTree = "<group>"; };
 		A3194E2B785D9B3CC34ED3BC /* SearchHistoryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHistoryItem.swift; sourceTree = "<group>"; };
 		A3CB206D2201A77B7F3D3E4B /* FetchClassificationTagsUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchClassificationTagsUseCase.swift; sourceTree = "<group>"; };
@@ -556,6 +555,7 @@
 		C9BA48226E292863686A1818 /* BookingAssetQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingAssetQuery.swift; sourceTree = "<group>"; };
 		CAD81C1A440D6ADE7D7E8967 /* MessageRemoteDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageRemoteDataSource.swift; sourceTree = "<group>"; };
 		CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockPlaybackSessionStore.swift; sourceTree = "<group>"; };
+		CC5026F9143180A962578139 /* MenuPanelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuPanelStyle.swift; sourceTree = "<group>"; };
 		CEB1917DF994759A9B93DA35 /* PlayerRemoteDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRemoteDataSourceTests.swift; sourceTree = "<group>"; };
 		CECC944420F8D142287DED17 /* CreateSessionUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateSessionUseCase.swift; sourceTree = "<group>"; };
 		CF121E91F5231724820D6FA4 /* PlayerRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRepository.swift; sourceTree = "<group>"; };
@@ -634,7 +634,7 @@
 				967D51103E4C28B113B06F5B /* MenuCommonFunctionsSection.swift */,
 				D236A9D597B9EA76AAF41DE4 /* MenuGameCenterSection.swift */,
 				ED0D8DBC58148FD4068B559A /* MenuLoginHeaderView.swift */,
-				A0E3F71B02C97B2817E4931D /* MenuMessagePreviewView.swift */,
+				CC5026F9143180A962578139 /* MenuPanelStyle.swift */,
 				13F0C8DF98A87270C290594B /* MenuRecentlyViewedSection.swift */,
 				5C474BD6C199B32C1717F14E /* RecentlyViewedCardView.swift */,
 			);
@@ -1849,10 +1849,10 @@
 				E3480C08400E4B86BFE3DE99 /* MenuCommonFunctionsSection.swift in Sources */,
 				A8C6915BF0A2D1F92B1F378E /* MenuGameCenterSection.swift in Sources */,
 				1211DD33E830C5245AC8EF3E /* MenuLoginHeaderView.swift in Sources */,
-				8C16B6830F036A6DF1548973 /* MenuMessagePreviewView.swift in Sources */,
 				3B18DF21ABA0FE536EA3B91A /* MenuPanelContainerView.swift in Sources */,
 				5A32AB17564B0A7A70132D82 /* MenuPanelRepository.swift in Sources */,
 				551D5EC152D8069B77A94A50 /* MenuPanelRepositoryProtocol.swift in Sources */,
+				AC3EF7AA8E590882EA8D802A /* MenuPanelStyle.swift in Sources */,
 				F3960E8F6C37EAEC302C3044 /* MenuPanelView.swift in Sources */,
 				ED6D08BD6EADBA6D7F91A273 /* MenuPanelViewModel.swift in Sources */,
 				63F1065B0EDF9249C99E40DF /* MenuPlaceholderKind.swift in Sources */,

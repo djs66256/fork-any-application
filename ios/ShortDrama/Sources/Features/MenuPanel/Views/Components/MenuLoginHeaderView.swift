@@ -4,32 +4,39 @@ struct MenuLoginHeaderView: View {
     let onTapLogin: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: DesignTokens.Spacing.md) {
+        HStack(alignment: .center, spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.12))
-                    .frame(width: 56, height: 56)
-                Image(systemName: "person.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(Color.accentColor)
-            }
+                    .fill(Color.black.opacity(0.04))
+                    .overlay {
+                        Circle()
+                            .stroke(MenuPanelStyle.iconPlaceholderStroke, lineWidth: 1)
+                    }
 
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                Text("登录后体验更多功能")
-                    .font(.headline)
-                Text("同步你的播放偏好、消息与个人资产")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                Image(systemName: "play.circle")
+                    .font(.system(size: 21, weight: .regular))
+                    .foregroundStyle(MenuPanelStyle.tertiaryText)
             }
+            .frame(width: 58, height: 58)
 
-            Spacer(minLength: DesignTokens.Spacing.sm)
+            Text("登录看完整信息")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(MenuPanelStyle.title)
+                .lineLimit(1)
+
+            Spacer(minLength: 12)
+
+            Button(action: onTapLogin) {
+                Text("立即登录")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .frame(height: 44)
+                    .background(MenuPanelStyle.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
-        .padding(DesignTokens.Spacing.lg)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
-        .overlay(alignment: .bottomTrailing) {
-            Button("立即登录", action: onTapLogin)
-                .buttonStyle(.borderedProminent)
-                .padding(DesignTokens.Spacing.md)
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
