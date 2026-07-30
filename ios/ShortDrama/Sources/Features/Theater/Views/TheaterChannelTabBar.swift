@@ -7,27 +7,52 @@ struct TheaterChannelTabBar: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DesignTokens.Spacing.sm) {
+            HStack(spacing: 21) {
                 ForEach(channels) { channel in
                     Button {
                         onSelect(channel)
                     } label: {
-                        Text(channel.title)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(channel == selectedChannel ? .white : .primary)
-                            .padding(.horizontal, DesignTokens.Spacing.md)
-                            .padding(.vertical, DesignTokens.Spacing.sm)
-                            .background(background(for: channel))
+                        channelLabel(for: channel)
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, DesignTokens.Spacing.lg)
+            .padding(.trailing, 72)
+            .padding(.top, 1)
+            .padding(.bottom, 1)
         }
+        .scrollIndicators(.hidden)
     }
 
-    private func background(for channel: TheaterChannel) -> some ShapeStyle {
-        channel == selectedChannel ? Color.accentColor : Color(.secondarySystemBackground)
+    @ViewBuilder
+    private func channelLabel(for channel: TheaterChannel) -> some View {
+        let isSelected = channel == selectedChannel
+
+        ZStack(alignment: .leading) {
+            if isSelected {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 1.0, green: 0.78, blue: 0.72).opacity(0.95),
+                                Color(red: 0.85, green: 0.95, blue: 0.93).opacity(0.95)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 28, height: 28)
+                    .offset(x: -5, y: -1)
+            }
+
+            Text(channel.title)
+                .font(.system(size: isSelected ? 18 : 16, weight: isSelected ? .bold : .semibold))
+                .tracking(isSelected ? -0.3 : 0)
+                .foregroundStyle(isSelected ? Color.black.opacity(0.96) : Color.black.opacity(0.38))
+                .frame(height: 30)
+        }
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 

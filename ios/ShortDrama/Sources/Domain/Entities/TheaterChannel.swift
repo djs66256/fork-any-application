@@ -18,19 +18,19 @@ enum TheaterChannel: String, CaseIterable, Codable, Equatable, Sendable, Identif
         case .all:
             return "找剧"
         case .real:
-            return "真人"
+            return "真人剧"
         case .anime:
-            return "动漫"
+            return "漫剧"
         case .movie:
             return "电影"
         case .audio:
-            return "有声书"
+            return "听书"
         case .novel:
             return "小说"
         case .comic:
             return "漫画"
         case .bigscreen:
-            return "大屏"
+            return "大视听"
         }
     }
 }

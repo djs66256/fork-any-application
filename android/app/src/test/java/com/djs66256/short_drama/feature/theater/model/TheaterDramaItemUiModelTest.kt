@@ -7,11 +7,13 @@ import org.junit.Test
 class TheaterDramaItemUiModelTest {
 
     @Test
-    fun `T-07 theater ui model formats heat and meta correctly`() {
+    fun `T-07 theater ui model formats heat and chips correctly`() {
         val model = sampleDrama(heat = 23000).toUiModel()
 
         assertEquals("2.3万", model.heatText)
-        assertEquals("都市 · 逆袭 / 豪门 · 68 集 · 评分 8.9", model.metaText)
+        assertEquals(listOf("红果首发", "逆袭"), model.chipTexts)
+        assertEquals(null, model.badgeText)
+        assertEquals("都市", model.category)
         assertEquals("https://example.com/drama.jpg", model.coverUrl)
     }
 
@@ -20,7 +22,8 @@ class TheaterDramaItemUiModelTest {
         val model = sampleDrama(coverUrl = "", heat = 9999, rating = 0.0, tags = emptyList()).toUiModel()
 
         assertEquals("9999", model.heatText)
-        assertEquals("都市 · 68 集", model.metaText)
+        assertEquals(listOf("红果首发", "都市"), model.chipTexts)
+        assertEquals(null, model.badgeText)
         assertEquals("", model.coverUrl)
     }
 

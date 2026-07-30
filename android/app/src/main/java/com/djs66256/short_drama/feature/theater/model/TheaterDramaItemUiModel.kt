@@ -9,7 +9,9 @@ data class TheaterDramaItemUiModel(
     val title: String,
     val description: String,
     val coverUrl: String,
-    val metaText: String,
+    val category: String,
+    val chipTexts: List<String>,
+    val badgeText: String?,
     val heatText: String,
 )
 
@@ -18,36 +20,52 @@ fun TheaterDrama.toUiModel(): TheaterDramaItemUiModel = TheaterDramaItemUiModel(
     title = title,
     description = description,
     coverUrl = coverUrl,
-    metaText = buildTheaterMetaText(
+    category = category,
+    chipTexts = buildTheaterChipTexts(
         category = category,
         tags = tags,
-        episodeCount = episodeCount,
         rating = rating,
+        heat = heat,
+    ),
+    badgeText = buildBadgeText(
+        title = title,
+        tags = tags,
+        heat = heat,
     ),
     heatText = formatHeat(heat),
 )
 
-internal fun buildTheaterMetaText(
+internal fun buildTheaterChipTexts(
     category: String,
     tags: List<String>,
-    episodeCount: Int,
     rating: Double,
-): String {
-    val parts = buildList {
-        if (category.isNotBlank()) {
-            add(category)
-        }
-        if (tags.isNotEmpty()) {
-            add(tags.take(2).joinToString(" / "))
-        }
-        if (episodeCount > 0) {
-            add("$episodeCount 集")
-        }
-        if (rating > 0.0) {
-            add("评分 ${formatRating(rating)}")
-        }
+    heat: Int,
+): List<String> {
+    val chips = mutableListOf<String>()
+    val highlight = when {
+        heat >= 90_000 -> "热播榜 No.9"
+        heat >= 80_000 -> "AI剧收藏榜 No.8"
+        heat >= 60_000 -> "最高热度破9000万"
+        else -> "红果首发"
     }
-    return parts.joinToString(" · ")
+    chips += highlight
+    val secondary = tags.firstOrNull()?.takeIf { it.isNotBlank() }
+        ?: category.takeIf { it.isNotBlank() }
+        ?: if (rating > 0.0) "评分 ${formatRating(rating)}" else null
+    secondary?.let(chips::add)
+    return chips.take(2)
+}
+
+internal fun buildBadgeText(
+    title: String,
+    tags: List<String>,
+    heat: Int,
+): String? = when {
+    heat >= 90_000 -> "爆剧"
+    heat >= 80_000 -> "热播"
+    title.contains("夜") -> "新剧"
+    tags.any { it.contains("复仇") } -> "红果首发"
+    else -> null
 }
 
 internal fun formatHeat(value: Int): String {

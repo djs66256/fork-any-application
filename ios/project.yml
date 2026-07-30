@@ -9,6 +9,11 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
+    INFOPLIST_FILE: ShortDrama/Resources/Info.plist
+
+configs:
+  Debug: debug
+  Release: release
 
 targets:
   ShortDrama:
@@ -17,24 +22,22 @@ targets:
     sources:
       - path: ShortDrama/Sources
         includes: "**/*.swift"
-    resources:
       - path: ShortDrama/Resources
-    info:
-      path: ShortDrama/Resources/Info.plist
-      properties:
-        API_BASE_URL: "$(API_BASE_URL)"
-        MALL_BASE_URL: "$(MALL_BASE_URL)"
-        EARN_BASE_URL: "$(EARN_BASE_URL)"
-        NSAppTransportSecurity:
-          NSAllowsLocalNetworking: true
+        excludes:
+          - Info.plist
+        buildPhase: resources
     settings:
       base:
-        INFOPLIST_PREPROCESS: "YES"
         PRODUCT_BUNDLE_IDENTIFIER: com.djs66256.short_drama
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: "NO"
+        INFOPLIST_FILE: ShortDrama/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    configFiles:
+      Debug: Configs/Debug.xcconfig
+      Release: Configs/Release.xcconfig
     preBuildScripts:
       - name: SwiftLint
         script: |
@@ -42,9 +45,6 @@ targets:
             swiftlint
           fi
         basedOnDependencyAnalysis: false
-    configFiles:
-      Debug: Configs/Debug.xcconfig
-      Release: Configs/Release.xcconfig
 
   ShortDramaTests:
     type: bundle.unit-test

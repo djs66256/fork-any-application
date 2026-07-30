@@ -1,36 +1,6 @@
 import SwiftUI
-import UIKit
 
 struct AppShellView: View {
-
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(DesignTokens.HomeChrome.tabBarBackground)
-        appearance.shadowColor = UIColor(DesignTokens.HomeChrome.tabBarHairline)
-        appearance.stackedItemPositioning = .fill
-        appearance.stackedItemWidth = 0
-        appearance.stackedItemSpacing = 0
-
-        let selectedColor = UIColor(DesignTokens.HomeChrome.tabBarSelected)
-        let unselectedColor = UIColor(DesignTokens.HomeChrome.tabBarUnselected)
-        let indicatorColor = UIColor(DesignTokens.HomeChrome.tabBarIndicator)
-
-        [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance]
-            .forEach { itemAppearance in
-                itemAppearance.selected.iconColor = selectedColor
-                itemAppearance.selected.titleTextAttributes = [.foregroundColor: selectedColor]
-                itemAppearance.normal.iconColor = unselectedColor
-                itemAppearance.normal.titleTextAttributes = [.foregroundColor: unselectedColor]
-                itemAppearance.selected.badgeBackgroundColor = indicatorColor
-                itemAppearance.normal.badgeBackgroundColor = indicatorColor
-                itemAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 1)
-                itemAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 1)
-            }
-
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
     @EnvironmentObject private var router: NavigationRouter
     @EnvironmentObject private var authStore: AuthStore
     @StateObject private var menuPanelViewModel = MenuPanelViewModel(
@@ -50,6 +20,8 @@ struct AppShellView: View {
                         .tag(tab)
                 }
             }
+            .tint(.black)
+            .onAppear(perform: configureTabBarAppearance)
             .disabled(router.isMenuPanelVisible)
 
             if router.selectedTab == .home && router.isMenuPanelVisible {
@@ -89,6 +61,28 @@ struct AppShellView: View {
                 }
             }
         )
+    }
+
+    private func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = UIColor(white: 1.0, alpha: 0.96)
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialLight)
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.04)
+        appearance.stackedLayoutAppearance.selected.iconColor = .black
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.black,
+            .font: UIFont.systemFont(ofSize: 10.5, weight: .semibold)
+        ]
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.black.withAlphaComponent(0.5)
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.black.withAlphaComponent(0.5),
+            .font: UIFont.systemFont(ofSize: 10.5, weight: .regular)
+        ]
+        appearance.stackedItemSpacing = 1
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
 
