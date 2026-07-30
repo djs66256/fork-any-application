@@ -1,6 +1,36 @@
 import SwiftUI
+import UIKit
 
 struct AppShellView: View {
+
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(DesignTokens.HomeChrome.tabBarBackground)
+        appearance.shadowColor = UIColor(DesignTokens.HomeChrome.tabBarHairline)
+        appearance.stackedItemPositioning = .fill
+        appearance.stackedItemWidth = 0
+        appearance.stackedItemSpacing = 0
+
+        let selectedColor = UIColor(DesignTokens.HomeChrome.tabBarSelected)
+        let unselectedColor = UIColor(DesignTokens.HomeChrome.tabBarUnselected)
+        let indicatorColor = UIColor(DesignTokens.HomeChrome.tabBarIndicator)
+
+        [appearance.stackedLayoutAppearance, appearance.inlineLayoutAppearance, appearance.compactInlineLayoutAppearance]
+            .forEach { itemAppearance in
+                itemAppearance.selected.iconColor = selectedColor
+                itemAppearance.selected.titleTextAttributes = [.foregroundColor: selectedColor]
+                itemAppearance.normal.iconColor = unselectedColor
+                itemAppearance.normal.titleTextAttributes = [.foregroundColor: unselectedColor]
+                itemAppearance.selected.badgeBackgroundColor = indicatorColor
+                itemAppearance.normal.badgeBackgroundColor = indicatorColor
+                itemAppearance.normal.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 1)
+                itemAppearance.selected.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 1)
+            }
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
     @EnvironmentObject private var router: NavigationRouter
     @EnvironmentObject private var authStore: AuthStore
     @StateObject private var menuPanelViewModel = MenuPanelViewModel(

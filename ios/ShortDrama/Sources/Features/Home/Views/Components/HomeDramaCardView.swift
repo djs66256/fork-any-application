@@ -26,13 +26,6 @@ struct HomeDramaCardView: View {
         return Array(source.prefix(5))
     }
 
-    private var ctaTitle: String {
-        if drama.episodeCount > 0 {
-            return "观看完整漫剧 · 全\(drama.episodeCount)集"
-        }
-        return "立即观看完整漫剧"
-    }
-
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             DramaCoverView(coverURL: drama.coverUrl)
@@ -126,31 +119,31 @@ struct HomeDramaCardView: View {
                 .font(.footnote)
                 .foregroundStyle(Color.white.opacity(0.48))
 
-            Button(action: onPlay) {
-                HStack(spacing: DesignTokens.Spacing.md) {
-                    Image(systemName: "play.fill")
-                        .font(.headline)
-                    Text(ctaTitle)
-                        .font(.headline.weight(.semibold))
-                        .lineLimit(1)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.headline.weight(.semibold))
+            HStack(spacing: DesignTokens.Spacing.md) {
+                Text(drama.episodeCount > 0 ? "观看完整漫剧 · 全\(drama.episodeCount)集" : "立即观看完整漫剧")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(DesignTokens.HomeChrome.mutedText)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button(action: onDetail) {
+                    Text("详情 >")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(DesignTokens.HomeChrome.mutedText)
                 }
-                .foregroundStyle(Color.white)
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(
-                    LinearGradient(
-                        colors: [Color(red: 1.0, green: 0.53, blue: 0.19), Color(red: 0.98, green: 0.41, blue: 0.14)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+                .buttonStyle(.plain)
+
+                Button(action: onPlay) {
+                    Text("去看")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, DesignTokens.Spacing.lg)
+                        .padding(.vertical, DesignTokens.Spacing.sm)
+                        .background(DesignTokens.HomeChrome.accent)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

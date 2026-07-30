@@ -22,7 +22,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            DesignTokens.HomeChrome.background.ignoresSafeArea()
 
             Group {
                 switch viewModel.viewState {
@@ -65,31 +65,26 @@ struct HomeView: View {
                 .zIndex(1)
             }
         }
-        .navigationTitle("")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    router.openMenuPanel()
-                } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .accessibilityLabel("打开菜单")
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    router.navigate(to: .searchHome)
-                } label: {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(.white)
-                }
-                .accessibilityLabel("搜索")
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) {
+            HomeTopOverlay(
+                onOpenMenu: { router.openMenuPanel() },
+                onOpenSearch: { router.navigate(to: .searchHome) }
+            )
+            .padding(.horizontal, DesignTokens.Spacing.md)
+            .padding(.top, 2)
+            .background(Color.clear)
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let drama = featuredDrama {
+                HomeBottomChrome(
+                    drama: drama,
+                    onPlay: { handlePlay(for: drama) }
+                )
+                .padding(.horizontal, DesignTokens.Spacing.md)
+                .padding(.top, 6)
+                .padding(.bottom, 4)
+                .background(Color.clear)
             }
         }
         .task {
@@ -132,6 +127,13 @@ struct HomeView: View {
         } message: { _ in
             Text("登录后即可发表评论或点赞评论。首版仅恢复评论抽屉上下文，不自动重放写操作。")
         }
+    }
+
+    private var featuredDrama: Drama? {
+        if case .content(let dramas) = viewModel.viewState {
+            return dramas.first
+        }
+        return nil
     }
 
     private var activeCommentSheetBinding: Binding<HomeViewModel.CommentSheetContext?> {
@@ -206,7 +208,7 @@ private struct HomeFeedListView: View {
                 }
                 .padding(.horizontal, DesignTokens.Spacing.md)
                 .padding(.top, DesignTokens.Spacing.sm)
-                .padding(.bottom, DesignTokens.Spacing.xl)
+                .padding(.bottom, 116)
             }
             .background(Color.black)
         }
@@ -287,6 +289,97 @@ private struct HomeFeedErrorView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black)
         .padding(DesignTokens.Spacing.xl)
+    }
+}
+
+private struct HomeTopOverlay: View {
+    let onOpenMenu: () -> Void
+    let onOpenSearch: () -> Void
+
+    var body: some View {
+        HStack {
+            topIconButton(systemName: "line.3.horizontal", action: onOpenMenu)
+                .accessibilityLabel("打开菜单")
+
+            Spacer()
+
+            topIconButton(systemName: "magnifyingglass", action: onOpenSearch)
+                .accessibilityLabel("搜索")
+        }
+        .padding(.horizontal, 2)
+    }
+
+    private func topIconButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(DesignTokens.HomeChrome.iconButtonBackground)
+                .overlay {
+                    Circle()
+                        .stroke(DesignTokens.HomeChrome.iconButtonBorder, lineWidth: 1)
+                }
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct HomeBottomChrome: View {
+    let drama: Drama
+    let onPlay: () -> Void
+
+    var body: some View {
+        HStack(spacing: DesignTokens.Spacing.md) {
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 32, height: 32)
+                .overlay {
+                    Image(systemName: "play.fill")
+                        .font(.headline)
+                        .foregroundStyle(DesignTokens.HomeChrome.accentSoft)
+                }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(ctaTitle)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text("首页主入口")
+                    .font(.caption)
+                    .foregroundStyle(Color.white.opacity(0.42))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: onPlay) {
+                Text("去看")
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 26)
+                    .padding(.vertical, 14)
+                    .background(DesignTokens.HomeChrome.accent)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, DesignTokens.Spacing.lg)
+        .padding(.vertical, 14)
+        .background(DesignTokens.HomeChrome.frameCtaBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(DesignTokens.HomeChrome.frameCtaBorder, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+    }
+
+    private var ctaTitle: String {
+        if drama.episodeCount > 0 {
+            return "观看完整漫剧 · 全\(drama.episodeCount)集"
+        }
+        return "立即观看完整漫剧"
     }
 }
 

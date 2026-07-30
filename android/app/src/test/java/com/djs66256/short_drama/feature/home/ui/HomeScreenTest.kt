@@ -63,4 +63,11 @@ class HomeScreenTest {
         assertEquals("1.25万", formatCompactCount(12_500))
         assertEquals("40.4万", formatCompactCount(404_000))
     }
+
+    @Test
+    fun `frame cta title falls back to at least one episode`() {
+        val title = buildFrameCtaTitle(episodeCount = 0)
+
+        assertEquals("观看完整漫剧 · 全1集", title)
+    }
 }

@@ -68,6 +68,16 @@ val HomeFeedChip = Color(0x2BFFFFFF)
 val HomeFeedChipText = Color(0xFFF4E8DE)
 val HomeFeedMutedText = Color(0xCCEFE4DB)
 val HomeFeedMetaBar = Color(0x52121212)
+val HomeFeedTopBarScrim = Color.Transparent
+val HomeFeedTopBarBorder = Color.Transparent
+val HomeFeedTopBarIconSurface = Color(0x6B111111)
+val HomeFeedTopBarIconBorder = Color(0x14FFFFFF)
+val HomeFeedFrameCtaSurface = Color(0xF2141414)
+val HomeFeedFrameCtaBorder = Color(0x1AFFFFFF)
+val HomeFeedTabBarBackground = Color(0xF2101010)
+val HomeFeedTabBarIndicator = Color.Transparent
+val HomeFeedTabBarSelected = Color(0xFFF8F0E7)
+val HomeFeedTabBarUnselected = Color(0xFF8E857D)
 
 // Check-in popup palette
 val CheckInPopupOrangeStart = Color(0xFFFF8E3A)

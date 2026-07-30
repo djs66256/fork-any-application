@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +34,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,11 +66,15 @@ import com.djs66256.short_drama.core.theme.HomeFeedCardMiddle
 import com.djs66256.short_drama.core.theme.HomeFeedCardTop
 import com.djs66256.short_drama.core.theme.HomeFeedChip
 import com.djs66256.short_drama.core.theme.HomeFeedChipText
+import com.djs66256.short_drama.core.theme.HomeFeedFrameCtaBorder
+import com.djs66256.short_drama.core.theme.HomeFeedFrameCtaSurface
 import com.djs66256.short_drama.core.theme.HomeFeedMetaBar
 import com.djs66256.short_drama.core.theme.HomeFeedMutedText
 import com.djs66256.short_drama.core.theme.HomeFeedRailSurface
 import com.djs66256.short_drama.core.theme.HomeFeedRailText
 import com.djs66256.short_drama.core.theme.HomeFeedScrim
+import com.djs66256.short_drama.core.theme.HomeFeedTopBarIconBorder
+import com.djs66256.short_drama.core.theme.HomeFeedTopBarIconSurface
 import com.djs66256.short_drama.domain.model.Drama
 import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
 import com.djs66256.short_drama.feature.comments.model.CommentSource
@@ -105,7 +110,9 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp)
+                .padding(top = 2.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HomeTopBar(
@@ -113,7 +120,11 @@ fun HomeScreen(
                 onOpenSearch = onOpenSearch,
             )
 
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 116.dp),
+            ) {
                 when {
                     uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
                     errorMessage != null -> HomeFeedErrorState(
@@ -143,6 +154,22 @@ fun HomeScreen(
             LaunchedEffect(hasBlockingModal) {
                 viewModel.abandonCheckInPopupForCurrentSession()
             }
+        }
+
+        val featuredDrama = uiState.items.firstOrNull()
+        if (featuredDrama != null && !uiState.isLoading && errorMessage == null) {
+            HomeFrameCta(
+                episodeCount = featuredDrama.episodeCount,
+                onClick = {
+                    if (hasNavigableDramaId(featuredDrama.id)) {
+                        onOpenPlay(featuredDrama.id)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            )
         }
 
         if (shouldRenderCheckInPopup(uiState.checkInPopup.isVisible, hasBlockingModal)) {
@@ -193,22 +220,40 @@ private fun HomeTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp),
+            .padding(horizontal = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onOpenMenu) {
+        HomeTopBarIconButton(
+            imageVector = Icons.Filled.Menu,
+            contentDescription = HOME_MENU_ENTRY_CONTENT_DESCRIPTION,
+            onClick = onOpenMenu,
+        )
+        HomeTopBarIconButton(
+            imageVector = Icons.Filled.Search,
+            contentDescription = HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION,
+            onClick = onOpenSearch,
+        )
+    }
+}
+
+@Composable
+private fun HomeTopBarIconButton(
+    imageVector: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.size(44.dp),
+        shape = CircleShape,
+        color = HomeFeedTopBarIconSurface,
+        border = BorderStroke(1.dp, HomeFeedTopBarIconBorder),
+        onClick = onClick,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
             Icon(
-                imageVector = Icons.Filled.Menu,
-                contentDescription = HOME_MENU_ENTRY_CONTENT_DESCRIPTION,
-                tint = Color.White,
-            )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = onOpenSearch) {
-            Icon(
-                imageVector = Icons.Filled.Search,
-                contentDescription = HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION,
+                imageVector = imageVector,
+                contentDescription = contentDescription,
                 tint = Color.White,
             )
         }
@@ -395,7 +440,7 @@ fun HomeDramaCard(
                             )
                         }
 
-                        FullWatchCta(
+                        HomeCardFooter(
                             enabled = actionsEnabled,
                             episodeCount = drama.episodeCount,
                             onClick = {
@@ -568,28 +613,78 @@ private fun InteractionRail(
 }
 
 @Composable
-private fun FullWatchCta(
+private fun HomeCardFooter(
     enabled: Boolean,
     episodeCount: Int,
     onClick: () -> Unit,
     onDetail: () -> Unit,
 ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "观看完整漫剧 · 全${episodeCount.coerceAtLeast(1)}集",
+            color = HomeFeedMutedText,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = Color.Transparent,
+            onClick = onDetail,
+            enabled = enabled,
+        ) {
+            Text(
+                text = "详情 >",
+                color = HomeFeedMutedText,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+            )
+        }
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = HomeFeedAccentStrong,
+                contentColor = Color.White,
+                disabledContainerColor = HomeFeedAccentStrong.copy(alpha = 0.35f),
+                disabledContentColor = Color.White.copy(alpha = 0.6f),
+            ),
+        ) {
+            Text("去看")
+        }
+    }
+}
+
+@Composable
+internal fun HomeFrameCta(
+    episodeCount: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp)),
-        color = HomeFeedBottomBar,
-        border = BorderStroke(1.dp, HomeFeedBottomBarBorder),
+            .clip(RoundedCornerShape(24.dp)),
+        color = HomeFeedFrameCtaSurface,
+        border = BorderStroke(1.dp, HomeFeedFrameCtaBorder),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Surface(
-                modifier = Modifier.size(28.dp),
-                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(32.dp),
+                shape = RoundedCornerShape(10.dp),
                 color = HomeFeedBadge,
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -601,39 +696,32 @@ private fun FullWatchCta(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "观看完整漫剧 · 全${episodeCount.coerceAtLeast(1)}集",
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+            Column(
                 modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = Color.Transparent,
-                onClick = onDetail,
-                enabled = enabled,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text = "详情 >",
-                    color = HomeFeedMutedText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
+                    text = buildFrameCtaTitle(episodeCount),
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = "首页主入口",
+                    color = Color.White.copy(alpha = 0.42f),
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = onClick,
-                enabled = enabled,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = HomeFeedAccentStrong,
                     contentColor = Color.White,
-                    disabledContainerColor = HomeFeedAccentStrong.copy(alpha = 0.35f),
-                    disabledContentColor = Color.White.copy(alpha = 0.6f),
                 ),
             ) {
                 Text("去看")
@@ -723,6 +811,10 @@ internal fun buildDramaMeta(drama: Drama): String {
         }
     }
     return parts.joinToString("  ")
+}
+
+internal fun buildFrameCtaTitle(episodeCount: Int): String {
+    return "观看完整漫剧 · 全${episodeCount.coerceAtLeast(1)}集"
 }
 
 internal fun formatCompactCount(value: Int): String {
