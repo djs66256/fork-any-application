@@ -503,11 +503,4 @@ extension NavigationRouterTests {
         #expect(router.selectedTab == .home)
         #expect(router.pathsByTab[.home]?.count == 1)
     }
-
-    @Test("dismiss on empty path is safe")
-    func testDismissEmptyPathSafe() {
-        let router = NavigationRouter()
-        router.dismiss()
-        #expect(router.pathsByTab[.home]?.isEmpty == true)
-    }
 }

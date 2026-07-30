@@ -1,13 +1,13 @@
 # 功能域索引
 
-- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、签到浮层、菜单抽屉、消息中心入口、搜索发现、排行、分类；商城与赚钱频道承载 H5 容器与登录/任务回流；“我的”频道承载登录 / 设置等真实 Native 子页面
-- [认证体系 (Auth)](auth/index.md) — 移动端手机号验证码登录、自动注册、会话恢复 / refresh / logout、Profile 登录后态、排行预约登录拦截、评论写操作当前对齐的鉴权基线、消息互动分区登录门槛、签到接口可选登录语义，以及商城 / 赚钱 H5 容器的宿主登录态同步
+- [应用壳 (App Shell)](app-shell/index.md) — 各端应用启动入口、移动端 5 Tab 容器，以及首页频道承载 Feed、签到浮层、菜单抽屉、消息中心入口、搜索发现、排行、分类；剧场频道承载真实 Native Feed；商城与赚钱频道承载 H5 容器与登录 / 任务回流；“我的”频道承载登录 / 设置等真实 Native 子页面
+- [认证体系 (Auth)](auth/index.md) — 移动端手机号验证码登录、自动注册、会话恢复 / refresh / logout、Profile 登录后态、排行预约登录拦截、评论写操作鉴权基线、消息互动分区登录门槛、签到接口可选登录语义，以及商城商品点击登录承接与商城 / 赚钱 H5 宿主登录态同步
 - [首页信息流 (Homepage Feed)](homepage-feed/index.md) — Android / iOS 首页首屏 Feed、Backend `GET /api/dramas` 契约、首页签到浮层、卡片到播放/详情页主链路，以及首页评论入口与页面内评论容器
 - [签到能力 (Check-In)](check-in/index.md) — 首页冷启动签到浮层、7 日签到板、`GET /api/check-ins/status` / `POST /api/check-ins`、`X-Installation-Id` 匿名主体与服务端业务日规则
 - [消息系统 (Messages)](messages/index.md) — 菜单消息预览、独立消息中心、系统消息与互动消息分区、登录门槛、登录回流，以及 `messages/preview` / `messages/system` / `messages/interactions` contract
 - [剧场频道 (Theater)](theater/index.md) — Android / iOS 独立剧场一级 Tab、`GET /api/dramas/channel`、8 频道切换、剧场快捷入口与 `play` 主路径复用
-- [商城频道 (Mall)](mall/index.md) — Web `/mall` 与 `/mall/product/[id]`、Android / iOS H5 容器接入、商品 Feed、搜索/登录 bridge 与商城上下文恢复
-- [搜索发现 (Search Discovery)](search-discovery/index.md) — 首页搜索入口与剧场搜索入口延伸出的搜索发现页、搜索结果页、热搜/历史、快捷入口与搜索 API 主链路，并承接商城搜索 bridge 复用
+- [商城频道 (Mall)](mall/index.md) — Web `/mall` 与 `/mall/product/[id]`、Android / iOS H5 容器接入、商品 Feed、搜索 / 登录 bridge 与商城上下文恢复
+- [搜索发现 (Search Discovery)](search-discovery/index.md) — 首页搜索入口与剧场搜索入口延伸出的搜索发现页、搜索结果页、热搜 / 历史、快捷入口与搜索 API 主链路，并承接商城搜索 bridge 复用
 - [排行体系 (Ranking)](ranking/index.md) — 搜索发现页与剧场快捷入口的排行承接、双层 Tab 榜单浏览、分页、预约拦截、可选鉴权榜单与登录后继续操作
 - [分类浏览 (Classification)](classification/index.md) — 搜索发现页分类入口、固定三维度标签矩阵、`GET /api/dramas/tags`、标签点击复用搜索结果页与 Native / Web 范围边界
 - [赚钱中心 (Earn Center)](earn/index.md) — Web `/earn` H5 页面、Android / iOS 原生容器接入、earn 专属 bridge / host sync、代表性任务播放回流与奖励闭环
