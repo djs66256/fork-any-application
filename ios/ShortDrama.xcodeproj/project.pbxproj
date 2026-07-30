@@ -478,6 +478,7 @@
 		868C5C743F02EA2C96CE9BDE /* StartPlaybackUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartPlaybackUseCase.swift; sourceTree = "<group>"; };
 		876C382615F9AB96597EFE01 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		88257D27B2CBE9237BF2CB60 /* BookingAssetSummaryDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingAssetSummaryDTO.swift; sourceTree = "<group>"; };
+		8AA8FBEE6F2F9DED067FD83A /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		8AE1F45DC3A49E5115725610 /* SearchResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultView.swift; sourceTree = "<group>"; };
 		8B50644B3466A5441F5789AC /* SignInStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInStatus.swift; sourceTree = "<group>"; };
 		8CE23002456CBB0C58B5D512 /* NavigationRouterTestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRouterTestHelpers.swift; sourceTree = "<group>"; };
@@ -510,6 +511,7 @@
 		A84EAB62848A342C45C2FF85 /* PlayerDTOs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerDTOs.swift; sourceTree = "<group>"; };
 		A84F14ED4C6E37966539FAA3 /* ClassificationTagsPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassificationTagsPayload.swift; sourceTree = "<group>"; };
 		A875F5081B43556074244009 /* CommentSheetViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentSheetViewModelTests.swift; sourceTree = "<group>"; };
+		A8F78F86E996C83BB5F0FADC /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		A974839435E424DF89D09A8E /* FetchInteractionMessagesUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchInteractionMessagesUseCase.swift; sourceTree = "<group>"; };
 		A9E7DC4C675D86CF38C22BCF /* BookDramaResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDramaResult.swift; sourceTree = "<group>"; };
 		AA317E277C0A4175649DCCDC /* CommentRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentRepositoryProtocol.swift; sourceTree = "<group>"; };
@@ -799,6 +801,7 @@
 		4C15D1B5DD1502F7446C0CBA = {
 			isa = PBXGroup;
 			children = (
+				D6C8DCC918C51B650304430E /* Configs */,
 				E9EE32F36F88EA9C97F30ABE /* Sources */,
 				B7A0DEFF7C42E4B2D7264996 /* Tests */,
 				39CF7E67EDF64CC7743714DD /* Products */,
@@ -1413,6 +1416,15 @@
 			path = Repositories;
 			sourceTree = "<group>";
 		};
+		D6C8DCC918C51B650304430E /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				A8F78F86E996C83BB5F0FADC /* Debug.xcconfig */,
+				8AA8FBEE6F2F9DED067FD83A /* Release.xcconfig */,
+			);
+			path = Configs;
+			sourceTree = "<group>";
+		};
 		D7058DBF0A6AB11445C669E4 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -1622,6 +1634,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+					DBB0BAE3E16A070F2C875D05 = {
+						ProvisioningStyle = Automatic;
+					};
 				};
 			};
 			buildConfigurationList = DBA0ABD903D52BE34D28E3BA /* Build configuration list for PBXProject "ShortDrama" */;
@@ -2017,13 +2032,14 @@
 		};
 		7A51A585311861F15462C2C5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A8F78F86E996C83BB5F0FADC /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				INFOPLIST_PREPROCESS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -2086,10 +2102,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
-				INFOPLIST_KEY_API_BASE_URL = "$(API_BASE_URL)";
-				INFOPLIST_KEY_EARN_BASE_URL = "$(EARN_BASE_URL)";
-				INFOPLIST_KEY_MALL_BASE_URL = "$(MALL_BASE_URL)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -2147,10 +2159,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
-				INFOPLIST_KEY_API_BASE_URL = "$(API_BASE_URL)";
-				INFOPLIST_KEY_EARN_BASE_URL = "$(EARN_BASE_URL)";
-				INFOPLIST_KEY_MALL_BASE_URL = "$(MALL_BASE_URL)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -2164,13 +2172,14 @@
 		};
 		E6BA80CA3558FAE06FFF9188 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8AA8FBEE6F2F9DED067FD83A /* Release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ShortDrama/Resources/Info.plist;
+				INFOPLIST_PREPROCESS = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
