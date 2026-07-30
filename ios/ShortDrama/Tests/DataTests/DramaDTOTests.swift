@@ -46,7 +46,7 @@ struct DramaDTOTests {
             "id": "drama-002",
             "title": "Simple",
             "description": "A simple story",
-            "cover_url": "https://img.example.com/cover002.jpg",
+            "cover_url": null,
             "category": "action",
             "episode_count": 12,
             "tags": null,
@@ -61,6 +61,7 @@ struct DramaDTOTests {
         let dto = try decoder.decode(DramaDTO.self, from: Data(json.utf8))
 
         #expect(dto.id == "drama-002")
+        #expect(dto.coverUrl == nil)
         #expect(dto.tags == nil)
         #expect(dto.rating == nil)
     }
@@ -102,7 +103,7 @@ struct DramaDTOTests {
             id: "drama-002",
             title: "No Tags",
             description: "No tags story",
-            coverUrl: "https://example.com/cover2.jpg",
+            coverUrl: nil,
             category: "horror",
             episodeCount: 8,
             tags: nil,
@@ -113,6 +114,7 @@ struct DramaDTOTests {
 
         let entity = dto.toEntity()
 
+        #expect(entity.coverUrl.isEmpty)
         #expect(entity.tags == nil)
         #expect(entity.rating == nil)
     }

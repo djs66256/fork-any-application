@@ -22,6 +22,8 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
+            Color.black.ignoresSafeArea()
+
             Group {
                 switch viewModel.viewState {
                 case .loading:
@@ -59,16 +61,22 @@ struct HomeView: View {
                         }
                     }
                 )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
-        .navigationTitle("首页")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     router.openMenuPanel()
                 } label: {
                     Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(.white)
                 }
                 .accessibilityLabel("打开菜单")
             }
@@ -78,6 +86,8 @@ struct HomeView: View {
                     router.navigate(to: .searchHome)
                 } label: {
                     Image(systemName: "magnifyingglass")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(.white)
                 }
                 .accessibilityLabel("搜索")
             }
@@ -181,32 +191,39 @@ private struct HomeFeedListView: View {
     let onDetail: (Drama) -> Void
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: DesignTokens.Spacing.lg) {
-                ForEach(dramas) { drama in
-                    HomeDramaCardView(
-                        drama: drama,
-                        onPlay: { onPlay(drama) },
-                        onDetail: { onDetail(drama) },
-                        onComment: { onComment(drama) }
-                    )
+        GeometryReader { proxy in
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: DesignTokens.Spacing.md) {
+                    ForEach(dramas) { drama in
+                        HomeDramaCardView(
+                            drama: drama,
+                            onPlay: { onPlay(drama) },
+                            onDetail: { onDetail(drama) },
+                            onComment: { onComment(drama) }
+                        )
+                        .frame(minHeight: max(proxy.size.height - 24, 620))
+                    }
                 }
+                .padding(.horizontal, DesignTokens.Spacing.md)
+                .padding(.top, DesignTokens.Spacing.sm)
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
-            .padding(.horizontal, DesignTokens.Spacing.lg)
-            .padding(.vertical, DesignTokens.Spacing.md)
+            .background(Color.black)
         }
     }
 }
 
 private struct HomeFeedLoadingView: View {
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             ProgressView()
+                .tint(.white)
             Text("正在加载首页内容…")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.78))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         .padding(DesignTokens.Spacing.xl)
     }
 }
@@ -216,24 +233,27 @@ private struct HomeFeedEmptyView: View {
     let onRetry: () async -> Void
 
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
-            Image(systemName: "tray")
+        VStack(spacing: DesignTokens.Spacing.lg) {
+            Image(systemName: "play.slash.fill")
                 .font(.system(size: DesignTokens.IconSize.xl))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.4))
             Text("暂无内容")
                 .font(.headline)
+                .foregroundStyle(.white)
             Text("稍后再来看看新的短剧推荐")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.68))
             Button(isRetrying ? "刷新中…" : "刷新首页") {
                 Task {
                     await onRetry()
                 }
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
+            .tint(Color.orange)
             .disabled(isRetrying)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         .padding(DesignTokens.Spacing.xl)
     }
 }
@@ -244,15 +264,16 @@ private struct HomeFeedErrorView: View {
     let onRetry: () async -> Void
 
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             Image(systemName: "wifi.exclamationmark")
                 .font(.system(size: DesignTokens.IconSize.xl))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.4))
             Text("加载失败")
                 .font(.headline)
+                .foregroundStyle(.white)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.white.opacity(0.68))
                 .multilineTextAlignment(.center)
             Button(isRetrying ? "重试中…" : "重试") {
                 Task {
@@ -260,9 +281,11 @@ private struct HomeFeedErrorView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color.orange)
             .disabled(isRetrying)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black)
         .padding(DesignTokens.Spacing.xl)
     }
 }
@@ -270,4 +293,5 @@ private struct HomeFeedErrorView: View {
 #Preview {
     HomeView()
         .environmentObject(NavigationRouter())
+        .environmentObject(AuthStore())
 }

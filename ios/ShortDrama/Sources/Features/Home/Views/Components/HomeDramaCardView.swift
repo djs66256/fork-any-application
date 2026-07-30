@@ -7,71 +7,180 @@ struct HomeDramaCardView: View {
     let onDetail: () -> Void
     let onComment: () -> Void
 
-    private var metadataText: String {
+    private var topBadges: [String] {
         var items: [String] = []
 
         if !drama.category.isEmpty {
             items.append(drama.category)
         }
 
-        if let firstTag = drama.tags?.first, !firstTag.isEmpty {
-            items.append("#\(firstTag)")
+        if drama.episodeCount > 0 {
+            items.append("全\(drama.episodeCount)集")
         }
 
-        items.append("\(drama.episodeCount) 集")
+        return Array(items.prefix(2))
+    }
 
-        if let rating = drama.rating {
-            items.append(String(format: "%.1f 分", rating))
+    private var tagItems: [String] {
+        let source = (drama.tags ?? []).filter { !$0.isEmpty }
+        return Array(source.prefix(5))
+    }
+
+    private var ctaTitle: String {
+        if drama.episodeCount > 0 {
+            return "观看完整漫剧 · 全\(drama.episodeCount)集"
         }
-
-        return items.joined(separator: " · ")
+        return "立即观看完整漫剧"
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+        ZStack(alignment: .bottomLeading) {
             DramaCoverView(coverURL: drama.coverUrl)
 
-            VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                Text(drama.title)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
+            LinearGradient(
+                colors: [
+                    Color.black.opacity(0.05),
+                    Color.black.opacity(0.18),
+                    Color.black.opacity(0.55),
+                    Color.black.opacity(0.94)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
 
-                if !drama.description.isEmpty {
-                    Text(drama.description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: DesignTokens.Spacing.sm) {
+                    ForEach(topBadges, id: \.self) { badge in
+                        Text(badge)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(Color.white.opacity(0.92))
+                            .padding(.horizontal, DesignTokens.Spacing.md)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.12))
+                            .overlay {
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                            }
+                            .clipShape(Capsule())
+                    }
 
-                if !metadataText.isEmpty {
-                    Text(metadataText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Spacer()
                 }
-            }
+                .padding(.horizontal, DesignTokens.Spacing.lg)
+                .padding(.top, DesignTokens.Spacing.xl)
 
-            HStack(spacing: DesignTokens.Spacing.md) {
-                Button("观看") {
-                    onPlay()
-                }
-                .buttonStyle(.borderedProminent)
+                Spacer()
 
-                Button("评论") {
-                    onComment()
+                HStack(alignment: .bottom, spacing: DesignTokens.Spacing.lg) {
+                    contentSection
+                    interactionRail
                 }
-                .buttonStyle(.bordered)
-
-                Button("详情") {
-                    onDetail()
-                }
-                .buttonStyle(.bordered)
+                .padding(.horizontal, DesignTokens.Spacing.lg)
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
         }
-        .padding(DesignTokens.Spacing.lg)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 620)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+        .overlay {
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+        }
+    }
+
+    private var contentSection: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+            if !tagItems.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: DesignTokens.Spacing.sm) {
+                        ForEach(tagItems, id: \.self) { tag in
+                            Text(tag)
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(Color.white.opacity(0.9))
+                                .padding(.horizontal, DesignTokens.Spacing.md)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md))
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                .scrollDisabled(true)
+            }
+
+            Text(drama.title)
+                .font(.system(size: 32, weight: .bold))
+                .foregroundStyle(.white)
+                .lineLimit(2)
+                .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
+
+            if !drama.description.isEmpty {
+                Text(drama.description)
+                    .font(.subheadline)
+                    .foregroundStyle(Color.white.opacity(0.82))
+                    .lineLimit(2)
+            }
+
+            Text("作者声明：内容由 AI 生成")
+                .font(.footnote)
+                .foregroundStyle(Color.white.opacity(0.48))
+
+            Button(action: onPlay) {
+                HStack(spacing: DesignTokens.Spacing.md) {
+                    Image(systemName: "play.fill")
+                        .font(.headline)
+                    Text(ctaTitle)
+                        .font(.headline.weight(.semibold))
+                        .lineLimit(1)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.headline.weight(.semibold))
+                }
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, DesignTokens.Spacing.lg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    LinearGradient(
+                        colors: [Color(red: 1.0, green: 0.53, blue: 0.19), Color(red: 0.98, green: 0.41, blue: 0.14)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+            }
+            .buttonStyle(.plain)
+        }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+    }
+
+    private var interactionRail: some View {
+        VStack(spacing: DesignTokens.Spacing.xl) {
+            railButton(icon: "play.circle.fill", title: "观看", action: onPlay)
+            railButton(icon: "text.bubble.fill", title: "评论", action: onComment)
+            railButton(icon: "bookmark.fill", title: "详情", action: onDetail)
+        }
+        .padding(.bottom, DesignTokens.Spacing.sm)
+    }
+
+    private func railButton(icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: DesignTokens.Spacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.18))
+                        .frame(width: 54, height: 54)
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.white.opacity(0.9))
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -95,19 +204,25 @@ private struct DramaCoverView: View {
                 placeholder
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 180)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md))
     }
 
     private var placeholder: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
-                .fill(Color(.tertiarySystemFill))
-            Image(systemName: "photo")
-                .font(.system(size: DesignTokens.IconSize.lg))
-                .foregroundStyle(.secondary)
+            LinearGradient(
+                colors: [
+                    Color(red: 0.17, green: 0.12, blue: 0.1),
+                    Color(red: 0.11, green: 0.08, blue: 0.08),
+                    Color.black
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            Image(systemName: "play.rectangle.fill")
+                .font(.system(size: DesignTokens.IconSize.xxl))
+                .foregroundStyle(Color.white.opacity(0.2))
         }
     }
 }

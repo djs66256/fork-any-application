@@ -54,6 +54,13 @@ class HomeScreenTest {
             updatedAt = "2026-07-25T00:00:00Z",
         )
 
-        assertEquals("都市 · 逆袭 / 甜宠 · 12 集 · 评分 8.6", buildDramaMeta(drama))
+        assertEquals("都市  逆袭 · 甜宠 · 爽文  第1集 | 共12集  评分 8.6", buildDramaMeta(drama))
+    }
+
+    @Test
+    fun `compact count uses wan suffix for large numbers`() {
+        assertEquals("470", formatCompactCount(470))
+        assertEquals("1.25万", formatCompactCount(12_500))
+        assertEquals("40.4万", formatCompactCount(404_000))
     }
 }

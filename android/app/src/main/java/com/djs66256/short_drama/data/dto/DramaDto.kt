@@ -10,12 +10,12 @@ data class DramaDto(
     val title: String,
     val description: String,
     @SerialName("cover_url")
-    val coverUrl: String,
+    val coverUrl: String? = null,
     val category: String,
     @SerialName("episode_count")
     val episodeCount: Int,
     val tags: List<String> = emptyList(),
-    val rating: Double = 0.0,
+    val rating: Double? = null,
     @SerialName("created_at")
     val createdAt: String,
     @SerialName("updated_at")
@@ -25,11 +25,11 @@ data class DramaDto(
         id = id,
         title = title,
         description = description,
-        coverUrl = coverUrl,
+        coverUrl = coverUrl.orEmpty(),
         category = category,
         episodeCount = episodeCount,
         tags = tags,
-        rating = rating,
+        rating = rating ?: 0.0,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

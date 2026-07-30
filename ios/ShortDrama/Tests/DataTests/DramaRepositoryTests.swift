@@ -17,6 +17,30 @@ private func makeDramaPayload() -> String {
           "rating": 8.6,
           "created_at": "2026-07-25T00:00:00Z",
           "updated_at": "2026-07-25T00:00:00Z"
+        },
+        {
+          "id": "drama-002",
+          "title": "空封面短剧",
+          "description": "封面字段为空",
+          "cover_url": null,
+          "category": "都市",
+          "episode_count": 16,
+          "tags": ["系统"],
+          "rating": 7.9,
+          "created_at": "2026-07-26T00:00:00Z",
+          "updated_at": "2026-07-26T00:00:00Z"
+        },
+        {
+          "id": "drama-003",
+          "title": "空评分短剧",
+          "description": "评分字段为空",
+          "cover_url": "https://example.com/cover-3.jpg",
+          "category": "校园",
+          "episode_count": 20,
+          "tags": ["校园"],
+          "rating": null,
+          "created_at": "2026-07-27T00:00:00Z",
+          "updated_at": "2026-07-27T00:00:00Z"
         }
       ],
       "pagination": {
@@ -224,11 +248,17 @@ struct DramaRepositoryTests {
 
         let dramas = try await repository.fetchDramas(page: 1, pageSize: 10)
 
-        #expect(dramas.count == 1)
+        #expect(dramas.count == 3)
         #expect(dramas[0].id == "drama-001")
         #expect(dramas[0].title == "示例短剧")
         #expect(dramas[0].episodeCount == 12)
         #expect(dramas[0].tags == ["逆袭", "甜宠"])
+        #expect(dramas[1].id == "drama-002")
+        #expect(dramas[1].coverUrl.isEmpty)
+        #expect(dramas[1].rating == 7.9)
+        #expect(dramas[2].id == "drama-003")
+        #expect(dramas[2].coverUrl == "https://example.com/cover-3.jpg")
+        #expect(dramas[2].rating == nil)
     }
 
     @Test("search repository maps search response to entities")

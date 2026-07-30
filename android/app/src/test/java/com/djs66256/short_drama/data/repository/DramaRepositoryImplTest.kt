@@ -42,6 +42,18 @@ class DramaRepositoryImplTest {
                     createdAt = "2026-07-25T00:00:00Z",
                     updatedAt = "2026-07-25T00:00:00Z",
                 ),
+                DramaDto(
+                    id = "drama-2",
+                    title = "空封面短剧",
+                    description = "首页卡片描述",
+                    coverUrl = null,
+                    category = "都市",
+                    episodeCount = 20,
+                    tags = listOf("系统"),
+                    rating = null,
+                    createdAt = "2026-07-25T00:00:00Z",
+                    updatedAt = "2026-07-25T00:00:00Z",
+                ),
             ),
             pagination = PaginationDto(
                 page = 1,
@@ -56,12 +68,17 @@ class DramaRepositoryImplTest {
 
         assertTrue(result is ApiResult.Success)
         val dramas = (result as ApiResult.Success).data
-        assertEquals(1, dramas.size)
-        assertEquals("drama-1", dramas.single().id)
-        assertEquals("https://example.com/cover.jpg", dramas.single().coverUrl)
-        assertEquals(12, dramas.single().episodeCount)
-        assertEquals(listOf("逆袭", "甜宠"), dramas.single().tags)
-        assertEquals(8.6, dramas.single().rating, 0.0)
+        assertEquals(2, dramas.size)
+        assertEquals("drama-1", dramas[0].id)
+        assertEquals("https://example.com/cover.jpg", dramas[0].coverUrl)
+        assertEquals(12, dramas[0].episodeCount)
+        assertEquals(listOf("逆袭", "甜宠"), dramas[0].tags)
+        assertEquals(8.6, dramas[0].rating, 0.0)
+        assertEquals("drama-2", dramas[1].id)
+        assertEquals("", dramas[1].coverUrl)
+        assertEquals(20, dramas[1].episodeCount)
+        assertEquals(listOf("系统"), dramas[1].tags)
+        assertEquals(0.0, dramas[1].rating, 0.0)
     }
 
     @Test

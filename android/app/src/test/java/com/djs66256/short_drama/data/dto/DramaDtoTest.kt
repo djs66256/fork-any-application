@@ -1,5 +1,6 @@
 package com.djs66256.short_drama.data.dto
 
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -54,5 +55,33 @@ class DramaDtoTest {
         // Verify the @SerialName mapping worked by checking coverUrl field
         assertEquals("url2", domain.coverUrl)
         assertEquals(5, domain.episodeCount)
+    }
+
+    @Test
+    fun `T-03 JSON decode supports null cover and rating`() {
+        val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
+        val payload =
+            """
+            {
+              "id": "3",
+              "title": "Nullables Drama",
+              "description": "Desc",
+              "cover_url": null,
+              "category": "urban",
+              "episode_count": 9,
+              "tags": ["系统"],
+              "rating": null,
+              "created_at": "2024-01-01T00:00:00Z",
+              "updated_at": "2024-01-02T00:00:00Z"
+            }
+            """.trimIndent()
+
+        val dto = json.decodeFromString<DramaDto>(payload)
+        val domain = dto.toDomain()
+
+        assertEquals(null, dto.coverUrl)
+        assertEquals(null, dto.rating)
+        assertEquals("", domain.coverUrl)
+        assertEquals(0.0, domain.rating, 0.0)
     }
 }

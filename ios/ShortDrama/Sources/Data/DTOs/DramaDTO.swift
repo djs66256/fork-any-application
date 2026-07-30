@@ -5,7 +5,7 @@ struct DramaDTO: Codable, Equatable {
     let id: String
     let title: String
     let description: String
-    let coverUrl: String
+    let coverUrl: String?
     let category: String
     let episodeCount: Int
     let tags: [String]?
@@ -22,7 +22,7 @@ extension DramaDTO {
             id: id,
             title: title,
             description: description,
-            coverUrl: coverUrl,
+            coverUrl: coverUrl ?? "",
             category: category,
             episodeCount: episodeCount,
             tags: tags,
