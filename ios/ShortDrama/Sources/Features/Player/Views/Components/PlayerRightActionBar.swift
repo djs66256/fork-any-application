@@ -3,17 +3,34 @@ import SwiftUI
 struct PlayerRightActionBar: View {
     let liked: Bool
     let favorited: Bool
+    let favoriteCountText: String
+    let commentCountText: String
+    let likeCountText: String
+    let shareCountText: String
     let onLike: () -> Void
     let onFavorite: () -> Void
     let onComment: () -> Void
 
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.lg) {
-            actionButton(systemName: liked ? "heart.fill" : "heart", title: "点赞", action: onLike)
-            actionButton(systemName: favorited ? "star.fill" : "star", title: "收藏", action: onFavorite)
-            actionButton(systemName: "message", title: "评论", action: onComment)
-            staticButton(systemName: "square.and.arrow.up", title: "分享")
+        VStack(spacing: 28) {
+            actionButton(
+                systemName: favorited ? "star.fill" : "star.fill",
+                title: favoriteCountText,
+                action: onFavorite
+            )
+            actionButton(
+                systemName: "ellipsis.message.fill",
+                title: commentCountText,
+                action: onComment
+            )
+            actionButton(
+                systemName: liked ? "heart.fill" : "heart.fill",
+                title: likeCountText,
+                action: onLike
+            )
+            staticButton(systemName: "arrowshape.turn.up.right.fill", title: shareCountText)
         }
+        .padding(.bottom, 2)
     }
 
     private func actionButton(systemName: String, title: String, action: @escaping () -> Void) -> some View {
@@ -28,16 +45,16 @@ struct PlayerRightActionBar: View {
     }
 
     private func label(systemName: String, title: String) -> some View {
-        VStack(spacing: DesignTokens.Spacing.xs) {
+        VStack(spacing: 10) {
             Image(systemName: systemName)
-                .font(.title3)
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+
             Text(title)
-                .font(.caption)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.white)
         }
-        .foregroundStyle(.white)
-        .padding(.vertical, DesignTokens.Spacing.sm)
-        .frame(width: 56)
-        .background(Color.black.opacity(0.35))
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+        .frame(width: 62)
     }
 }

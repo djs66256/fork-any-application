@@ -1,38 +1,38 @@
 import SwiftUI
 
 struct PlayerEpisodeDock: View {
+    let title: String
     let seriesStatus: String
     let totalCount: Int
-    let currentEpisodeNumber: Int?
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack {
-                VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                    Text("选集")
-                        .font(.headline)
+        HStack(spacing: DesignTokens.Spacing.md) {
+            Button(action: onTap) {
+                HStack(spacing: 0) {
+                    Text(title)
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white)
-                    Text("\(seriesStatus) · 全 \(totalCount) 集")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-                }
-
-                Spacer()
-
-                if let currentEpisodeNumber {
-                    Text("第 \(currentEpisodeNumber) 集")
-                        .font(.subheadline.weight(.semibold))
+                    Text(" · \(seriesStatus) · 全\(totalCount)集")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white)
+                    Spacer(minLength: 12)
+                    Image(systemName: "chevron.up")
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
                 }
-
-                Image(systemName: "chevron.up")
-                    .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 18)
+                .frame(height: 72)
+                .background(Color.white.opacity(0.10))
+                .clipShape(RoundedRectangle(cornerRadius: 18))
             }
-            .padding(DesignTokens.Spacing.lg)
-            .background(Color.black.opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg))
+            .buttonStyle(.plain)
+
+            Image(systemName: "viewfinder")
+                .font(.system(size: 22, weight: .regular))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
         }
-        .buttonStyle(.plain)
     }
 }

@@ -14,17 +14,17 @@ import org.junit.Test
 class PlayerScreenStateTest {
 
     @Test
-    fun `T-07 loading error no-resource and ready states map to expected content variants`() {
+    fun `T-07 loading state stays loading while player-owned terminal states render inside content scene`() {
         assertEquals(
             PlayerContentVariant.LOADING,
             playerContentVariant(PlayerUiState(screenState = PlayerScreenState.BOOTSTRAPPING)),
         )
         assertEquals(
-            PlayerContentVariant.ERROR,
+            PlayerContentVariant.CONTENT,
             playerContentVariant(PlayerUiState(screenState = PlayerScreenState.ERROR, errorMessage = "boom")),
         )
         assertEquals(
-            PlayerContentVariant.NO_RESOURCE,
+            PlayerContentVariant.CONTENT,
             playerContentVariant(PlayerUiState(screenState = PlayerScreenState.NO_RESOURCE)),
         )
         assertEquals(

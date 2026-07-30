@@ -7,42 +7,45 @@ struct PlayerTopBar: View {
     let onSpeedTap: () -> Void
     let onMoreTap: () -> Void
 
+    private var displaySpeedLabel: String {
+        speedLabel == PlayerViewModel.PlaybackSpeed.normal.label ? "倍速" : speedLabel
+    }
+
     var body: some View {
-        HStack(spacing: DesignTokens.Spacing.md) {
+        HStack(spacing: DesignTokens.Spacing.lg) {
             Button(action: onBack) {
                 Image(systemName: "chevron.left")
-                    .font(.headline.weight(.semibold))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(.white)
-                    .padding(10)
-                    .background(Color.black.opacity(0.4))
-                    .clipShape(Circle())
+                    .frame(width: 28, height: 28)
             }
+            .buttonStyle(.plain)
 
             Text(title)
-                .font(.headline)
+                .font(.system(size: 20, weight: .bold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
 
             Spacer()
 
-            HStack(spacing: DesignTokens.Spacing.sm) {
-                Button(speedLabel, action: onSpeedTap)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, DesignTokens.Spacing.md)
-                    .padding(.vertical, DesignTokens.Spacing.sm)
-                    .background(Color.black.opacity(0.4))
-                    .clipShape(Capsule())
-
-                Button(action: onMoreTap) {
-                    Image(systemName: "ellipsis")
-                        .font(.headline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(10)
-                        .background(Color.black.opacity(0.4))
-                        .clipShape(Circle())
+            Button(action: onSpeedTap) {
+                HStack(spacing: 6) {
+                    Image(systemName: "speedometer")
+                        .font(.system(size: 18, weight: .medium))
+                    Text(displaySpeedLabel)
+                        .font(.system(size: 18, weight: .semibold))
                 }
+                .foregroundStyle(.white)
             }
+            .buttonStyle(.plain)
+
+            Button(action: onMoreTap) {
+                Image(systemName: "ellipsis.vertical")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+            }
+            .buttonStyle(.plain)
         }
     }
 }
