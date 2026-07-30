@@ -5,6 +5,7 @@ struct LoginInterceptionContext: Equatable, Identifiable, Sendable {
         case profileEntry
         case rankingBooking
         case messagesEntry
+        case bookingAssets
         case unknown
     }
 

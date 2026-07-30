@@ -25,4 +25,7 @@ protocol DramaRepositoryProtocol: Sendable {
 
     /// Books a drama for the current user.
     func bookDrama(id: String) async throws -> BookDramaResult
+
+    /// Fetches the current user's booking assets page.
+    func fetchBookingAssets(query: BookingAssetQuery, accessToken: String) async throws -> BookingAssetPage
 }

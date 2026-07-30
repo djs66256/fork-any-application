@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DramaService } from './drama.service';
 import { DramaMockRepository } from '@/repositories/mock/drama.mock.repository';
 import {
   BookDramaResponse,
+  BookingAssetListResponse,
   ClassificationDimension,
   Drama,
   HotSearchListResponse,
@@ -14,6 +15,7 @@ import {
   DramaRepositoryInterface,
   PaginatedResult,
 } from '@/repositories/interfaces/drama.repository.interface';
+import { Errors } from '@/lib/errors';
 
 function makeDramaInput(overrides: Partial<Omit<Drama, 'id' | 'created_at' | 'updated_at'>> = {}): Omit<Drama, 'id' | 'created_at' | 'updated_at'> {
   return {
@@ -74,6 +76,10 @@ class InvalidSearchRepository implements DramaRepositoryInterface {
   }
 
   async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listUserBookings(): Promise<BookingAssetListResponse> {
     throw new Error('Method not implemented.');
   }
 
@@ -148,6 +154,10 @@ class InvalidTheaterRepository implements DramaRepositoryInterface {
     throw new Error('Method not implemented.');
   }
 
+  async listUserBookings(): Promise<BookingAssetListResponse> {
+    throw new Error('Method not implemented.');
+  }
+
   async findById(): Promise<Drama | null> {
     throw new Error('Method not implemented.');
   }
@@ -201,6 +211,10 @@ class InvalidClassificationRepository implements DramaRepositoryInterface {
   }
 
   async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listUserBookings(): Promise<BookingAssetListResponse> {
     throw new Error('Method not implemented.');
   }
 
@@ -259,6 +273,10 @@ class InvalidHotSearchRepository implements DramaRepositoryInterface {
   }
 
   async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listUserBookings(): Promise<BookingAssetListResponse> {
     throw new Error('Method not implemented.');
   }
 
@@ -335,6 +353,10 @@ class InvalidRankingsRepository implements DramaRepositoryInterface {
   }
 
   async bookDrama(): Promise<BookDramaResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  async listUserBookings(): Promise<BookingAssetListResponse> {
     throw new Error('Method not implemented.');
   }
 
@@ -651,6 +673,103 @@ describe('DramaService', () => {
       }),
     ).rejects.toMatchObject({
       code: 'INTERNAL_ERROR',
+    });
+  });
+
+  it('should return booking assets when repository result matches canonical contract', async () => {
+    const bookingRepository = {
+      listUserBookings: vi.fn().mockResolvedValue({
+        data: [
+          {
+            drama_id: '550e8400-e29b-41d4-a716-446655440001',
+            title: '逆袭归来后我成了豪门团宠',
+            cover_url: 'https://example.com/dramas/001.jpg',
+            episode_count: 68,
+            booked_at: '2026-07-30T03:25:00.000Z',
+            availability_status: 'online',
+          },
+        ],
+        pagination: {
+          page: 1,
+          page_size: 20,
+          total: 1,
+          total_pages: 1,
+        },
+        summary: {
+          online_count: 1,
+          upcoming_count: 2,
+        },
+      }),
+    } as unknown as DramaRepositoryInterface;
+
+    const bookingService = new DramaService(bookingRepository);
+    const result = await bookingService.listUserBookings({
+      userId: 'user-1',
+      status: 'online',
+      page: 1,
+      pageSize: 20,
+    });
+
+    expect(result.summary).toEqual({ online_count: 1, upcoming_count: 2 });
+    expect(result.data[0]?.availability_status).toBe('online');
+  });
+
+  it('should wrap invalid booking assets output as internal error', async () => {
+    const bookingRepository = {
+      listUserBookings: vi.fn().mockResolvedValue({
+        data: [
+          {
+            drama_id: 'not-a-uuid',
+            title: 'Broken asset',
+            cover_url: null,
+            episode_count: 10,
+            booked_at: '2026-07-30T03:25:00.000Z',
+            availability_status: 'online',
+          },
+        ],
+        pagination: {
+          page: 1,
+          page_size: 20,
+          total: 1,
+          total_pages: 1,
+        },
+        summary: {
+          online_count: 1,
+          upcoming_count: 0,
+        },
+      }),
+    } as unknown as DramaRepositoryInterface;
+
+    const bookingService = new DramaService(bookingRepository);
+
+    await expect(
+      bookingService.listUserBookings({
+        userId: 'user-1',
+        status: 'online',
+        page: 1,
+        pageSize: 20,
+      }),
+    ).rejects.toMatchObject({
+      code: 'INTERNAL_ERROR',
+    });
+  });
+
+  it('should propagate app errors from booking assets repository', async () => {
+    const bookingRepository = {
+      listUserBookings: vi.fn().mockRejectedValue(Errors.serviceUnavailable('Supabase')),
+    } as unknown as DramaRepositoryInterface;
+
+    const bookingService = new DramaService(bookingRepository);
+
+    await expect(
+      bookingService.listUserBookings({
+        userId: 'user-1',
+        status: 'upcoming',
+        page: 1,
+        pageSize: 20,
+      }),
+    ).rejects.toMatchObject({
+      code: 'SERVICE_UNAVAILABLE',
     });
   });
 

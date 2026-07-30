@@ -41,6 +41,7 @@ internal fun Request.requiresAuth(): Boolean {
         .removePrefix("api/")
 
     return normalizedPath == "users/me" ||
+        normalizedPath == "users/me/bookings" ||
         normalizedPath == "auth/session" ||
         normalizedPath == "dramas/rankings" ||
         normalizedPath == "check-ins/status" ||

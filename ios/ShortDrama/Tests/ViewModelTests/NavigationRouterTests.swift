@@ -33,6 +33,7 @@ extension NavigationRouterTests {
         #expect(AppRoute.searchHome.owningTab == .home)
         #expect(AppRoute.searchResult(query: "逆袭").owningTab == .home)
         #expect(AppRoute.rankingHome.owningTab == .home)
+        #expect(AppRoute.bookingAssets.owningTab == .home)
         #expect(AppRoute.classificationHome.owningTab == .home)
         #expect(AppRoute.newReleases.owningTab == .home)
         #expect(AppRoute.actorHub.owningTab == .home)
@@ -81,6 +82,7 @@ extension NavigationRouterTests {
         #expect(AppRoute.searchHome.publicRouteName == "search")
         #expect(AppRoute.searchResult(query: "逆袭").publicRouteName == "search/result")
         #expect(AppRoute.rankingHome.publicRouteName == "ranking")
+        #expect(AppRoute.bookingAssets.publicRouteName == "menu/booking")
         #expect(AppRoute.classificationHome.publicRouteName == "classification")
         #expect(AppRoute.newReleases.publicRouteName == "new-releases")
         #expect(AppRoute.actorHub.publicRouteName == "actors")
@@ -145,6 +147,14 @@ extension NavigationRouterTests {
         #expect(loginContext.rankingContext?.dramaID == "booking-001")
     }
 
+    @Test("booking route builder creates unified login context")
+    func testBookingRouteBuilderCreatesUnifiedLoginContext() {
+        let loginContext = BookingAssetsRouteBuilder.loginContext()
+
+        #expect(loginContext.source == .bookingAssets)
+        #expect(loginContext.returnRoute == .bookingAssets)
+    }
+
     @Test("player route keeps legacy videoId naming while representing dramaId")
     func testPlayerRouteKeepsLegacyVideoIdNaming() {
         let route = AppRoute.player(videoId: "drama-123")
@@ -195,12 +205,13 @@ extension NavigationRouterTests {
         let router = NavigationRouter()
 
         router.navigate(to: .rankingHome)
+        router.navigate(to: .bookingAssets)
         router.navigate(to: .classificationHome)
         router.navigate(to: .newReleases)
         router.navigate(to: .actorHub)
 
         #expect(router.selectedTab == .home)
-        #expect(router.pathsByTab[.home]?.count == 4)
+        #expect(router.pathsByTab[.home]?.count == 5)
     }
 
     @Test("dismiss removes last path element from selected tab")
@@ -388,6 +399,24 @@ extension NavigationRouterTests {
         #expect(router.pathsByTab[.home]?.count == 1)
     }
 
+    @Test("booking navigation waits until panel close completes")
+    func testCloseMenuPanelThenNavigateToBookingAssets() {
+        let router = NavigationRouter()
+        router.openMenuPanel()
+
+        router.closeMenuPanelThenNavigate(to: .bookingAssets)
+
+        #expect(router.menuPanelState == .closing)
+        #expect(router.pendingMenuNavigation == .bookingAssets)
+        #expect(router.pathsByTab[.home]?.isEmpty == true)
+
+        router.markMenuPanelDidClose()
+
+        #expect(router.pendingMenuNavigation == nil)
+        #expect(router.menuPanelState == .closed)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
     @Test("menu login closes panel and presents real login flow")
     func testCloseMenuPanelThenPresentLogin() {
         let router = NavigationRouter()
@@ -496,6 +525,26 @@ extension NavigationRouterTests {
         let router = NavigationRouter()
         router.navigate(to: .messages)
         router.presentLogin(context: LoginInterceptionContext(source: .messagesEntry, returnRoute: .messages))
+
+        router.completeLogin()
+
+        #expect(router.presentedLoginContext == nil)
+        #expect(router.selectedTab == .home)
+        #expect(router.pathsByTab[.home]?.count == 1)
+    }
+
+    @Test("booking completeLogin is idempotent when already on booking page")
+    func testCompleteLoginWithBookingReturnRouteIsIdempotent() {
+        let router = NavigationRouter()
+        router.navigate(to: .bookingAssets)
+        #expect(router.pathsByTab[.home]?.count == 1)
+
+        router.presentLogin(
+            context: LoginInterceptionContext(
+                source: .bookingAssets,
+                returnRoute: .bookingAssets
+            )
+        )
 
         router.completeLogin()
 

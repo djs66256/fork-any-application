@@ -160,6 +160,35 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `T-11 login success keeps menu booking as return route`() = runTest {
+        coEvery {
+            createSessionUseCase.invoke("+86", "13800138000", "123456")
+        } returns ApiResult.Success(sampleSession())
+
+        val viewModel = LoginViewModel(
+            SavedStateHandle(
+                mapOf(AppDestination.Arg.RETURN_ROUTE to AppDestination.menuBooking()),
+            ),
+            sendOtpUseCase,
+            createSessionUseCase,
+            authCooldownStore,
+        )
+        runCurrent()
+        viewModel.onAgreementCheckedChange(true)
+        viewModel.onPhoneChange("13800138000")
+        viewModel.onCodeChange("123456")
+
+        viewModel.events.test {
+            viewModel.submitLogin()
+            advanceUntilIdle()
+            assertEquals(
+                LoginEvent.LoginSucceeded(AppDestination.menuBooking()),
+                awaitItem(),
+            )
+        }
+    }
+
+    @Test
     fun `T-06 submit login keeps original form values after request starts`() = runTest {
         val gate = CompletableDeferred<Unit>()
         coEvery {

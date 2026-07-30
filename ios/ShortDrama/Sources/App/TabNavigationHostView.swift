@@ -22,6 +22,8 @@ struct TabNavigationHostView: View {
                             initialEntryContext: router.consumeTheaterRankingEntryContext(),
                             isUserLoggedIn: { authStore.isAuthenticated }
                         )
+                    case .bookingAssets:
+                        BookingAssetsView()
                     case .classificationHome:
                         ClassificationHomeView()
                     case .newReleases:

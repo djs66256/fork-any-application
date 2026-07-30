@@ -131,6 +131,33 @@ private func makeBookingPayload() -> String {
     """
 }
 
+private func makeBookingAssetsPayload() -> String {
+    """
+    {
+      "data": [
+        {
+          "drama_id": "drama-001",
+          "title": "逆袭归来后我成了豪门团宠",
+          "cover_url": "https://example.com/booking.jpg",
+          "episode_count": 68,
+          "booked_at": "2026-07-30T03:25:00.000Z",
+          "availability_status": "online"
+        }
+      ],
+      "pagination": {
+        "page": 2,
+        "page_size": 20,
+        "total": 21,
+        "total_pages": 2
+      },
+      "summary": {
+        "online_count": 8,
+        "upcoming_count": 3
+      }
+    }
+    """
+}
+
 private func makeTheaterPayload() -> String {
     """
     {
@@ -303,6 +330,41 @@ struct DramaRepositoryTests {
         #expect(result.items[0].contentType == .liveAction)
         #expect(result.items[0].playCount == 98210)
         #expect(result.items[0].recommendationScore == 58930.6)
+    }
+
+    @Test("booking assets repository maps protected response to entity page")
+    func testFetchBookingAssetsMapsCanonicalResponse() async throws {
+        let url = URL(
+            string: "https://api.example.com/api/users/me/bookings?status=upcoming&page=2&pageSize=20"
+        )!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/users/me/bookings")
+            #expect(request.url?.query?.contains("status=upcoming") == true)
+            #expect(request.url?.query?.contains("page=2") == true)
+            #expect(request.url?.query?.contains("pageSize=20") == true)
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-001")
+            let response = try makeResponse(url: url, statusCode: 200)
+            return (response, Data(makeBookingAssetsPayload().utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
+        let dataSource = DramaRemoteDataSource(client: client)
+        let repository = DramaRepository(dataSource: dataSource)
+
+        let result = try await repository.fetchBookingAssets(
+            query: BookingAssetQuery(status: .upcoming, page: 2, pageSize: 20),
+            accessToken: "token-001"
+        )
+
+        #expect(result.items.count == 1)
+        #expect(result.items[0].dramaID == "drama-001")
+        #expect(result.items[0].availabilityStatus == .online)
+        #expect(result.page == 2)
+        #expect(result.pageSize == 20)
+        #expect(result.total == 21)
+        #expect(result.totalPages == 2)
+        #expect(result.summary == BookingAssetSummary(onlineCount: 8, upcomingCount: 3))
     }
 
     @Test("T-01: theater repository maps channel response to entities")

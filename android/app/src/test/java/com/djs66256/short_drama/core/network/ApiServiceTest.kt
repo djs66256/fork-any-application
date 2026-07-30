@@ -90,6 +90,17 @@ class ApiServiceTest {
     }
 
     @Test
+    fun `T-11 getUserBookings uses canonical path and query names`() {
+        val method = ApiService::class.java.declaredMethods.single { it.name == "getUserBookings" }
+        val getAnnotation = requireNotNull(method.getAnnotation(GET::class.java))
+
+        assertEquals("users/me/bookings", getAnnotation.value)
+        assertEquals("status", method.parameterAnnotations[0].filterIsInstance<Query>().single().value)
+        assertEquals("page", method.parameterAnnotations[1].filterIsInstance<Query>().single().value)
+        assertEquals("pageSize", method.parameterAnnotations[2].filterIsInstance<Query>().single().value)
+    }
+
+    @Test
     fun `T-09 getDramaComments uses canonical path and query names`() {
         val method = ApiService::class.java.declaredMethods.single { it.name == "getDramaComments" }
         val getAnnotation = requireNotNull(method.getAnnotation(GET::class.java))

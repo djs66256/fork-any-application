@@ -19,9 +19,10 @@ private struct APIClientTestGetEndpoint: APIEndpoint {
     var method: HTTPMethod { .get }
 }
 
-struct APIClientTests {
+struct APIClientTests {}
 
-    private func makeSession(
+private extension APIClientTests {
+    func makeSession(
         handler: @escaping URLProtocolMock.RequestHandler
     ) -> URLSession {
         URLProtocolMock.handler = handler
@@ -30,7 +31,7 @@ struct APIClientTests {
         return URLSession(configuration: config)
     }
 
-    private func makeResponse(url: URL, statusCode: Int) throws -> HTTPURLResponse {
+    func makeResponse(url: URL, statusCode: Int) throws -> HTTPURLResponse {
         guard let response = HTTPURLResponse(
             url: url,
             statusCode: statusCode,
@@ -42,6 +43,9 @@ struct APIClientTests {
 
         return response
     }
+}
+
+extension APIClientTests {
 
     @Test("T-11: APIClient GET returns 200 success and decodes response")
     func testGetSuccess() async throws {
@@ -174,6 +178,21 @@ struct APIClientTests {
         #expect(endpoint.path == "/api/dramas/drama-001/book")
         #expect(endpoint.method == .post)
         #expect(endpoint.queryItems == nil)
+    }
+
+    @Test("booking assets endpoint uses canonical path query and authorization header")
+    func testBookingAssetsEndpointUsesCanonicalContract() {
+        let endpoint = DramaEndpoints.getUserBookings(
+            query: BookingAssetQuery(status: .upcoming, page: 2, pageSize: 20),
+            accessToken: "token-001"
+        )
+
+        #expect(endpoint.path == "/api/users/me/bookings")
+        #expect(endpoint.method == .get)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "status", value: "upcoming")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "page", value: "2")) == true)
+        #expect(endpoint.queryItems?.contains(URLQueryItem(name: "pageSize", value: "20")) == true)
+        #expect(endpoint.headers["Authorization"] == "Bearer token-001")
     }
 
     @Test("T-02: Drama list response decodes canonical payload")
@@ -421,6 +440,59 @@ struct APIClientTests {
         #expect(response.dramaID == "ranking-001")
         #expect(response.booked == true)
         #expect(response.bookingCount == 821)
+    }
+
+    @Test("booking assets response decodes canonical payload")
+    func testBookingAssetsResponseDecoding() async throws {
+        let json = """
+        {
+          "data": [
+            {
+              "drama_id": "drama-001",
+              "title": "逆袭归来后我成了豪门团宠",
+              "cover_url": "https://example.com/booking.jpg",
+              "episode_count": 68,
+              "booked_at": "2026-07-30T03:25:00.000Z",
+              "availability_status": "online"
+            }
+          ],
+          "pagination": {
+            "page": 2,
+            "page_size": 20,
+            "total": 21,
+            "total_pages": 2
+          },
+          "summary": {
+            "online_count": 8,
+            "upcoming_count": 3
+          }
+        }
+        """
+        let url = URL(string: "https://api.example.com/api/users/me/bookings?status=online&page=2&pageSize=20")!
+        let handler: URLProtocolMock.RequestHandler = { request in
+            #expect(request.url?.path == "/api/users/me/bookings")
+            #expect(request.url?.query?.contains("status=online") == true)
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-001")
+            let response = try self.makeResponse(url: url, statusCode: 200)
+            return (response, Data(json.utf8))
+        }
+
+        let session = makeSession(handler: handler)
+        let client = APIClient(session: session, baseURL: "https://api.example.com")
+        let endpoint = DramaEndpoints.getUserBookings(
+            query: BookingAssetQuery(status: .online, page: 2, pageSize: 20),
+            accessToken: "token-001"
+        )
+        let response: BookingAssetListResponseDTO = try await client.request(endpoint)
+
+        #expect(response.data.count == 1)
+        #expect(response.data.first?.dramaID == "drama-001")
+        #expect(response.data.first?.episodeCount == 68)
+        #expect(response.data.first?.availabilityStatus == .online)
+        #expect(response.pagination.page == 2)
+        #expect(response.pagination.pageSize == 20)
+        #expect(response.summary.onlineCount == 8)
+        #expect(response.summary.upcomingCount == 3)
     }
 
     @Test("APIClient throws server error on 400 response")

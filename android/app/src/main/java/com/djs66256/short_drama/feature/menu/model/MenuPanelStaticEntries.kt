@@ -100,7 +100,7 @@ object MenuPanelStaticEntries {
             ),
             MenuCommonFunctionEntry(
                 title = "我的下载",
-                subtitle = "离线缓存与下载管理能力建设中。",
+                subtitle = "功能开发中，敬请期待后续开放。",
                 action = MenuPanelStaticAction.Navigate(PendingRoute.MenuDownloads),
             ),
         ),

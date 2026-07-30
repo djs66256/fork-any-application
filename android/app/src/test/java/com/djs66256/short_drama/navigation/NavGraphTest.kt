@@ -34,18 +34,23 @@ class NavGraphTest {
     }
 
     @Test
-    fun `T-08 menu placeholder specs exclude real message center route`() {
+    fun `T-11 menu placeholder specs keep only placeholder menu routes after booking screen lands`() {
         val specs = menuPlaceholderSpecs()
 
         assertEquals(
             listOf(
                 AppDestination.menuLogin(),
-                AppDestination.menuBooking(),
+                AppDestination.menuMessages(),
                 AppDestination.menuDownloads(),
             ),
             specs.map { it.route },
         )
-        assertFalse(specs.any { it.route == AppDestination.menuMessages() })
+        assertEquals(
+            listOf("登录", "我的消息", "我的下载"),
+            specs.map { it.title },
+        )
+        assertFalse(specs.any { it.route == AppDestination.menuBooking() })
+        assertTrue(specs.last().description.contains("Native 占位页"))
     }
 
     @Test

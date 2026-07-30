@@ -1,6 +1,7 @@
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  BookingAssetListResponse,
   ClassificationDimension,
   CLASSIFICATION_DIMENSION_KEYS,
   ClassificationGender,
@@ -20,6 +21,7 @@ import {
   ClassificationTagsQuery,
   ClassificationTagsResult,
   DramaRepositoryInterface,
+  ListUserBookingsParams,
   PaginatedResult,
   PaginationParams,
   RankingParams,
@@ -548,6 +550,11 @@ export class DramaMockRepository implements DramaRepositoryInterface {
       booked: true,
       booking_count: updated.booking_count,
     });
+  }
+
+  async listUserBookings(params: ListUserBookingsParams): Promise<BookingAssetListResponse> {
+    void params;
+    throw Errors.notImplemented('User bookings are only available in supabase repository');
   }
 
   async findById(id: string): Promise<Drama | null> {

@@ -167,6 +167,8 @@ struct LoginView: View {
         switch context?.source {
         case .rankingBooking:
             return "登录后即可继续完成预约。"
+        case .bookingAssets:
+            return "登录后即可查看我的预约。"
         case .profileEntry:
             return "登录后可在“我的”中查看你的账号信息。"
         case .messagesEntry:

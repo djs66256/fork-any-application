@@ -4,6 +4,7 @@ import com.djs66256.short_drama.data.dto.ApiEnvelopeDto
 import com.djs66256.short_drama.data.dto.AuthSessionPayloadDto
 import com.djs66256.short_drama.data.dto.AuthUserDto
 import com.djs66256.short_drama.data.dto.BookDramaResponseDto
+import com.djs66256.short_drama.data.dto.BookingAssetsResponseDto
 import com.djs66256.short_drama.data.dto.ClassificationTagsResponseDto
 import com.djs66256.short_drama.data.dto.CommentDto
 import com.djs66256.short_drama.data.dto.CommentListResponseDto
@@ -85,6 +86,13 @@ interface ApiService {
 
     @POST("dramas/{id}/book")
     suspend fun bookDrama(@Path("id") id: String): BookDramaResponseDto
+
+    @GET("users/me/bookings")
+    suspend fun getUserBookings(
+        @Query("status") status: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20,
+    ): BookingAssetsResponseDto
 
     @POST("dramas")
     suspend fun createDrama(@Body body: Map<String, String>): Unit

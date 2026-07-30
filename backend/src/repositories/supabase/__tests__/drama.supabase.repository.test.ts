@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 
 vi.mock('@/infrastructure/supabase', () => ({
   getSupabaseAdmin: vi.fn(),
@@ -7,6 +7,7 @@ vi.mock('@/infrastructure/supabase', () => ({
 describe('DramaSupabaseRepository', () => {
   let DramaSupabaseRepository: typeof import('../../../repositories/supabase/drama.supabase.repository').DramaSupabaseRepository;
   let getSupabaseAdmin: ReturnType<typeof vi.fn>;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -20,8 +21,14 @@ describe('DramaSupabaseRepository', () => {
       getSupabaseAdmin,
     }));
 
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
     const mod = await import('../drama.supabase.repository');
     DramaSupabaseRepository = mod.DramaSupabaseRepository;
+  });
+
+  afterEach(() => {
+    warnSpy?.mockRestore();
   });
 
   it('findMany should map legacy supabase rows to canonical paginated results', async () => {
@@ -262,6 +269,270 @@ describe('DramaSupabaseRepository', () => {
     expect(result.data.length).toBeGreaterThan(0);
     expect(result.data.length).toBeLessThanOrEqual(10);
     expect(result.data[0]).toEqual({ rank: 1, keyword: '逆袭', score: 9821 });
+  });
+
+  it('listUserBookings should map booking assets, keep summary aligned, and sort by booked time', async () => {
+    const summaryRows = [
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440003',
+        created_at: '2026-07-30T12:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440003',
+          title: '已上线剧',
+          cover_url: 'https://example.com/drama-3.jpg',
+          episode_count: 36,
+          status: 'ongoing',
+        },
+      },
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440002',
+        created_at: '2026-07-29T12:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440002',
+          title: '待上线剧',
+          cover_url: null,
+          episode_count: 24,
+          status: 'announced',
+        },
+      },
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440004',
+        created_at: '2026-07-28T12:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440004',
+          title: '已完结剧',
+          cover_url: 'https://example.com/drama-4.jpg',
+          episode_count: 48,
+          status: 'completed',
+        },
+      },
+    ];
+
+    const pageRows = [
+      summaryRows[0],
+      summaryRows[2],
+    ];
+
+    const summaryBuilderAfterEq = vi.fn().mockResolvedValue({ data: summaryRows, error: null });
+
+    const summaryBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: summaryBuilderAfterEq,
+      }),
+    };
+
+    const pageBuilderAfterEq = {
+      in: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn(),
+    };
+    pageBuilderAfterEq.range = vi.fn().mockResolvedValue({ data: pageRows, error: null, count: 2 });
+
+    const pageBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue(pageBuilderAfterEq),
+      }),
+    };
+
+    let bookingsCallCount = 0;
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table !== 'bookings') {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      bookingsCallCount += 1;
+      return bookingsCallCount === 1 ? summaryBuilder : pageBuilder;
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listUserBookings({
+      userId: 'user-1',
+      status: 'online',
+      page: 1,
+      pageSize: 20,
+    });
+
+    expect(result.summary).toEqual({ online_count: 2, upcoming_count: 1 });
+    expect(result.pagination).toEqual({
+      page: 1,
+      page_size: 20,
+      total: 2,
+      total_pages: 1,
+    });
+    expect(result.data.map((item) => item.drama_id)).toEqual([
+      '550e8400-e29b-41d4-a716-446655440003',
+      '550e8400-e29b-41d4-a716-446655440004',
+    ]);
+    expect(pageBuilderAfterEq.in).toHaveBeenCalledWith('dramas.status', ['ongoing', 'completed']);
+  });
+
+  it('listUserBookings should filter invalid joins and unknown statuses from summary and data', async () => {
+    const summaryRows = [
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        created_at: '2026-07-30T12:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          title: '有效剧',
+          cover_url: null,
+          episode_count: 12,
+          status: 'announced',
+        },
+      },
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440099',
+        created_at: '2026-07-30T11:00:00Z',
+        dramas: null,
+      },
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440098',
+        created_at: '2026-07-30T10:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440098',
+          title: '脏状态剧',
+          cover_url: null,
+          episode_count: 12,
+          status: 'archived',
+        },
+      },
+    ];
+
+    const pageRows = [summaryRows[0], summaryRows[2]];
+
+    const summaryBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ data: summaryRows, error: null }),
+      }),
+    };
+
+    const pageBuilderAfterEq = {
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({ data: pageRows, error: null, count: 2 }),
+    };
+    const pageBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue(pageBuilderAfterEq),
+      }),
+    };
+
+    let bookingsCallCount = 0;
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table !== 'bookings') {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      bookingsCallCount += 1;
+      return bookingsCallCount === 1 ? summaryBuilder : pageBuilder;
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listUserBookings({
+      userId: 'user-1',
+      status: 'upcoming',
+      page: 1,
+      pageSize: 20,
+    });
+
+    expect(result.summary).toEqual({ online_count: 0, upcoming_count: 1 });
+    expect(result.data).toEqual([
+      expect.objectContaining({
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        availability_status: 'upcoming',
+      }),
+    ]);
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+    expect(pageBuilderAfterEq.eq).toHaveBeenCalledWith('dramas.status', 'announced');
+  });
+
+  it('listUserBookings should return empty data for oversized pages while preserving pagination', async () => {
+    const summaryRows = [
+      {
+        drama_id: '550e8400-e29b-41d4-a716-446655440001',
+        created_at: '2026-07-30T12:00:00Z',
+        dramas: {
+          id: '550e8400-e29b-41d4-a716-446655440001',
+          title: '有效剧',
+          cover_url: null,
+          episode_count: 12,
+          status: 'announced',
+        },
+      },
+    ];
+
+    const summaryBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ data: summaryRows, error: null }),
+      }),
+    };
+
+    const pageBuilderAfterEq = {
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      range: vi.fn().mockResolvedValue({ data: [], error: null, count: 1 }),
+    };
+    const pageBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue(pageBuilderAfterEq),
+      }),
+    };
+
+    let bookingsCallCount = 0;
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table !== 'bookings') {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      bookingsCallCount += 1;
+      return bookingsCallCount === 1 ? summaryBuilder : pageBuilder;
+    });
+
+    const repo = new DramaSupabaseRepository();
+    const result = await repo.listUserBookings({
+      userId: 'user-1',
+      status: 'upcoming',
+      page: 999,
+      pageSize: 20,
+    });
+
+    expect(result.data).toEqual([]);
+    expect(result.pagination).toEqual({
+      page: 999,
+      page_size: 20,
+      total: 1,
+      total_pages: 1,
+    });
+    expect(result.summary).toEqual({ online_count: 0, upcoming_count: 1 });
+  });
+
+  it('listUserBookings should map upstream failures to service unavailable', async () => {
+    const summaryBuilder = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'connection refused' },
+        }),
+      }),
+    };
+
+    getSupabaseAdmin().from.mockImplementation((table: string) => {
+      if (table !== 'bookings') {
+        throw new Error(`Unexpected table ${table}`);
+      }
+
+      return summaryBuilder;
+    });
+
+    const repo = new DramaSupabaseRepository();
+    await expect(repo.listUserBookings({
+      userId: 'user-1',
+      status: 'online',
+      page: 1,
+      pageSize: 20,
+    })).rejects.toMatchObject({
+      code: 'SERVICE_UNAVAILABLE',
+    });
   });
 
   it('findById should return canonical drama data', async () => {

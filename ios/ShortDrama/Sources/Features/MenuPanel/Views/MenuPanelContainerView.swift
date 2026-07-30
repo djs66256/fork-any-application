@@ -32,7 +32,7 @@ struct MenuPanelContainerView: View {
                         router.closeMenuPanelThenNavigate(to: route)
                     },
                     onTapBooking: {
-                        router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .booking))
+                        router.closeMenuPanelThenNavigate(to: .bookingAssets)
                     },
                     onTapDownloads: {
                         router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .downloads))

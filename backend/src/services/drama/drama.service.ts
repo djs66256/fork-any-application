@@ -1,6 +1,8 @@
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  BookingAssetListResponse,
+  BookingAssetListResponseSchema,
   ClassificationTagsResponseSchema,
   ClassificationTagsResult,
   Drama,
@@ -17,6 +19,7 @@ import {
   BookDramaParams,
   ClassificationTagsQuery,
   DramaRepositoryInterface,
+  ListUserBookingsParams,
   PaginatedResult,
   PaginationParams,
   RankingParams,
@@ -103,6 +106,17 @@ export class DramaService {
         throw error;
       }
       throw Errors.internal('Invalid drama booking result');
+    }
+  }
+
+  async listUserBookings(params: ListUserBookingsParams): Promise<BookingAssetListResponse> {
+    try {
+      return BookingAssetListResponseSchema.parse(await this.dramaRepository.listUserBookings(params));
+    } catch (error) {
+      if (isAppError(error)) {
+        throw error;
+      }
+      throw Errors.internal('Invalid user booking assets result');
     }
   }
 

@@ -50,4 +50,9 @@ struct DramaRepository: DramaRepositoryProtocol, Sendable {
         let response = try await dataSource.bookDrama(id: id)
         return response.toEntity()
     }
+
+    func fetchBookingAssets(query: BookingAssetQuery, accessToken: String) async throws -> BookingAssetPage {
+        let response = try await dataSource.fetchBookingAssets(query: query, accessToken: accessToken)
+        return response.toEntity()
+    }
 }

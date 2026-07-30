@@ -39,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.djs66256.short_drama.feature.auth.ui.LoginScreen
+import com.djs66256.short_drama.feature.booking.ui.BookingAssetsScreen
 import com.djs66256.short_drama.feature.classification.ui.ClassificationScreen
 import com.djs66256.short_drama.feature.common.ui.PlaceholderScreen
 import com.djs66256.short_drama.feature.dramadetail.ui.DramaDetailScreen
@@ -304,6 +305,19 @@ fun NavGraph(
                                     AppDestination.login(
                                         returnRoute = AppDestination.menuMessages(),
                                         source = "menu_messages",
+                                    ),
+                                )
+                            },
+                        )
+                    }
+                    composable(route = AppDestination.menuBooking()) {
+                        BookingAssetsScreen(
+                            onBack = { navController.popBackStack() },
+                            onRequireLogin = { returnRoute ->
+                                navController.navigate(
+                                    AppDestination.login(
+                                        returnRoute = returnRoute,
+                                        source = "menu_booking",
                                     ),
                                 )
                             },
@@ -681,14 +695,14 @@ internal fun menuPlaceholderSpecs(): List<MenuPlaceholderSpec> = listOf(
         description = "登录功能建设中，当前为 Native 承接页。",
     ),
     MenuPlaceholderSpec(
-        route = AppDestination.menuBooking(),
-        title = "我的预约",
-        description = "预约能力建设中，当前为 Native 承接页。",
+        route = AppDestination.menuMessages(),
+        title = "我的消息",
+        description = "消息能力建设中，当前为 Native 承接页。",
     ),
     MenuPlaceholderSpec(
         route = AppDestination.menuDownloads(),
         title = "我的下载",
-        description = "下载能力建设中，当前为 Native 承接页。",
+        description = "功能开发中，当前为 Native 占位页。",
     ),
 )
 

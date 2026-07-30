@@ -1,5 +1,7 @@
 import {
   BookDramaResponse,
+  BookingAssetAvailabilityStatus,
+  BookingAssetListResponse,
   ClassificationDimension,
   ClassificationGender,
   Drama,
@@ -47,6 +49,11 @@ export interface BookDramaParams {
   userId: string;
 }
 
+export interface ListUserBookingsParams extends PaginationParams {
+  userId: string;
+  status: BookingAssetAvailabilityStatus;
+}
+
 export type BookDramaResult = BookDramaResponse;
 
 export interface PaginatedResult<T> {
@@ -67,6 +74,7 @@ export interface DramaRepositoryInterface {
   listRankings(params: RankingParams, authContext?: AuthContext): Promise<PaginatedResult<RankingDrama>>;
   listHotSearches(): Promise<HotSearchListResponse>;
   bookDrama(params: BookDramaParams): Promise<BookDramaResult>;
+  listUserBookings(params: ListUserBookingsParams): Promise<BookingAssetListResponse>;
   findById(id: string): Promise<Drama | null>;
   create(data: Omit<Drama, 'id' | 'created_at' | 'updated_at'>): Promise<Drama>;
   update(id: string, data: Partial<Omit<Drama, 'id' | 'created_at' | 'updated_at'>>): Promise<Drama | null>;

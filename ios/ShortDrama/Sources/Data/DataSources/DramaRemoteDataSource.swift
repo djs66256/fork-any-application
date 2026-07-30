@@ -116,6 +116,26 @@ struct BookDramaEndpoint: APIEndpoint {
     var method: HTTPMethod { .post }
 }
 
+struct GetUserBookingsEndpoint: APIEndpoint {
+    typealias Response = BookingAssetListResponseDTO
+
+    let query: BookingAssetQuery
+    let accessToken: String
+
+    var path: String { "/api/users/me/bookings" }
+    var method: HTTPMethod { .get }
+    var queryItems: [URLQueryItem]? {
+        [
+            URLQueryItem(name: "status", value: query.status.rawValue),
+            URLQueryItem(name: "page", value: String(query.page)),
+            URLQueryItem(name: "pageSize", value: String(query.pageSize))
+        ]
+    }
+    var headers: [String: String] {
+        ["Authorization": "Bearer \(accessToken)"]
+    }
+}
+
 /// API endpoint definitions for drama resources.
 enum DramaEndpoints {
     static func getDramas(page: Int, pageSize: Int) -> GetDramasEndpoint {
@@ -148,6 +168,10 @@ enum DramaEndpoints {
 
     static func bookDrama(id: String) -> BookDramaEndpoint {
         BookDramaEndpoint(dramaID: id)
+    }
+
+    static func getUserBookings(query: BookingAssetQuery, accessToken: String) -> GetUserBookingsEndpoint {
+        GetUserBookingsEndpoint(query: query, accessToken: accessToken)
     }
 }
 
@@ -209,6 +233,12 @@ final class DramaRemoteDataSource: @unchecked Sendable {
     /// Books a drama.
     func bookDrama(id: String) async throws -> BookDramaResponseDTO {
         let endpoint = DramaEndpoints.bookDrama(id: id)
+        return try await client.request(endpoint)
+    }
+
+    /// Fetches the current user's booking assets.
+    func fetchBookingAssets(query: BookingAssetQuery, accessToken: String) async throws -> BookingAssetListResponseDTO {
+        let endpoint = DramaEndpoints.getUserBookings(query: query, accessToken: accessToken)
         return try await client.request(endpoint)
     }
 }

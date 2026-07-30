@@ -77,6 +77,18 @@ class AuthInterceptorTest {
         assertFalse(request("https://example.com/api/messages/preview").requiresAuth())
         assertFalse(request("https://example.com/api/messages/system").requiresAuth())
     }
+
+    @Test
+    fun `T-11 interceptor adds bearer header to booking assets request`() {
+        every { authSessionProvider.accessToken() } returns "booking-token"
+        val chain = RecordingChain(
+            request("https://example.com/api/users/me/bookings?status=online&page=1&pageSize=20"),
+        )
+
+        interceptor.intercept(chain)
+
+        assertEquals("Bearer booking-token", chain.proceededRequest.header("Authorization"))
+    }
 }
 
 private class RecordingChain(

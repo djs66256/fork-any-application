@@ -82,6 +82,7 @@ final class NavigationRouter: ObservableObject {
         case .searchHome,
              .searchResult,
              .rankingHome,
+             .bookingAssets,
              .classificationHome,
              .newReleases,
              .actorHub,
@@ -196,6 +197,12 @@ final class NavigationRouter: ObservableObject {
             return
         }
 
+        if returnRoute == .bookingAssets,
+           selectedTab == .home,
+           topRoute(in: .home) == .bookingAssets {
+            return
+        }
+
         switch returnRoute {
         case .home:
             popToRoot(of: .home)
@@ -212,6 +219,7 @@ final class NavigationRouter: ObservableObject {
         case .searchHome,
              .searchResult,
              .rankingHome,
+             .bookingAssets,
              .classificationHome,
              .newReleases,
              .actorHub,
@@ -299,6 +307,23 @@ final class NavigationRouter: ObservableObject {
         guard selectedTab != .home else { return }
         pendingMenuNavigation = nil
         menuPanelState = .closed
+    }
+
+    private func topRoute(in tab: AppTab) -> AppRoute? {
+        guard let path = pathsByTab[tab] else { return nil }
+        let pathMirror = Mirror(reflecting: path)
+        guard let items = pathMirror.children.first(where: { $0.label == "_items" })?.value else {
+            return nil
+        }
+
+        let itemsMirror = Mirror(reflecting: items)
+        guard let eagerItems = itemsMirror.children.first(where: { $0.label == "eager" })?.value as? [Any],
+              let lastItem = eagerItems.last else {
+            return nil
+        }
+
+        let itemMirror = Mirror(reflecting: lastItem)
+        return itemMirror.children.first(where: { $0.label == "base" })?.value as? AppRoute
     }
 }
 

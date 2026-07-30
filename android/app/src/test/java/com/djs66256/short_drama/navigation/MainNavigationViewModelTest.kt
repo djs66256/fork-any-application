@@ -154,4 +154,31 @@ class MainNavigationViewModelTest {
             assertEquals(null, finalState.pendingRoute)
         }
     }
+
+    @Test
+    fun `T-11 closeMenuThenNavigate preserves menu booking target through drawer close`() = runTest {
+        val viewModel = MainNavigationViewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MenuPanelPresentationState.CLOSED, awaitItem().menuPanelState)
+
+            viewModel.openMenu()
+            assertEquals(MenuPanelPresentationState.OPENING, awaitItem().menuPanelState)
+
+            viewModel.onMenuOpened()
+            assertEquals(MenuPanelPresentationState.OPEN, awaitItem().menuPanelState)
+
+            viewModel.closeMenuThenNavigate(PendingRoute.MenuBooking)
+            val closingState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSING, closingState.menuPanelState)
+            assertEquals(PendingRoute.MenuBooking, closingState.pendingMenuRoute)
+            assertEquals(null, closingState.pendingRoute)
+
+            viewModel.onMenuClosedAnimationFinished()
+            val finalState = awaitItem()
+            assertEquals(MenuPanelPresentationState.CLOSED, finalState.menuPanelState)
+            assertEquals(null, finalState.pendingMenuRoute)
+            assertEquals(PendingRoute.MenuBooking, finalState.pendingRoute)
+        }
+    }
 }

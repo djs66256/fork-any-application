@@ -2,11 +2,16 @@ package com.djs66256.short_drama.data.repository
 
 import com.djs66256.short_drama.core.network.ApiResult
 import com.djs66256.short_drama.data.datasource.DramaRemoteDataSource
+import com.djs66256.short_drama.data.dto.BookingAssetDto
+import com.djs66256.short_drama.data.dto.BookingAssetSummaryDto
+import com.djs66256.short_drama.data.dto.BookingAssetsResponseDto
 import com.djs66256.short_drama.data.dto.DramaDto
 import com.djs66256.short_drama.data.dto.DramaListResponseDto
 import com.djs66256.short_drama.data.dto.PaginationDto
 import com.djs66256.short_drama.data.dto.TheaterDramaDto
 import com.djs66256.short_drama.data.dto.TheaterFeedResponseDto
+import com.djs66256.short_drama.domain.model.BookingAssetStatus
+import com.djs66256.short_drama.domain.model.BookingAssetsQuery
 import com.djs66256.short_drama.domain.model.TheaterChannel
 import com.djs66256.short_drama.domain.model.TheaterQuery
 import io.mockk.coEvery
@@ -101,5 +106,41 @@ class DramaRepositoryImplTest {
         assertEquals(35, page.total)
         assertEquals(2, page.totalPages)
         assertTrue(page.hasNextPage)
+    }
+
+    @Test
+    fun `T-11 getBookingAssets maps dto items summary and pagination`() = runTest {
+        val query = BookingAssetsQuery(status = BookingAssetStatus.UPCOMING, page = 1, pageSize = 20)
+        val response = BookingAssetsResponseDto(
+            data = listOf(
+                BookingAssetDto(
+                    dramaId = "drama-1",
+                    title = "我的预约",
+                    coverUrl = null,
+                    episodeCount = 16,
+                    bookedAt = "2026-07-30T03:25:00.000Z",
+                    availabilityStatus = "upcoming",
+                ),
+            ),
+            pagination = PaginationDto(page = 1, pageSize = 20, total = 1, totalPages = 1),
+            summary = BookingAssetSummaryDto(onlineCount = 3, upcomingCount = 1),
+        )
+        coEvery { remoteDataSource.getUserBookings("upcoming", 1, 20) } returns ApiResult.Success(response)
+
+        val result = repository.getBookingAssets(query)
+
+        assertTrue(result is ApiResult.Success)
+        val page = (result as ApiResult.Success).data
+        assertEquals(1, page.items.size)
+        assertEquals("drama-1", page.items.single().dramaId)
+        assertEquals("", page.items.single().coverUrl)
+        assertEquals(BookingAssetStatus.UPCOMING, page.items.single().availabilityStatus)
+        assertEquals(3, page.summary.onlineCount)
+        assertEquals(1, page.summary.upcomingCount)
+        assertEquals(1, page.page)
+        assertEquals(20, page.pageSize)
+        assertEquals(1, page.total)
+        assertEquals(1, page.totalPages)
+        assertTrue(!page.hasNextPage)
     }
 }

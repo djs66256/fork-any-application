@@ -40,6 +40,12 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         case delayed(BookDramaResult, TimeInterval)
     }
 
+    enum BookingAssetsBehavior {
+        case success(BookingAssetPage)
+        case failure(APIError)
+        case delayed(BookingAssetPage, TimeInterval)
+    }
+
     var behavior: DramaBehavior = .success([])
     var queuedBehaviors: [DramaBehavior] = []
 
@@ -74,6 +80,18 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
     )
     var queuedBookingBehaviors: [BookingBehavior] = []
 
+    var bookingAssetsBehavior: BookingAssetsBehavior = .success(
+        BookingAssetPage(
+            items: [],
+            page: 1,
+            pageSize: BookingAssetQuery.defaultPageSize,
+            total: 0,
+            totalPages: 1,
+            summary: .empty
+        )
+    )
+    var queuedBookingAssetsBehaviors: [BookingAssetsBehavior] = []
+
     private(set) var fetchDramasCallCount = 0
     private(set) var lastRequestedPage: Int?
     private(set) var lastRequestedPageSize: Int?
@@ -96,6 +114,10 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
 
     private(set) var bookDramaCallCount = 0
     private(set) var lastBookedDramaID: String?
+
+    private(set) var fetchBookingAssetsCallCount = 0
+    private(set) var lastBookingAssetsQuery: BookingAssetQuery?
+    private(set) var lastBookingAssetsAccessToken: String?
 
     func fetchDramas(page: Int, pageSize: Int) async throws -> [Drama] {
         fetchDramasCallCount += 1
@@ -214,6 +236,26 @@ final class MockDramaRepository: DramaRepositoryProtocol, @unchecked Sendable {
         let currentBehavior = queuedBookingBehaviors.isEmpty
             ? bookingBehavior
             : queuedBookingBehaviors.removeFirst()
+
+        switch currentBehavior {
+        case .success(let result):
+            return result
+        case .failure(let error):
+            throw error
+        case .delayed(let result, let delay):
+            try await Task.sleep(for: .seconds(delay))
+            return result
+        }
+    }
+
+    func fetchBookingAssets(query: BookingAssetQuery, accessToken: String) async throws -> BookingAssetPage {
+        fetchBookingAssetsCallCount += 1
+        lastBookingAssetsQuery = query
+        lastBookingAssetsAccessToken = accessToken
+
+        let currentBehavior = queuedBookingAssetsBehaviors.isEmpty
+            ? bookingAssetsBehavior
+            : queuedBookingAssetsBehaviors.removeFirst()
 
         switch currentBehavior {
         case .success(let result):

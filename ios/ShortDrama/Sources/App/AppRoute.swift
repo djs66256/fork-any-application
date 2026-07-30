@@ -10,6 +10,8 @@ enum AppRoute: Hashable, Sendable {
     case searchResult(query: String)
     /// Ranking home.
     case rankingHome
+    /// Booking assets page.
+    case bookingAssets
     /// Classification home.
     case classificationHome
     /// New releases placeholder home.
@@ -39,6 +41,7 @@ enum AppRoute: Hashable, Sendable {
              .searchHome,
              .searchResult,
              .rankingHome,
+             .bookingAssets,
              .classificationHome,
              .newReleases,
              .actorHub,
@@ -67,6 +70,8 @@ enum AppRoute: Hashable, Sendable {
             return "search/result"
         case .rankingHome:
             return "ranking"
+        case .bookingAssets:
+            return "menu/booking"
         case .classificationHome:
             return "classification"
         case .newReleases:

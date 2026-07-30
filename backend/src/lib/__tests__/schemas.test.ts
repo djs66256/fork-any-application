@@ -4,6 +4,8 @@ import {
   AuthSessionSchema,
   AuthUserSchema,
   BookDramaResponseSchema,
+  BookingAssetListResponseSchema,
+  BookingAssetQuerySchema,
   CLASSIFICATION_DIMENSION_KEYS,
   ClassificationTagsQuerySchema,
   ClassificationTagsResponseSchema,
@@ -895,6 +897,99 @@ describe('BookDramaResponseSchema', () => {
         booking_count: 11,
       }),
     ).toThrow();
+  });
+});
+
+describe('BookingAssetQuerySchema', () => {
+  it('should apply booking asset defaults', () => {
+    expect(BookingAssetQuerySchema.parse({})).toEqual({
+      status: 'online',
+      page: 1,
+      pageSize: 20,
+    });
+  });
+
+  it('should coerce valid booking asset query params', () => {
+    expect(BookingAssetQuerySchema.parse({ status: 'upcoming', page: '2', pageSize: '5' })).toEqual({
+      status: 'upcoming',
+      page: 2,
+      pageSize: 5,
+    });
+  });
+
+  it('should reject invalid booking asset query params', () => {
+    expect(() => BookingAssetQuerySchema.parse({ status: 'archived' })).toThrow();
+    expect(() => BookingAssetQuerySchema.parse({ page: 0 })).toThrow();
+    expect(() => BookingAssetQuerySchema.parse({ pageSize: 21 })).toThrow();
+  });
+});
+
+describe('BookingAssetListResponseSchema', () => {
+  it('should parse canonical booking asset responses', () => {
+    const result = BookingAssetListResponseSchema.parse({
+      data: [
+        {
+          drama_id: '123e4567-e89b-12d3-a456-426614174000',
+          title: 'Test Drama',
+          cover_url: 'https://example.com/cover.jpg',
+          episode_count: 24,
+          booked_at: '2026-07-30T03:25:00.000Z',
+          availability_status: 'online',
+        },
+      ],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 1,
+        total_pages: 1,
+      },
+      summary: {
+        online_count: 1,
+        upcoming_count: 0,
+      },
+    });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.summary.online_count).toBe(1);
+  });
+
+  it('should reject invalid booking asset payloads', () => {
+    expect(() => BookingAssetListResponseSchema.parse({
+      data: [
+        {
+          drama_id: 'not-a-uuid',
+          title: 'Bad Drama',
+          cover_url: null,
+          episode_count: 1,
+          booked_at: '2026-07-30T03:25:00.000Z',
+          availability_status: 'online',
+        },
+      ],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 1,
+        total_pages: 1,
+      },
+      summary: {
+        online_count: 1,
+        upcoming_count: 0,
+      },
+    })).toThrow();
+
+    expect(() => BookingAssetListResponseSchema.parse({
+      data: [],
+      pagination: {
+        page: 1,
+        page_size: 20,
+        total: 0,
+        total_pages: 0,
+      },
+      summary: {
+        online_count: -1,
+        upcoming_count: 0,
+      },
+    })).toThrow();
   });
 });
 

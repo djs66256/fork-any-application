@@ -3,6 +3,8 @@ package com.djs66256.short_drama.data.repository
 import com.djs66256.short_drama.core.network.ApiResult
 import com.djs66256.short_drama.data.datasource.DramaRemoteDataSource
 import com.djs66256.short_drama.data.dto.DramaDto
+import com.djs66256.short_drama.domain.model.BookingAssetsPage
+import com.djs66256.short_drama.domain.model.BookingAssetsQuery
 import com.djs66256.short_drama.domain.model.Drama
 import com.djs66256.short_drama.domain.model.TheaterPage
 import com.djs66256.short_drama.domain.model.TheaterQuery
@@ -49,6 +51,20 @@ class DramaRepositoryImpl @Inject constructor(
             )
         ) {
             is ApiResult.Success -> ApiResult.Success(result.data.toDomain(channel = query.channel))
+            is ApiResult.Error -> result
+            is ApiResult.Exception -> result
+        }
+    }
+
+    override suspend fun getBookingAssets(query: BookingAssetsQuery): ApiResult<BookingAssetsPage> {
+        return when (
+            val result = remoteDataSource.getUserBookings(
+                status = query.status.apiValue,
+                page = query.page,
+                pageSize = query.pageSize,
+            )
+        ) {
+            is ApiResult.Success -> ApiResult.Success(result.data.toDomain())
             is ApiResult.Error -> result
             is ApiResult.Exception -> result
         }

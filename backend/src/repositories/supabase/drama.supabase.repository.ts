@@ -2,6 +2,11 @@ import { z } from 'zod';
 import {
   BookDramaResponse,
   BookDramaResponseSchema,
+  BookingAsset,
+  BookingAssetAvailabilityStatus,
+  BookingAssetListResponse,
+  BookingAssetSchema,
+  BookingAssetSummary,
   ClassificationDimension,
   CLASSIFICATION_DIMENSION_KEYS,
   ClassificationGender,
@@ -19,6 +24,7 @@ import {
   ClassificationTagsQuery,
   ClassificationTagsResult,
   DramaRepositoryInterface,
+  ListUserBookingsParams,
   PaginatedResult,
   PaginationParams,
   RankingParams,
@@ -49,6 +55,22 @@ const BookingCountRowSchema = z.object({
   id: z.string().uuid(),
   booking_count: z.number().int().min(0).nullable().optional(),
 });
+
+const BookingAssetDramaRowSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().trim().min(1),
+  cover_url: z.string().url().nullable().optional(),
+  episode_count: z.number().int().min(0),
+  status: z.string().trim().min(1),
+});
+
+const BookingAssetRowSchema = z.object({
+  drama_id: z.string().uuid(),
+  created_at: z.string(),
+  dramas: BookingAssetDramaRowSchema.nullable().optional(),
+});
+
+const BOOKING_ASSET_SELECT_COLUMNS = 'drama_id,created_at,dramas!inner(id,title,cover_url,episode_count,status)';
 
 type SupabaseDramaRow = z.infer<typeof SupabaseDramaRowSchema>;
 
@@ -262,6 +284,99 @@ function buildSearchExpression(queryPattern: string): string {
   return `title.ilike.${queryPattern},category.ilike.${queryPattern},tags.cs.{"${queryPattern.slice(1, -1)}"}`;
 }
 
+function mapDramaStatusToAvailabilityStatus(status: string): BookingAssetAvailabilityStatus | null {
+  if (status === 'announced') {
+    return 'upcoming';
+  }
+
+  if (status === 'ongoing' || status === 'completed') {
+    return 'online';
+  }
+
+  return null;
+}
+
+function toServiceUnavailableError(error: { message: string } | null) {
+  const message = error?.message?.trim();
+  if (message) {
+    return Errors.serviceUnavailable(`Supabase: ${message}`);
+  }
+
+  return Errors.serviceUnavailable('Supabase');
+}
+
+function parseBookingAssetRows(rows: unknown[]): z.infer<typeof BookingAssetRowSchema>[] {
+  return rows.flatMap((row) => {
+    const parsed = BookingAssetRowSchema.safeParse(row);
+    if (!parsed.success) {
+      return [];
+    }
+
+    if (!parsed.data.dramas) {
+      return [];
+    }
+
+    return [parsed.data];
+  });
+}
+
+function sortBookingAssetRows(rows: z.infer<typeof BookingAssetRowSchema>[]): z.infer<typeof BookingAssetRowSchema>[] {
+  return [...rows].sort((left, right) => {
+    const bookedAtDifference = right.created_at.localeCompare(left.created_at);
+    if (bookedAtDifference !== 0) {
+      return bookedAtDifference;
+    }
+
+    return right.drama_id.localeCompare(left.drama_id);
+  });
+}
+
+function summarizeBookingAssets(rows: z.infer<typeof BookingAssetRowSchema>[]): BookingAssetSummary {
+  return rows.reduce<BookingAssetSummary>((summary, row) => {
+    const availabilityStatus = mapDramaStatusToAvailabilityStatus(row.dramas?.status ?? '');
+    if (!availabilityStatus) {
+      console.warn('[BookingAssets] Unknown drama status', {
+        dramaId: row.drama_id,
+        status: row.dramas?.status,
+      });
+      return summary;
+    }
+
+    if (availabilityStatus === 'online') {
+      summary.online_count += 1;
+    } else {
+      summary.upcoming_count += 1;
+    }
+
+    return summary;
+  }, {
+    online_count: 0,
+    upcoming_count: 0,
+  });
+}
+
+function mapBookingRowToAsset(row: z.infer<typeof BookingAssetRowSchema>): BookingAsset | null {
+  const availabilityStatus = mapDramaStatusToAvailabilityStatus(row.dramas?.status ?? '');
+  if (!availabilityStatus || !row.dramas) {
+    if (row.dramas) {
+      console.warn('[BookingAssets] Unknown drama status', {
+        dramaId: row.drama_id,
+        status: row.dramas.status,
+      });
+    }
+    return null;
+  }
+
+  return BookingAssetSchema.parse({
+    drama_id: row.drama_id,
+    title: row.dramas.title,
+    cover_url: row.dramas.cover_url ?? null,
+    episode_count: row.dramas.episode_count,
+    booked_at: row.created_at,
+    availability_status: availabilityStatus,
+  });
+}
+
 export class DramaSupabaseRepository implements DramaRepositoryInterface {
   async findMany(params: PaginationParams): Promise<PaginatedResult<Drama>> {
     const supabase = getSupabaseAdmin();
@@ -405,6 +520,61 @@ export class DramaSupabaseRepository implements DramaRepositoryInterface {
   async listHotSearches(): Promise<HotSearchListResponse> {
     return {
       data: HOT_SEARCH_ITEMS.data.map((item) => ({ ...item })),
+    };
+  }
+
+  async listUserBookings(params: ListUserBookingsParams): Promise<BookingAssetListResponse> {
+    const supabase = getSupabaseAdmin();
+    const from = (params.page - 1) * params.pageSize;
+    const to = from + params.pageSize - 1;
+
+    const { data: summaryRows, error: summaryError } = await supabase
+      .from('bookings')
+      .select(BOOKING_ASSET_SELECT_COLUMNS)
+      .eq('user_id', params.userId);
+
+    if (summaryError) {
+      throw toServiceUnavailableError(summaryError);
+    }
+
+    const validSummaryRows = sortBookingAssetRows(parseBookingAssetRows(summaryRows ?? []));
+    const summary = summarizeBookingAssets(validSummaryRows);
+
+    let query = supabase
+      .from('bookings')
+      .select(BOOKING_ASSET_SELECT_COLUMNS, { count: 'exact', head: false })
+      .eq('user_id', params.userId);
+
+    if (params.status === 'online') {
+      query = query.in('dramas.status', ['ongoing', 'completed']);
+    } else {
+      query = query.eq('dramas.status', 'announced');
+    }
+
+    const { data, error, count } = await query
+      .order('created_at', { ascending: false })
+      .order('drama_id', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw toServiceUnavailableError(error);
+    }
+
+    const assets = sortBookingAssetRows(parseBookingAssetRows(data ?? []))
+      .map(mapBookingRowToAsset)
+      .filter((item): item is BookingAsset => item !== null);
+
+    const total = count ?? 0;
+
+    return {
+      data: assets,
+      pagination: {
+        page: params.page,
+        page_size: params.pageSize,
+        total,
+        total_pages: computeTotalPages(total, params.pageSize),
+      },
+      summary,
     };
   }
 

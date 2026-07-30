@@ -345,6 +345,39 @@ export const BookDramaResponseSchema = z.object({
 
 export type BookDramaResponse = z.infer<typeof BookDramaResponseSchema>;
 
+export const BookingAssetAvailabilityStatusSchema = z.enum(['online', 'upcoming']);
+export type BookingAssetAvailabilityStatus = z.infer<typeof BookingAssetAvailabilityStatusSchema>;
+
+export const BookingAssetQuerySchema = z.object({
+  status: BookingAssetAvailabilityStatusSchema.default('online'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(20).default(20),
+});
+export type BookingAssetQuery = z.infer<typeof BookingAssetQuerySchema>;
+
+export const BookingAssetSchema = z.object({
+  drama_id: z.string().uuid(),
+  title: z.string().trim().min(1),
+  cover_url: z.string().url().nullable().default(null),
+  episode_count: z.number().int().min(0),
+  booked_at: z.string(),
+  availability_status: BookingAssetAvailabilityStatusSchema,
+});
+export type BookingAsset = z.infer<typeof BookingAssetSchema>;
+
+export const BookingAssetSummarySchema = z.object({
+  online_count: z.number().int().min(0),
+  upcoming_count: z.number().int().min(0),
+});
+export type BookingAssetSummary = z.infer<typeof BookingAssetSummarySchema>;
+
+export const BookingAssetListResponseSchema = z.object({
+  data: z.array(BookingAssetSchema),
+  pagination: PaginationSchema,
+  summary: BookingAssetSummarySchema,
+});
+export type BookingAssetListResponse = z.infer<typeof BookingAssetListResponseSchema>;
+
 export const HotSearchItemSchema = z.object({
   rank: z.number().int().min(1),
   keyword: z.string().trim().min(1).max(50),
