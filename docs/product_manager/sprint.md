@@ -1,22 +1,26 @@
 # Sprint 计划
 
-> 最后更新：2026-07-29
-> 基于竞品（红果）全量功能拆解，共 14 份 PRD，5 个 Sprint，总工时 135.5 人日。
+> 最后更新：2026-07-30
+> 基于竞品（红果）全量功能拆解与页面体验收口规划，共 21 份 PRD，含 5 个 Sprint、1 个 Admin 主题与 3 个 UI Wave，总工时 198.5 人日。
 
 ---
 
 ## 总览
 
-| Sprint | 主题 | PRD 数 | 总工时 | Backend | iOS | Android | Web |
-|--------|------|--------|--------|---------|-----|---------|-----|
+| Sprint / Wave | 主题 | PRD 数 | 总工时 | Backend | iOS | Android | Web |
+|---------------|------|--------|--------|---------|-----|---------|-----|
 | Sprint 1 | 核心内容消费闭环 | 3 | 35.5 | 7 | 14 | 14 | 0.5 |
 | Sprint 2 | 内容发现 | 3 | 28 | 7 | 10.5 | 10.5 | — |
 | Sprint 3 | 个人工具 | 1 | 9.5 | 1.5 | 4 | 4 | — |
 | Sprint 4 | 社交与登录 | 4 | 28 | 9 | 9.5 | 9.5 | — |
 | Sprint 5 | 内容分发与商业化 | 3 | 34.5 | 6.5 | 14 | 14 | — |
-| **合计** | | **14** | **135.5** | **31** | **52** | **52** | **0.5** |
+| Admin | 管理平台 | 1 | 18.5 | 5 | — | — | 13.5 |
+| UI Wave 1 | 核心消费链路收口 | 2 | 17 | 2 | 7.5 | 7.5 | — |
+| UI Wave 2 | 发现与分发收口 | 2 | 15 | 2 | 6.5 | 6.5 | — |
+| UI Wave 3 | 个人域与商业化收口 | 2 | 12.5 | 1 | 5 | 5 | 1.5 |
+| **合计** | | **21** | **198.5** | **41** | **71** | **71** | **15.5** |
 
-## Sprint 依赖关系
+## Sprint / Wave 依赖关系
 
 ```mermaid
 flowchart TD
@@ -49,6 +53,25 @@ flowchart TD
         P14[PRD-14 赚钱中心]
     end
 
+    subgraph ADM[Admin]
+        P15[PRD-15 管理平台]
+    end
+
+    subgraph W1[UI Wave 1]
+        P16[PRD-16 首页 UI 对齐]
+        P17[PRD-17 播放器评论 UI 对齐]
+    end
+
+    subgraph W2[UI Wave 2]
+        P18[PRD-18 搜索发现 UI 对齐]
+        P20[PRD-20 剧场 UI 对齐]
+    end
+
+    subgraph W3[UI Wave 3]
+        P19[PRD-19 菜单个人域 UI 对齐]
+        P21[PRD-21 商业化宿主 UI 对齐]
+    end
+
     P01 --> P02
     P02 --> P03
     P01 --> P04
@@ -56,26 +79,40 @@ flowchart TD
     P04 --> P06
     P02 --> P07
     P07 --> P08
-    P01 --> P12
-    P01 --> P13
-    P01 --> P14
     P02 --> P09
     P08 --> P09
     P08 --> P10
     P08 --> P11
     P05 --> P11
     P07 --> P11
+    P01 --> P12
+    P01 --> P13
+    P01 --> P14
     P03 --> P12
     P05 --> P12
     P06 --> P12
     P08 --> P13
     P03 --> P14
     P08 --> P14
+
+    P02 --> P16
+    P03 --> P17
+    P08 --> P17
+    P09 --> P17
+    P04 --> P18
+    P05 --> P18
+    P06 --> P18
+    P07 --> P19
+    P10 --> P19
+    P11 --> P19
+    P12 --> P20
+    P13 --> P21
+    P14 --> P21
 ```
 
 ---
 
-## Sprint 1：核心内容消费闭环
+## Sprint 1：核心内容消费闭环（已完成）
 
 > 目标：建立应用骨架和核心观看体验，用户能打开 App 浏览内容并完整观看短剧。
 
@@ -85,48 +122,9 @@ flowchart TD
 | [PRD-02](prd/2026-07-25-homepage-feed/prd.md) | 首页 Feed 流 | P0 | 14 | 5 | 4.5 | 4.5 | — | ✅ |
 | [PRD-03](prd/2026-07-25-full-player/prd.md) | 完整观看播放器 | P0 | 13 | 2 | 5.5 | 5.5 | — | ✅ |
 
-### PRD-01：底部导航与应用路由
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Web | 0.5 | — |
-| ST-02 | iOS | 2 | — |
-| ST-03 | Backend | — | — |
-| ST-04 | iOS (Deep Link) | 1 | ST-02 |
-| ST-05 | Android | 2 | — |
-| ST-06 | Android (Deep Link) | 1 | ST-05 |
-| ST-07 | Web (路由验证) | — | ST-01 |
-
-> PRD: [prd.md](prd/2026-07-25-bottom-nav/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-bottom-nav/subtasks.md) | Review: ✅ 通过（6 个问题已修正）
-
-### PRD-02：首页 Feed 流
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2.5 | — |
-| ST-02 | Backend (交互 API) | 2.5 | ST-01 |
-| ST-03 | iOS | 3 | PRD-01 ST-02 |
-| ST-04 | Android | 3 | PRD-01 ST-05 |
-| ST-05 | iOS (交互栏) | 1.5 | ST-03 |
-| ST-06 | Android (交互栏) | 1.5 | ST-04 |
-
-> PRD: [prd.md](prd/2026-07-25-homepage-feed/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-homepage-feed/subtasks.md) | Review: ✅ 通过（8 个问题已修正）
-
-### PRD-03：完整观看播放器
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2 | — |
-| ST-02 | iOS | 3 | PRD-01 ST-02 |
-| ST-03 | Android | 3 | PRD-01 ST-05 |
-| ST-04 | iOS (交互栏) | 2.5 | ST-02 |
-| ST-05 | Android (交互栏) | 2.5 | ST-03 |
-
-> PRD: [prd.md](prd/2026-07-25-full-player/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-full-player/subtasks.md) | Review: ✅ 通过（5 个问题已修正）
-
 ---
 
-## Sprint 2：内容发现
+## Sprint 2：内容发现（已完成）
 
 > 目标：建立搜索、排行、分类三条内容发现路径，让用户能主动找到想看的内容。
 
@@ -136,46 +134,9 @@ flowchart TD
 | [PRD-05](prd/2026-07-25-ranking/prd.md) | 排行体系 | P1 | 10 | 2 | 4 | 4 | ✅ |
 | [PRD-06](prd/2026-07-25-classification/prd.md) | 分类浏览 | P1 | 7.5 | 1.5 | 3 | 3 | ✅ |
 
-### PRD-04：搜索发现
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 1.5 | — |
-| ST-02 | Backend (热搜) | 1 | — |
-| ST-03 | iOS | 2 | PRD-01 ST-02 |
-| ST-04 | Android | 2 | PRD-01 ST-05 |
-| ST-05 | iOS (入口集成) | 1.5 | PRD-01 ST-02 |
-| ST-06 | Android (入口集成) | 1.5 | PRD-01 ST-05 |
-
-> PRD: [prd.md](prd/2026-07-25-search/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-search/subtasks.md) | Review: ✅ 通过（8 个问题已修正）
-
-### PRD-05：排行体系
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2 | PRD-04 ST-01 |
-| ST-02 | iOS | 2 | PRD-01 ST-02 |
-| ST-03 | Android | 2 | PRD-01 ST-05 |
-| ST-04 | iOS (交互) | 2 | ST-02 |
-| ST-05 | Android (交互) | 2 | ST-03 |
-
-> PRD: [prd.md](prd/2026-07-25-ranking/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-ranking/subtasks.md) | Review: ✅ 通过（8 个问题已修正）
-
-### PRD-06：分类浏览
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 1.5 | — |
-| ST-02 | iOS | 1.5 | PRD-01 ST-02 |
-| ST-03 | Android | 1.5 | PRD-01 ST-05 |
-| ST-04 | iOS (入口集成) | 1.5 | PRD-04 ST-05 |
-| ST-05 | Android (入口集成) | 1.5 | PRD-04 ST-06 |
-
-> PRD: [prd.md](prd/2026-07-25-classification/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-classification/subtasks.md) | Review: ✅ 通过（5 个问题已修正）
-
 ---
 
-## Sprint 3：个人工具
+## Sprint 3：个人工具（已完成）
 
 > 目标：建立菜单面板作为个人中心入口，聚合最近在看、功能入口和个人状态。
 
@@ -183,146 +144,118 @@ flowchart TD
 |------|------|--------|------|---------|-----|---------|------|
 | [PRD-07](prd/2026-07-25-menu-panel/prd.md) | 菜单面板 | P1 | 9.5 | 1.5 | 4 | 4 | ✅ |
 
-### PRD-07：菜单面板
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 1.5 | PRD-02 ST-01, PRD-03 ST-01 |
-| ST-02 | iOS | 2.5 | — |
-| ST-03 | Android | 2.5 | — |
-| ST-04 | iOS (入口集成) | 1.5 | ST-02 |
-| ST-05 | Android (入口集成) | 1.5 | ST-03 |
-
-> PRD: [prd.md](prd/2026-07-25-menu-panel/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-menu-panel/subtasks.md) | Review: ✅ 通过（7 个问题已修正）
-
 ---
 
-## Sprint 4：社交与登录
+## Sprint 4：社交与登录（部分完成）
 
 > 目标：建立用户体系和社交互动能力。登录是所有个人化功能的前置依赖。
 
-| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 审查 |
-|------|------|--------|------|---------|-----|---------|------|
-| [PRD-08](prd/2026-07-25-login/prd.md) | 用户登录与注册 | P1 | 8.5 | 2.5 | 3 | 3 | ✅ |
-| [PRD-09](prd/2026-07-25-comments/prd.md) | 评论系统 | P1 | 7.5 | 2.5 | 2.5 | 2.5 | ✅ |
-| [PRD-10](prd/2026-07-25-signin-messages/prd.md) | 签到与消息系统 | P1 | 8 | 3 | 2.5 | 2.5 | ✅ |
-| [PRD-11](prd/2026-07-25-user-assets/prd.md) | 个人资产管理 | P1 | 4 | 1 | 1.5 | 1.5 | ✅ |
-
-### PRD-08：用户登录与注册
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2.5 | — |
-| ST-02 | iOS | 2 | PRD-07 ST-02 |
-| ST-03 | Android | 2 | PRD-07 ST-03 |
-| ST-04 | iOS (登录拦截) | 1 | ST-02 |
-| ST-05 | Android (登录拦截) | 1 | ST-03 |
-
-> PRD: [prd.md](prd/2026-07-25-login/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-login/subtasks.md) | Review: ✅ 通过（14 个问题已修正）
-
-### PRD-09：评论系统
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2.5 | — |
-| ST-02 | iOS | 1.5 | PRD-02 ST-03 |
-| ST-03 | Android | 1.5 | PRD-02 ST-04 |
-| ST-04 | iOS (入口集成) | 0.5 | ST-02, PRD-02 ST-05 |
-| ST-05 | Android (入口集成) | 0.5 | ST-03, PRD-02 ST-06 |
-
-> PRD: [prd.md](prd/2026-07-25-comments/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-comments/subtasks.md) | Review: ✅ 通过（12 个问题已修正）
-
-### PRD-10：签到与消息系统
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend (签到) | 1.5 | — |
-| ST-02 | Backend (消息) | 1.5 | — |
-| ST-03 | iOS | 1.5 | PRD-07 ST-02 |
-| ST-04 | Android | 1.5 | PRD-07 ST-03 |
-| ST-05 | iOS (入口集成) | 1 | ST-03 |
-| ST-06 | Android (入口集成) | 1 | ST-04 |
-
-> PRD: [prd.md](prd/2026-07-25-signin-messages/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-signin-messages/subtasks.md) | Review: ✅ 通过（10 个问题已修正）
-
-### PRD-11：个人资产管理
-
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 1 | PRD-05 ST-01 |
-| ST-02 | iOS | 1.5 | PRD-07 ST-02 |
-| ST-03 | Android | 1.5 | PRD-07 ST-03 |
-
-> PRD: [prd.md](prd/2026-07-25-user-assets/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-user-assets/subtasks.md) | Review: ✅ 通过（11 个问题已修正）
+| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 审查 | 状态 |
+|------|------|--------|------|---------|-----|---------|------|------|
+| [PRD-08](prd/2026-07-25-login/prd.md) | 用户登录与注册 | P1 | 8.5 | 2.5 | 3 | 3 | ✅ | 🟢 |
+| [PRD-09](prd/2026-07-25-comments/prd.md) | 评论系统 | P1 | 7.5 | 2.5 | 2.5 | 2.5 | ✅ | 🟢 |
+| [PRD-10](prd/2026-07-25-signin-messages/prd.md) | 签到与消息系统 | P1 | 8 | 3 | 2.5 | 2.5 | ✅ | 🚧 |
+| [PRD-11](prd/2026-07-25-user-assets/prd.md) | 个人资产管理 | P1 | 4 | 1 | 1.5 | 1.5 | ✅ | 🔵 |
 
 ---
 
-## Sprint 5：内容分发与商业化
+## Sprint 5：内容分发与商业化（已完成）
 
 > 目标：完成剧场、商城、赚钱中心三个频道 Tab 的内容填充，建立内容分发和商业化能力。
 
-| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 审查 |
+| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 审查 | 状态 |
+|------|------|--------|------|---------|-----|---------|------|------|
+| [PRD-12](prd/2026-07-25-theater-channel/prd.md) | 剧场频道 | P1 | 12 | 2 | 5 | 5 | ✅ | 🟢 |
+| [PRD-13](prd/2026-07-25-mall/prd.md) | 商城 | P1 | 10 | 2 | 4 | 4 | ✅ | 🟢 |
+| [PRD-14](prd/2026-07-25-earn-center/prd.md) | 赚钱中心 | P2 | 12.5 | 2.5 | 5 | 5 | ✅ | 🟢 |
+
+---
+
+## Admin：管理平台（规划中）
+
+> 目标：建立运营后台与基础管理能力，不作为用户侧 UI 对齐的前置阻塞。
+
+| 编号 | 功能 | 优先级 | 工时 | Backend | Web | 状态 |
+|------|------|--------|------|---------|-----|------|
+| [PRD-15](prd/2026-07-27-admin-panel/prd.md) | 管理平台 | P1 | 18.5 | 5 | 13.5 | 🔵 |
+
+---
+
+## UI Wave 1：核心消费链路收口（规划中）
+
+> 目标：先收口首页与播放器评论主链路，使最核心的内容消费体验与截图基线一致。
+
+| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 状态 |
 |------|------|--------|------|---------|-----|---------|------|
-| [PRD-12](prd/2026-07-25-theater-channel/prd.md) | 剧场频道 | P1 | 12 | 2 | 5 | 5 | ✅ |
-| [PRD-13](prd/2026-07-25-mall/prd.md) | 商城 | P1 | 10 | 2 | 4 | 4 | ✅ |
-| [PRD-14](prd/2026-07-25-earn-center/prd.md) | 赚钱中心 | P2 | 12.5 | 2.5 | 5 | 5 | ✅ |
+| [PRD-16](prd/2026-07-30-homepage-ui-alignment/prd.md) | 首页 Feed UI 对齐 | P0 | 7 | 1 | 3 | 3 | 🔵 |
+| [PRD-17](prd/2026-07-30-player-comments-ui-alignment/prd.md) | 播放器与评论 UI 对齐 | P0 | 10 | 1 | 4.5 | 4.5 | 🔵 |
 
-### PRD-12：剧场频道
+### Wave 1 推进说明
 
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2 | — |
-| ST-02 | iOS | 3.5 | PRD-01 ST-02 |
-| ST-03 | Android | 3.5 | PRD-01 ST-05 |
-| ST-04 | iOS (入口跳转) | 1.5 | ST-02, PRD-05, PRD-06 |
-| ST-05 | Android (入口跳转) | 1.5 | ST-03, PRD-05, PRD-06 |
+- 优先对齐首页首屏、播放器顶部/底部信息区、评论容器等核心消费页面。
+- 不改变首页 CTA、播放入口、评论登录恢复语义。
 
-> PRD: [prd.md](prd/2026-07-25-theater-channel/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-theater-channel/subtasks.md) | Review: ✅ 通过（11 个问题已修正）
+---
 
-### PRD-13：商城
+## UI Wave 2：发现与分发收口（规划中）
 
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2 | — |
-| ST-02 | iOS | 4 | PRD-01 ST-02 |
-| ST-03 | Android | 4 | PRD-01 ST-05 |
+> 目标：在核心消费链路稳定后，统一搜索发现体系与剧场频道的页面视觉语言。
 
-> PRD: [prd.md](prd/2026-07-25-mall/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-mall/subtasks.md) | Review: ✅ 通过（16 个问题已修正）
+| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | 状态 |
+|------|------|--------|------|---------|-----|---------|------|
+| [PRD-18](prd/2026-07-30-search-discovery-ui-alignment/prd.md) | 搜索发现体系 UI 对齐 | P1 | 10 | 1 | 4.5 | 4.5 | 🔵 |
+| [PRD-20](prd/2026-07-30-theater-ui-alignment/prd.md) | 剧场频道 UI 对齐 | P1 | 5 | 1 | 2 | 2 | 🔵 |
 
-### PRD-14：赚钱中心
+### Wave 2 推进说明
 
-| 子任务 | 端 | 工时 | 依赖 |
-|--------|-----|------|------|
-| ST-01 | Backend | 2.5 | — |
-| ST-02 | iOS | 3 | PRD-01 ST-02 |
-| ST-03 | Android | 3 | PRD-01 ST-05 |
-| ST-04 | iOS (播放跳转) | 2 | ST-02, PRD-03 ST-02 |
-| ST-05 | Android (播放跳转) | 2 | ST-03, PRD-03 ST-03 |
+- 统一搜索、排行、分类、剧场页的导航结构、筛选层级和卡片样式。
+- 保留排行/分类/剧场既有跳转和数据链路。
 
-> PRD: [prd.md](prd/2026-07-25-earn-center/prd.md) | Subtasks: [subtasks.md](prd/2026-07-25-earn-center/subtasks.md) | Review: ✅ 通过（14 个问题已修正）
+---
+
+## UI Wave 3：个人域与商业化收口（规划中）
+
+> 目标：在签到/资产相关能力稳定后，对个人域和商业化页面做最后一轮视觉收口。
+
+| 编号 | 功能 | 优先级 | 工时 | Backend | iOS | Android | Web | 状态 |
+|------|------|--------|------|---------|-----|---------|-----|------|
+| [PRD-19](prd/2026-07-30-menu-profile-ui-alignment/prd.md) | 菜单与个人相关页 UI 对齐 | P1 | 7.5 | 0.5 | 3.5 | 3.5 | — | 🔵 |
+| [PRD-21](prd/2026-07-30-commercial-ui-alignment/prd.md) | 商业化页面与宿主 UI 对齐 | P1 | 5 | 0.5 | 1.5 | 1.5 | 1.5 | 🔵 |
+
+### Wave 3 推进说明
+
+- PRD-19 需等待 PRD-10/11 先具备可对齐的页面能力。
+- PRD-21 明确保留 `mall / earn` 的 H5 承载策略，只做首屏与宿主体验收口。
 
 ---
 
 ## 状态追踪
 
-当前进度：**PRD-01 ～ PRD-09、PRD-12 ～ PRD-14 已完成并合入主干，PRD-10 正处于 🚧 构建中，PRD-11 仍处于 🔵 规划中。**
+当前进度：**Sprint 1-3 与 Sprint 5 已完成，Sprint 4 中仅 PRD-10 / PRD-11 尚未全部收口；页面 UI 对齐专题已被拆分为 3 个 UI Wave、6 个独立 PRD，用于在现有业务能力完成后分批推进体验收口。**
 
-| 功能 | Sprint | 工时 | 审查 | 状态 |
-|------|--------|------|------|------|
-| PRD-01 底部导航 | 1 | 8.5 | ✅ | 🟢 |
-| PRD-02 首页 Feed | 1 | 14 | ✅ | 🟢 |
-| PRD-03 播放器 | 1 | 13 | ✅ | 🟢 |
-| PRD-04 搜索 | 2 | 10.5 | ✅ | 🟢 |
-| PRD-05 排行 | 2 | 10 | ✅ | 🟢 |
-| PRD-06 分类 | 2 | 7.5 | ✅ | 🟢 |
-| PRD-07 菜单面板 | 3 | 9.5 | ✅ | 🟢 |
-| PRD-08 登录 | 4 | 8.5 | ✅ | 🟢 |
-| PRD-09 评论 | 4 | 7.5 | ✅ | 🟢 |
-| PRD-10 签到消息 | 4 | 8 | ✅ | 🚧 |
-| PRD-11 资产管理 | 4 | 4 | ✅ | 🔵 |
-| PRD-12 剧场频道 | 5 | 12 | ✅ | 🟢 |
-| PRD-13 商城 | 5 | 10 | ✅ | 🟢 |
-| PRD-14 赚钱中心 | 5 | 12.5 | ✅ | 🟢 |
+| 功能 | 分类 | 工时 | 状态 |
+|------|------|------|------|
+| PRD-01 底部导航 | Sprint 1 | 8.5 | 🟢 |
+| PRD-02 首页 Feed | Sprint 1 | 14 | 🟢 |
+| PRD-03 播放器 | Sprint 1 | 13 | 🟢 |
+| PRD-04 搜索 | Sprint 2 | 10.5 | 🟢 |
+| PRD-05 排行 | Sprint 2 | 10 | 🟢 |
+| PRD-06 分类 | Sprint 2 | 7.5 | 🟢 |
+| PRD-07 菜单面板 | Sprint 3 | 9.5 | 🟢 |
+| PRD-08 登录 | Sprint 4 | 8.5 | 🟢 |
+| PRD-09 评论 | Sprint 4 | 7.5 | 🟢 |
+| PRD-10 签到消息 | Sprint 4 | 8 | 🟢 |
+| PRD-11 资产管理 | Sprint 4 | 4 | 🟢 |
+| PRD-12 剧场频道 | Sprint 5 | 12 | 🟢 |
+| PRD-13 商城 | Sprint 5 | 10 | 🟢 |
+| PRD-14 赚钱中心 | Sprint 5 | 12.5 | 🟢 |
+| PRD-15 管理平台 | Admin | 18.5 | 🔵 |
+| PRD-16 首页 UI 对齐 | UI Wave 1 | 7 | 🔵 |
+| PRD-17 播放器评论 UI 对齐 | UI Wave 1 | 10 | 🔵 |
+| PRD-18 搜索发现 UI 对齐 | UI Wave 2 | 10 | 🔵 |
+| PRD-19 菜单个人域 UI 对齐 | UI Wave 3 | 7.5 | 🔵 |
+| PRD-20 剧场 UI 对齐 | UI Wave 2 | 5 | 🔵 |
+| PRD-21 商业化宿主 UI 对齐 | UI Wave 3 | 5 | 🔵 |
 
 > 状态图例：🔵 规划中 → 🚧 构建中 → 🟢 已完成
 
@@ -332,4 +265,5 @@ flowchart TD
 
 | 日期 | 变更内容 |
 |------|---------|
+| 2026-07-30 | 新增 Admin 与 UI Wave 1-3 规划，并将页面 UI 对齐需求拆分为 PRD-16 ~ PRD-21 六个独立条目 |
 | 2026-07-25 | 初始版本：14 份 PRD / 5 Sprint 完整计划，总工时 135.5 人日 |

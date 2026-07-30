@@ -6,6 +6,7 @@
 
 | 日期 | 文件 | 变更内容 | 变更原因 |
 |------|------|---------|---------|
+| 2026-07-30 | decisions/2026-07-30-page-ui-alignment-splitting.md, prd/2026-07-30-homepage-ui-alignment/, prd/2026-07-30-player-comments-ui-alignment/, prd/2026-07-30-search-discovery-ui-alignment/, prd/2026-07-30-menu-profile-ui-alignment/, prd/2026-07-30-theater-ui-alignment/, prd/2026-07-30-commercial-ui-alignment/, backlog.md, progress.md, sprint.md, roadmap.md | 将单一“页面 UI 对齐整改”重构为 6 个独立 PRD，并同步 backlog/progress/sprint/roadmap 的编号、工时、推进波次和索引链接 | 用户要求将过大的 UI 对齐需求拆分为多个可独立推进的需求 |
 | 2026-07-25 | prd/2026-07-25-bottom-nav/prd.md, subtasks.md, prd-review.md | PRD-01 第 1 轮审查修正：6 个问题全部修正（新增 US-03/US-05 核心流程、修正工时/范围/笔误）、Q-03 已澄清 | 审查反馈修正 |
 | 2026-07-25 | prd/2026-07-25-homepage-feed/prd.md, subtasks.md, prd-review.md | PRD-02 第 1 轮审查修正：全 8 项已修正（API 响应格式/数据模型/核心流程/分享Toast/匿名登录引导/完成标准/头像移除/pageSize/工时） | 审查反馈修正 |
 | 2026-07-25 | prd/2026-07-25-full-player/prd.md, subtasks.md, prd-review.md | PRD-03 第 1 轮审查修正：5 个问题全部修正（分享按钮范围/更多按钮占位/工时/跨PRD依赖图/错误状态 US-07）、Q-01 已澄清 | 审查反馈修正 |
