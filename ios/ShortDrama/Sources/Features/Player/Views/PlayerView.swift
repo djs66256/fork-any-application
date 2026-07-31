@@ -62,8 +62,8 @@ struct PlayerView: View {
 
             backgroundLayer
                 .ignoresSafeArea()
-                .scaleEffect(isPreviewPlayerCommentsSheet ? 1.16 : 1.0)
-                .offset(y: isPreviewPlayerCommentsSheet ? -24 : 0)
+                .scaleEffect(isPreviewPlayerCommentsSheet ? 1.0 : 1.16)
+                .offset(y: isPreviewPlayerCommentsSheet ? 0 : -24)
                 .overlay(alignment: .top) {
                     LinearGradient(
                         colors: [Color.black.opacity(0.85), Color.black.opacity(0)],
@@ -83,54 +83,56 @@ struct PlayerView: View {
                     .allowsHitTesting(false)
                 }
 
-            VStack(spacing: 0) {
-                PlayerTopBar(
-                    title: viewModel.currentEpisode.map { "第\($0.episodeNumber)集" } ?? "第3集",
-                    speedLabel: viewModel.currentSpeed.label,
-                    onBack: viewModel.handleBack,
-                    onSpeedTap: { viewModel.isSpeedDialogPresented = true },
-                    onMoreTap: { viewModel.isMoreDialogPresented = true }
-                )
-                .padding(.horizontal, 18)
-                .padding(.top, 12)
-
-                Spacer()
-
-                HStack(alignment: .bottom, spacing: 16) {
-                    PlayerBottomInfoView(
-                        title: infoTitle,
-                        hotComment: fallbackHotComment,
-                        disclaimer: fallbackDisclaimer
+            if !isPreviewPlayerCommentsSheet {
+                VStack(spacing: 0) {
+                    PlayerTopBar(
+                        title: viewModel.currentEpisode.map { "第\($0.episodeNumber)集" } ?? "第3集",
+                        speedLabel: viewModel.currentSpeed.label,
+                        onBack: viewModel.handleBack,
+                        onSpeedTap: { viewModel.isSpeedDialogPresented = true },
+                        onMoreTap: { viewModel.isMoreDialogPresented = true }
                     )
-                    .padding(.bottom, 54)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 12)
 
-                    PlayerRightActionBar(
-                        liked: viewModel.liked,
-                        favorited: viewModel.favorited,
-                        favoriteCountText: fallbackFavoriteCount,
-                        commentCountText: fallbackCommentCount,
-                        likeCountText: fallbackLikeCount,
-                        shareCountText: fallbackShareCount,
-                        onLike: viewModel.toggleLike,
-                        onFavorite: viewModel.toggleFavorite,
-                        onComment: viewModel.openComments
+                    Spacer()
+
+                    HStack(alignment: .bottom, spacing: 16) {
+                        PlayerBottomInfoView(
+                            title: infoTitle,
+                            hotComment: fallbackHotComment,
+                            disclaimer: fallbackDisclaimer
+                        )
+                        .padding(.bottom, 54)
+
+                        PlayerRightActionBar(
+                            liked: viewModel.liked,
+                            favorited: viewModel.favorited,
+                            favoriteCountText: fallbackFavoriteCount,
+                            commentCountText: fallbackCommentCount,
+                            likeCountText: fallbackLikeCount,
+                            shareCountText: fallbackShareCount,
+                            onLike: viewModel.toggleLike,
+                            onFavorite: viewModel.toggleFavorite,
+                            onComment: viewModel.openComments
+                        )
+                    }
+                    .padding(.horizontal, 24)
+
+                    progressScrubber
+                        .padding(.horizontal, 28)
+                        .padding(.top, 14)
+                        .padding(.bottom, 16)
+
+                    PlayerEpisodeDock(
+                        title: "选集",
+                        seriesStatus: viewModel.seriesStatus.displayText,
+                        totalCount: max(viewModel.episodes.count, 133),
+                        onTap: { viewModel.isEpisodeSheetPresented = true }
                     )
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 18)
                 }
-                .padding(.horizontal, 24)
-
-                progressScrubber
-                    .padding(.horizontal, 28)
-                    .padding(.top, 14)
-                    .padding(.bottom, 16)
-
-                PlayerEpisodeDock(
-                    title: "选集",
-                    seriesStatus: viewModel.seriesStatus.displayText,
-                    totalCount: max(viewModel.episodes.count, 133),
-                    onTap: { viewModel.isEpisodeSheetPresented = true }
-                )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 18)
             }
 
             if viewModel.uiState == .switchingEpisode {
