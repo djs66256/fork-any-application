@@ -8,10 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -22,16 +25,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,18 +42,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.djs66256.short_drama.core.theme.ClassificationChipSurface
+import com.djs66256.short_drama.core.theme.ClassificationChipText
+import com.djs66256.short_drama.core.theme.ClassificationPageBackground
+import com.djs66256.short_drama.core.theme.ClassificationPanelSurface
+import com.djs66256.short_drama.core.theme.ClassificationPanelTitle
+import com.djs66256.short_drama.core.theme.ClassificationRailBackground
+import com.djs66256.short_drama.core.theme.ClassificationRailSelected
+import com.djs66256.short_drama.core.theme.ClassificationRailUnselected
+import com.djs66256.short_drama.core.theme.ClassificationTabSelected
+import com.djs66256.short_drama.core.theme.ClassificationTabUnselected
 import com.djs66256.short_drama.domain.model.ClassificationDimensionKey
 import com.djs66256.short_drama.domain.model.ClassificationGender
-import kotlinx.coroutines.flow.collect
 import com.djs66256.short_drama.feature.classification.model.ClassificationDimensionUiModel
 import com.djs66256.short_drama.feature.classification.viewmodel.ClassificationEffect
 import com.djs66256.short_drama.feature.classification.viewmodel.ClassificationUiState
 import com.djs66256.short_drama.feature.classification.viewmodel.ClassificationViewModel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClassificationScreen(
     onBack: () -> Unit,
@@ -67,7 +75,7 @@ fun ClassificationScreen(
     val latestDimensions by rememberUpdatedState(uiState.dimensions)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(viewModel, listState) {
+    LaunchedEffect(viewModel, listState, latestDimensions) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is ClassificationEffect.ScrollToDimension -> {
@@ -90,26 +98,20 @@ fun ClassificationScreen(
             .collect(viewModel::onVisibleDimensionChanged)
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text("分类") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ClassificationPageBackground),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .statusBarsPadding()
+                .navigationBarsPadding(),
         ) {
-            ClassificationGenderTabs(
+            ClassificationHeader(
                 selected = uiState.selectedGender,
+                onBack = onBack,
                 onSelected = viewModel::onGenderSelected,
             )
             ClassificationContent(
@@ -127,17 +129,40 @@ fun ClassificationScreen(
 }
 
 @Composable
-private fun ClassificationGenderTabs(
+private fun ClassificationHeader(
     selected: ClassificationGender,
+    onBack: () -> Unit,
     onSelected: (ClassificationGender) -> Unit,
 ) {
-    TabRow(selectedTabIndex = ClassificationGender.entries.indexOf(selected)) {
-        ClassificationGender.entries.forEach { gender ->
-            Tab(
-                selected = gender == selected,
-                onClick = { onSelected(gender) },
-                text = { Text(gender.label) },
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 24.dp, top = 8.dp, bottom = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "返回",
+                tint = ClassificationTabSelected,
             )
+        }
+        Spacer(modifier = Modifier.width(18.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(30.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ClassificationGender.entries.forEach { gender ->
+                val isSelected = gender == selected
+                Text(
+                    text = gender.label,
+                    modifier = Modifier.clickable { onSelected(gender) },
+                    color = if (isSelected) ClassificationTabSelected else ClassificationTabUnselected,
+                    fontSize = if (isSelected) 24.sp else 22.sp,
+                    lineHeight = if (isSelected) 28.sp else 26.sp,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                )
+            }
         }
     }
 }
@@ -154,7 +179,7 @@ private fun ClassificationContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 0.dp),
     ) {
         when {
             uiState.isLoading && !uiState.hasLoadedOnce -> ClassificationLoadingState(isRefreshing = false)
@@ -175,7 +200,7 @@ private fun ClassificationContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)),
+                    .background(ClassificationPageBackground.copy(alpha = 0.92f)),
                 contentAlignment = Alignment.Center,
             ) {
                 ClassificationLoadingState(isRefreshing = true)
@@ -197,9 +222,8 @@ private fun ClassificationBody(
             dimensions = dimensions,
             selectedDimensionKey = selectedDimensionKey,
             onSelectDimension = onSelectDimension,
-            modifier = Modifier.width(92.dp),
+            modifier = Modifier.width(144.dp),
         )
-        Spacer(modifier = Modifier.width(12.dp))
         ClassificationSectionList(
             dimensions = dimensions,
             listState = listState,
@@ -217,37 +241,25 @@ private fun ClassificationDimensionRail(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .background(ClassificationRailBackground)
+            .padding(start = 22.dp, top = 28.dp, end = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(26.dp),
     ) {
         dimensions.forEach { dimension ->
             val isSelected = dimension.key == selectedDimensionKey
-            Surface(
+            Text(
+                text = dimension.title,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
                     .clickable { onSelectDimension(dimension.key) },
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                },
-                contentColor = if (isSelected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                shape = MaterialTheme.shapes.medium,
-            ) {
-                Text(
-                    text = dimension.title,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+                color = if (isSelected) ClassificationRailSelected else ClassificationRailUnselected,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -259,20 +271,28 @@ private fun ClassificationSectionList(
     onTagClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = PaddingValues(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    Surface(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(start = 0.dp, end = 20.dp, top = 6.dp, bottom = 16.dp),
+        color = ClassificationPanelSurface,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
     ) {
-        itemsIndexed(
-            items = dimensions,
-            key = { _, item -> item.key.apiValue },
-        ) { _, dimension ->
-            ClassificationSection(
-                dimension = dimension,
-                onTagClick = onTagClick,
-            )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(start = 24.dp, end = 20.dp, top = 22.dp, bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+        ) {
+            itemsIndexed(
+                items = dimensions,
+                key = { _, item -> item.key.apiValue },
+            ) { _, dimension ->
+                ClassificationSection(
+                    dimension = dimension,
+                    onTagClick = onTagClick,
+                )
+            }
         }
     }
 }
@@ -285,28 +305,29 @@ private fun ClassificationSection(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = dimension.title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Medium,
+            color = ClassificationPanelTitle,
         )
         if (dimension.tags.isEmpty()) {
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = MaterialTheme.shapes.medium,
+                color = ClassificationChipSurface,
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
                     text = dimension.emptyMessage,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        .padding(horizontal = 14.dp, vertical = 16.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = ClassificationPanelTitle,
+                    textAlign = TextAlign.Center,
                 )
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 dimension.tags.chunked(CHIP_ROW_SIZE).forEach { rowTags ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         rowTags.forEach { tag ->
                             ClassificationTagChip(
                                 label = tag,
@@ -332,20 +353,26 @@ fun ClassificationTagChip(
 ) {
     Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
+            .height(56.dp)
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        shape = RoundedCornerShape(20.dp),
+        color = ClassificationChipSurface,
+        contentColor = ClassificationChipText,
+        shape = RoundedCornerShape(12.dp),
     ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -356,12 +383,12 @@ private fun ClassificationLoadingState(isRefreshing: Boolean) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        CircularProgressIndicator()
+        CircularProgressIndicator(color = ClassificationRailSelected)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = if (isRefreshing) "正在刷新分类..." else "正在加载分类...",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = ClassificationTabUnselected,
         )
     }
 }
@@ -372,23 +399,25 @@ private fun ClassificationErrorState(
     onRetry: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
             text = "加载失败",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineMedium,
+            color = ClassificationTabSelected,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyLarge,
+            color = ClassificationTabUnselected,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = onRetry) {
             Text("重试")
         }

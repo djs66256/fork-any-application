@@ -666,7 +666,8 @@ internal fun shouldShowBottomBar(route: String?): Boolean {
         route != AppDestination.Route.LOGIN &&
         route != AppDestination.Route.SETTINGS &&
         route != AppDestination.Route.MENU_MESSAGES &&
-        route != AppDestination.Route.MENU_BOOKING
+        route != AppDestination.Route.MENU_BOOKING &&
+        route != AppDestination.Route.CLASSIFICATION
 }
 
 internal data class MenuPlaceholderSpec(
