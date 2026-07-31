@@ -2,9 +2,11 @@ package com.djs66256.short_drama.feature.ranking.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,16 +16,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,8 +49,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +67,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.domain.model.RankingContentType
 import com.djs66256.short_drama.domain.model.RankingType
+import com.djs66256.short_drama.feature.ranking.model.RankingDetailTagTone
+import com.djs66256.short_drama.feature.ranking.model.RankingDetailTagUiModel
 import com.djs66256.short_drama.feature.ranking.model.RankingDramaItemUiModel
+import com.djs66256.short_drama.feature.ranking.model.RankingMetricVisual
+import com.djs66256.short_drama.feature.ranking.model.RankingPosterStyle
 import com.djs66256.short_drama.feature.ranking.viewmodel.RankingEffect
 import com.djs66256.short_drama.feature.ranking.viewmodel.RankingUiState
 import com.djs66256.short_drama.feature.ranking.viewmodel.RankingViewModel
@@ -80,6 +99,33 @@ fun RankingScreen(
         }
     }
 
+    RankingScreenContent(
+        uiState = uiState,
+        onBack = onBack,
+        onContentTypeSelected = viewModel::onContentTypeSelected,
+        onRankingTypeSelected = viewModel::onRankingTypeSelected,
+        onRetry = viewModel::retry,
+        onRetryAppend = viewModel::retryAppend,
+        onLoadNextPage = viewModel::loadNextPageIfNeeded,
+        onOpenPlay = onOpenPlay,
+        onBook = viewModel::onBookClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun RankingScreenContent(
+    uiState: RankingUiState,
+    onBack: () -> Unit,
+    onContentTypeSelected: (RankingContentType) -> Unit,
+    onRankingTypeSelected: (RankingType) -> Unit,
+    onRetry: () -> Unit,
+    onRetryAppend: () -> Unit,
+    onLoadNextPage: () -> Unit,
+    onOpenPlay: (String) -> Unit,
+    onBook: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = RankingPageBackground,
@@ -97,21 +143,21 @@ fun RankingScreen(
             )
             RankingContentTypeTabs(
                 selected = uiState.selectedContentType,
-                onSelected = viewModel::onContentTypeSelected,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                onSelected = onContentTypeSelected,
+                modifier = Modifier.padding(horizontal = 0.dp),
             )
             RankingTypeTabs(
                 selected = uiState.selectedRankingType,
-                onSelected = viewModel::onRankingTypeSelected,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                onSelected = onRankingTypeSelected,
+                modifier = Modifier.padding(horizontal = 0.dp, vertical = 0.dp),
             )
             RankingContent(
                 uiState = uiState,
-                onRetry = viewModel::retry,
-                onRetryAppend = viewModel::retryAppend,
-                onLoadNextPage = viewModel::loadNextPageIfNeeded,
+                onRetry = onRetry,
+                onRetryAppend = onRetryAppend,
+                onLoadNextPage = onLoadNextPage,
                 onOpenPlay = onOpenPlay,
-                onBook = viewModel::onBookClick,
+                onBook = onBook,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -124,44 +170,37 @@ private fun RankingHeader(
     selectedRankingType: RankingType,
     onBack: () -> Unit,
 ) {
-    val bannerBrush = rankingBannerBrush(selectedRankingType)
-    val title = rankingBannerTitle(selectedRankingType)
-    val subtitle = rankingBannerSubtitle(selectedContentType, selectedRankingType)
+    val headerPalette = rankingHeaderPalette(selectedRankingType)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .height(176.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(bannerBrush),
-    ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.10f),
-                            Color.Transparent,
-                            Color.White.copy(alpha = 0.14f),
-                        ),
-                    ),
+            .height(188.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(headerPalette.backgroundStart, headerPalette.backgroundEnd),
                 ),
+            ),
+    ) {
+        RankingHeaderArtwork(
+            rankingType = selectedRankingType,
+            palette = headerPalette,
+            modifier = Modifier.fillMaxSize(),
         )
 
         Surface(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(start = 14.dp, top = 14.dp),
+                .padding(start = 12.dp, top = 8.dp),
             shape = CircleShape,
-            color = Color.White.copy(alpha = 0.88f),
+            color = Color.Transparent,
         ) {
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "返回",
                     tint = RankingTextPrimary,
+                    modifier = Modifier.size(30.dp),
                 )
             }
         }
@@ -169,26 +208,27 @@ private fun RankingHeader(
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 18.dp, end = 18.dp),
+                .padding(top = 12.dp, end = 12.dp),
             shape = CircleShape,
-            color = Color.White.copy(alpha = 0.18f),
+            color = Color.White.copy(alpha = 0.12f),
         ) {
-            Text(
-                text = "榜",
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
-            )
+            IconButton(onClick = {}) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                    contentDescription = "打开新页面",
+                    tint = RankingTextPrimary,
+                )
+            }
         }
 
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(start = 28.dp, end = 24.dp, bottom = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
-                text = title,
+                text = rankingBannerTitle(selectedRankingType),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Black,
                     fontSize = 26.sp,
@@ -196,12 +236,154 @@ private fun RankingHeader(
                 color = RankingTextPrimary,
             )
             Text(
-                text = subtitle,
+                text = rankingBannerSubtitle(
+                    contentType = selectedContentType,
+                    rankingType = selectedRankingType,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
-                color = RankingTextPrimary.copy(alpha = 0.62f),
+                color = RankingTextSecondary.copy(alpha = 0.78f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+
+        Surface(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = (-18).dp, y = (-22).dp),
+            shape = CircleShape,
+            color = Color.White.copy(alpha = 0.10f),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                contentDescription = null,
+                tint = RankingTextSecondary,
+                modifier = Modifier.padding(8.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RankingHeaderArtwork(
+    rankingType: RankingType,
+    palette: RankingHeaderPalette,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        when (rankingType) {
+            RankingType.HOT -> {
+                val path = Path().apply {
+                    moveTo(size.width * 0.52f, size.height * 0.24f)
+                    cubicTo(
+                        size.width * 0.70f,
+                        size.height * 0.02f,
+                        size.width * 0.90f,
+                        size.height * 0.22f,
+                        size.width * 0.94f,
+                        size.height * 0.38f,
+                    )
+                    cubicTo(
+                        size.width * 0.83f,
+                        size.height * 0.32f,
+                        size.width * 0.72f,
+                        size.height * 0.40f,
+                        size.width * 0.62f,
+                        size.height * 0.58f,
+                    )
+                    cubicTo(
+                        size.width * 0.56f,
+                        size.height * 0.48f,
+                        size.width * 0.49f,
+                        size.height * 0.38f,
+                        size.width * 0.52f,
+                        size.height * 0.24f,
+                    )
+                    close()
+                }
+                drawPath(
+                    path = path,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            palette.ribbonStart.copy(alpha = 0.92f),
+                            palette.ribbonEnd.copy(alpha = 0.76f),
+                        ),
+                    ),
+                )
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.16f),
+                            Color.Transparent,
+                        ),
+                    ),
+                    topLeft = Offset(size.width * 0.58f, size.height * 0.48f),
+                    size = Size(size.width * 0.34f, size.height * 0.08f),
+                    cornerRadius = CornerRadius(80f, 80f),
+                )
+            }
+            RankingType.RECOMMEND -> {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.12f),
+                    radius = size.width * 0.19f,
+                    center = Offset(size.width * 0.66f, size.height * 0.36f),
+                    style = Stroke(width = 8f),
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.08f),
+                    radius = size.width * 0.13f,
+                    center = Offset(size.width * 0.62f, size.height * 0.44f),
+                    style = Stroke(width = 6f),
+                )
+                drawArc(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            palette.ribbonStart.copy(alpha = 0.82f),
+                            palette.ribbonEnd.copy(alpha = 0.84f),
+                        ),
+                    ),
+                    startAngle = 286f,
+                    sweepAngle = 112f,
+                    useCenter = false,
+                    topLeft = Offset(size.width * 0.45f, size.height * 0.12f),
+                    size = Size(size.width * 0.44f, size.width * 0.44f),
+                    style = Stroke(width = 24f, cap = StrokeCap.Round),
+                )
+            }
+            RankingType.BOOKING -> {
+                repeat(6) { index ->
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.12f + index * 0.02f),
+                        start = Offset(size.width * 0.52f, size.height * (0.10f + index * 0.05f)),
+                        end = Offset(size.width * 0.98f, size.height * (0.10f + index * 0.02f)),
+                        strokeWidth = 10f,
+                        cap = StrokeCap.Round,
+                    )
+                }
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFCE9B2).copy(alpha = 0.80f),
+                            Color(0xFFFF7D8F).copy(alpha = 0.78f),
+                        ),
+                    ),
+                    topLeft = Offset(size.width * 0.58f, size.height * 0.18f),
+                    size = Size(size.width * 0.28f, size.height * 0.26f),
+                    cornerRadius = CornerRadius(18f, 18f),
+                )
+                drawLine(
+                    color = Color.White.copy(alpha = 0.38f),
+                    start = Offset(size.width * 0.61f, size.height * 0.24f),
+                    end = Offset(size.width * 0.84f, size.height * 0.24f),
+                    strokeWidth = 5f,
+                )
+                drawLine(
+                    color = Color.White.copy(alpha = 0.38f),
+                    start = Offset(size.width * 0.61f, size.height * 0.38f),
+                    end = Offset(size.width * 0.84f, size.height * 0.38f),
+                    strokeWidth = 5f,
+                )
+            }
         }
     }
 }
@@ -213,36 +395,36 @@ private fun RankingContentTypeTabs(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .offset(y = (-30).dp),
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
         color = RankingCardBackground,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(30.dp),
         ) {
             RankingContentType.entries.forEach { contentType ->
                 val isSelected = contentType == selected
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(if (isSelected) RankingAccent else RankingTabIdle)
-                        .clickable { onSelected(contentType) }
-                        .padding(vertical = 12.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = contentType.label,
-                        style = MaterialTheme.typography.labelLarge.copy(
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        ),
-                        color = if (isSelected) Color.White else RankingTextSecondary,
-                    )
-                }
+                Text(
+                    text = rankingContentTypeLabel(contentType),
+                    modifier = Modifier.clickable { onSelected(contentType) },
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
+                        fontSize = 18.sp,
+                    ),
+                    color = if (isSelected) RankingTextPrimary else RankingTextSecondary,
+                )
             }
+            Text(
+                text = "演员",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium, fontSize = 18.sp),
+                color = RankingTextSecondary,
+            )
         }
     }
 }
@@ -254,30 +436,59 @@ private fun RankingTypeTabs(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         RankingType.entries.forEach { rankingType ->
             val isSelected = rankingType == selected
             Surface(
                 modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(RoundedCornerShape(14.dp))
                     .clickable { onSelected(rankingType) },
-                shape = RoundedCornerShape(18.dp),
-                color = if (isSelected) RankingAccentSoft else RankingTabIdle,
+                shape = RoundedCornerShape(14.dp),
+                color = if (isSelected) RankingSelectedPill else RankingIdlePill,
             ) {
                 Text(
                     text = rankingType.label,
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 11.dp),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
                     ),
-                    color = if (isSelected) RankingAccent else RankingTextSecondary,
+                    color = if (isSelected) RankingAccentStrong else RankingTextSecondary,
                 )
             }
         }
+        RankingGhostPill(text = "新剧榜")
+        RankingGhostPill(text = "热搜榜")
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = RankingCardBackground,
+        ) {
+            Text(
+                text = "分类⌄",
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
+                color = RankingTextPrimary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RankingGhostPill(text: String) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = RankingIdlePill,
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 11.dp),
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+            color = RankingTextSecondary,
+        )
     }
 }
 
@@ -294,7 +505,8 @@ private fun RankingContent(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .offset(y = (-4).dp),
     ) {
         when {
             uiState.isLoading && !uiState.hasLoadedOnce -> RankingLoadingState(isRefreshing = false)
@@ -316,7 +528,7 @@ private fun RankingContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(RankingPageBackground.copy(alpha = 0.80f)),
+                    .background(RankingPageBackground.copy(alpha = 0.85f)),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 RankingLoadingState(isRefreshing = true)
@@ -335,16 +547,9 @@ private fun RankingList(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 26.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            RankingListHint(
-                selectedContentType = uiState.selectedContentType,
-                selectedRankingType = uiState.selectedRankingType,
-            )
-        }
-
         itemsIndexed(
             items = uiState.items,
             key = { _, item -> item.id.ifBlank { item.rank.toString() } },
@@ -387,38 +592,6 @@ private fun RankingList(
 }
 
 @Composable
-private fun RankingListHint(
-    selectedContentType: RankingContentType,
-    selectedRankingType: RankingType,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        color = RankingHintBackground,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(RankingAccent),
-            )
-            Text(
-                text = "${selectedContentType.label} · ${selectedRankingType.label} 按近期热度、反馈与完播表现综合排序",
-                style = MaterialTheme.typography.bodySmall,
-                color = RankingTextSecondary,
-            )
-        }
-    }
-}
-
-@Composable
 fun RankingDramaCard(
     item: RankingDramaItemUiModel,
     showBookingButton: Boolean,
@@ -444,7 +617,7 @@ fun RankingDramaCard(
         ) {
             RankingPoster(
                 item = item,
-                modifier = Modifier.size(width = 92.dp, height = 126.dp),
+                modifier = Modifier.size(width = 116.dp, height = 154.dp),
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -455,44 +628,53 @@ fun RankingDramaCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Top,
                 ) {
-                    Text(
-                        text = item.title,
+                    Column(
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                        color = RankingTextPrimary,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 18.sp,
+                                lineHeight = 22.sp,
+                            ),
+                            color = RankingTextPrimary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (item.secondaryText.isNotBlank()) {
+                            Text(
+                                text = item.secondaryText,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = RankingTextMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
                     MetricBadge(
                         label = item.metricLabel,
                         value = item.metricValue,
-                    )
-                }
-                if (item.metaText.isNotBlank()) {
-                    Text(
-                        text = item.metaText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = RankingTextMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        visual = item.metricVisual,
+                        rank = item.rank,
                     )
                 }
                 Text(
                     text = item.description.ifBlank { "暂无简介" },
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = RankingTextSecondary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                RankingDetailTags(tags = item.detailTags)
                 if (showBookingButton) {
                     RankingBookingBar(
                         item = item,
                         bookingInFlight = bookingInFlight,
                         onBook = onBook,
                     )
-                } else {
-                    MetricChip(label = item.metricLabel, value = item.metricValue)
                 }
             }
         }
@@ -504,35 +686,107 @@ private fun RankingPoster(
     item: RankingDramaItemUiModel,
     modifier: Modifier = Modifier,
 ) {
+    val posterColors = rankingPosterColors(item.posterStyle)
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(
-                Brush.linearGradient(
-                    colors = listOf(rankPosterStart(item.rank), rankPosterEnd(item.rank)),
+                Brush.verticalGradient(
+                    colors = listOf(posterColors.first, posterColors.second),
                 ),
             ),
     ) {
+        RankingPosterArtwork(
+            rank = item.rank,
+            posterStyle = item.posterStyle,
+            modifier = Modifier.fillMaxSize(),
+        )
         RankBadge(
             rank = item.rank,
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(8.dp),
+                .padding(0.dp),
         )
-        Surface(
+        Text(
+            text = item.posterTitle,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(10.dp),
-            shape = CircleShape,
-            color = Color.White.copy(alpha = 0.20f),
-        ) {
-            Icon(
-                imageVector = Icons.Filled.PlayArrow,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.padding(6.dp),
-            )
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Black,
+                fontSize = 14.sp,
+                lineHeight = 16.sp,
+            ),
+            color = Color.White,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun RankingPosterArtwork(
+    rank: Int,
+    posterStyle: RankingPosterStyle,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val accent = rankingPosterAccent(posterStyle)
+        when (rank) {
+            1 -> {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.18f),
+                    radius = size.width * 0.54f,
+                    center = Offset(size.width * 0.72f, size.height * 0.28f),
+                )
+                drawLine(
+                    color = accent.copy(alpha = 0.46f),
+                    start = Offset(size.width * 0.12f, size.height * 0.12f),
+                    end = Offset(size.width * 0.90f, size.height * 0.58f),
+                    strokeWidth = 14f,
+                    cap = StrokeCap.Round,
+                )
+            }
+            2 -> {
+                repeat(4) { index ->
+                    drawRoundRect(
+                        color = accent.copy(alpha = 0.14f + index * 0.08f),
+                        topLeft = Offset(size.width * (0.08f + index * 0.10f), size.height * (0.14f + index * 0.08f)),
+                        size = Size(size.width * 0.84f, size.height * 0.12f),
+                        cornerRadius = CornerRadius(22f, 22f),
+                    )
+                }
+            }
+            3 -> {
+                val path = Path().apply {
+                    moveTo(size.width * 0.12f, size.height * 0.30f)
+                    quadraticTo(size.width * 0.52f, size.height * 0.10f, size.width * 0.86f, size.height * 0.34f)
+                    quadraticTo(size.width * 0.54f, size.height * 0.42f, size.width * 0.20f, size.height * 0.88f)
+                    close()
+                }
+                drawPath(path = path, color = accent.copy(alpha = 0.32f))
+            }
+            else -> {
+                drawRoundRect(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.22f),
+                            accent.copy(alpha = 0.12f),
+                            Color.Transparent,
+                        ),
+                    ),
+                    topLeft = Offset(size.width * 0.10f, size.height * 0.14f),
+                    size = Size(size.width * 0.72f, size.height * 0.22f),
+                    cornerRadius = CornerRadius(24f, 24f),
+                )
+            }
         }
+
+        drawCircle(
+            color = Color.Black.copy(alpha = 0.08f),
+            radius = size.width * 0.58f,
+            center = Offset(size.width * 0.76f, size.height * 0.84f),
+        )
     }
 }
 
@@ -542,21 +796,22 @@ private fun RankBadge(
     modifier: Modifier = Modifier,
 ) {
     val background = when (rank) {
-        1 -> Color(0xFFFFA53F)
-        2 -> Color(0xFF14C8A8)
-        3 -> Color(0xFF4A92FF)
-        else -> Color(0xFF3A3D45)
+        1 -> Color(0xFFFFB24A)
+        2 -> Color(0xFF10D3B0)
+        3 -> Color(0xFF4D98FF)
+        else -> Color(0xFF505463)
     }
+    val shape = RoundedCornerShape(topStart = 18.dp, topEnd = 0.dp, bottomEnd = 12.dp, bottomStart = 0.dp)
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = shape,
         color = background,
     ) {
         Text(
             text = rank.toString(),
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
             color = Color.White,
         )
     }
@@ -566,51 +821,73 @@ private fun RankBadge(
 private fun MetricBadge(
     label: String,
     value: String,
+    visual: RankingMetricVisual,
+    rank: Int,
 ) {
+    val numberSize = when (rank) {
+        1 -> 20.sp
+        2, 3 -> 19.sp
+        else -> 18.sp
+    }
+
     Column(
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Black,
-                fontSize = 18.sp,
-            ),
-            color = RankingAccentStrong,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = when (visual) {
+                    RankingMetricVisual.FLAME -> Icons.Filled.LocalFireDepartment
+                    RankingMetricVisual.CALENDAR -> Icons.Filled.CalendarMonth
+                },
+                contentDescription = null,
+                tint = RankingAccentStrong,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = numberSize,
+                ),
+                color = RankingAccentStrong,
+            )
+        }
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = RankingAccentStrong,
         )
     }
 }
 
 @Composable
-private fun MetricChip(
-    label: String,
-    value: String,
-) {
+private fun RankingDetailTags(tags: List<RankingDetailTagUiModel>) {
+    if (tags.isEmpty()) {
+        return
+    }
     Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(RankingChipBackground)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = RankingChipText,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelMedium,
-            color = RankingChipText,
-        )
+        tags.forEach { tag ->
+            val palette = rankingTagPalette(tag.tone)
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = palette.background,
+                border = BorderStroke(1.dp, palette.border),
+            ) {
+                Text(
+                    text = tag.text,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = palette.text,
+                )
+            }
+        }
     }
 }
 
@@ -622,8 +899,8 @@ private fun RankingBookingBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = RankingChipBackground,
+        shape = RoundedCornerShape(12.dp),
+        color = RankingBookingStrip,
     ) {
         Row(
             modifier = Modifier
@@ -633,21 +910,25 @@ private fun RankingBookingBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "预约 · ${item.bookingCount}",
-                style = MaterialTheme.typography.bodySmall,
-                color = RankingChipText,
+                text = item.bookingHintText.orEmpty(),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = RankingBookingText,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            Spacer(modifier = Modifier.width(10.dp))
             Button(
                 onClick = onBook,
                 enabled = item.id.isNotBlank() && !item.isBooked && !bookingInFlight,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (item.isBooked) RankingBookedButton else RankingAccentStrong,
-                    contentColor = Color.White,
-                    disabledContainerColor = if (item.isBooked) RankingBookedButton else RankingAccentMuted,
-                    disabledContentColor = Color.White,
+                    containerColor = if (item.isBooked) RankingBookedButton else RankingSelectedPill,
+                    contentColor = if (item.isBooked) RankingTextSecondary else RankingAccentStrong,
+                    disabledContainerColor = if (item.isBooked) RankingBookedButton else RankingSelectedPill,
+                    disabledContentColor = if (item.isBooked) RankingTextSecondary else RankingAccentStrong,
                 ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
             ) {
                 Text(
                     text = when {
@@ -655,7 +936,7 @@ private fun RankingBookingBar(
                         item.isBooked -> "已预约"
                         else -> "预约"
                     },
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Black),
                 )
             }
         }
@@ -666,7 +947,7 @@ private fun RankingBookingBar(
 private fun RankingLoadingState(isRefreshing: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (isRefreshing) {
             Surface(
@@ -691,7 +972,7 @@ private fun RankingLoadingState(isRefreshing: Boolean) {
                 }
             }
         }
-        RankingPreviewCards(count = 4)
+        RankingPreviewCards(count = 5)
     }
 }
 
@@ -735,37 +1016,30 @@ private fun RankingUnavailableState(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(20.dp),
             color = RankingCardBackground,
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 16.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = RankingTextPrimary,
-                    )
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = RankingTextSecondary,
-                    )
-                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+                    color = RankingTextPrimary,
+                )
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = RankingTextSecondary,
+                )
                 if (action != null) {
-                    Spacer(modifier = Modifier.width(12.dp))
                     action()
                 }
             }
@@ -797,31 +1071,29 @@ private fun RankingPreviewCard(rank: Int) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 92.dp, height = 126.dp)
+                    .size(width = 116.dp, height = 154.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(
-                        Brush.linearGradient(
-                            colors = listOf(rankPosterStart(rank), rankPosterEnd(rank)),
+                        Brush.verticalGradient(
+                            colors = rankingPosterColors(RankingPosterStyle.fromRank(rank)).toList(),
                         ),
                     ),
             ) {
-                RankBadge(
-                    rank = rank,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                )
+                RankBadge(rank = rank)
             }
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                RankingSkeletonLine(width = 0.64f, height = 18.dp)
-                RankingSkeletonLine(width = 0.38f)
-                RankingSkeletonLine(width = 0.88f)
-                RankingSkeletonLine(width = 0.74f)
-                Spacer(modifier = Modifier.height(4.dp))
-                RankingSkeletonLine(width = 0.48f, height = 32.dp)
+                RankingSkeletonLine(width = 0.68f, height = 20.dp)
+                RankingSkeletonLine(width = 0.44f, height = 16.dp)
+                RankingSkeletonLine(width = 0.94f)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    RankingSkeletonChip(width = 72.dp)
+                    RankingSkeletonChip(width = 96.dp)
+                    RankingSkeletonChip(width = 108.dp)
+                }
+                RankingSkeletonLine(width = 0.92f, height = 42.dp)
             }
         }
     }
@@ -830,13 +1102,24 @@ private fun RankingPreviewCard(rank: Int) {
 @Composable
 private fun RankingSkeletonLine(
     width: Float,
-    height: Dp = 12.dp,
+    height: Dp = 14.dp,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth(width)
             .height(height)
             .clip(RoundedCornerShape(999.dp))
+            .background(RankingSkeletonBlock),
+    )
+}
+
+@Composable
+private fun RankingSkeletonChip(width: Dp) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(28.dp)
+            .clip(RoundedCornerShape(8.dp))
             .background(RankingSkeletonBlock),
     )
 }
@@ -924,58 +1207,117 @@ private fun RankingAppendFooter(
 }
 
 private fun rankingBannerTitle(rankingType: RankingType): String = when (rankingType) {
-    RankingType.HOT -> "热播榜"
-    RankingType.RECOMMEND -> "推荐榜"
-    RankingType.BOOKING -> "预约榜"
+    RankingType.HOT -> "❴红果热播榜❵"
+    RankingType.RECOMMEND -> "❴红果推荐榜❵"
+    RankingType.BOOKING -> "❴红果预约榜❵"
 }
 
 private fun rankingBannerSubtitle(
     contentType: RankingContentType,
     rankingType: RankingType,
 ): String = when (rankingType) {
-    RankingType.HOT -> "${contentType.label}短剧近期观看与互动热度综合排序"
-    RankingType.RECOMMEND -> "${contentType.label}短剧口碑与推荐反馈综合排序"
-    RankingType.BOOKING -> "${contentType.label}短剧预约与播前期待值综合排序"
+    RankingType.HOT -> "7月24日已更新·基于红果站内观看/互动等综合热度排序"
+    RankingType.RECOMMEND -> "7月24日已更新·基于红果观看/互动以及个人兴趣排序"
+    RankingType.BOOKING -> "基于红果预约/播放等综合期待值排序"
 }
 
-private fun rankingBannerBrush(rankingType: RankingType): Brush = when (rankingType) {
-    RankingType.HOT -> Brush.linearGradient(
-        colors = listOf(Color(0xFFFCE0D6), Color(0xFFF9C9CA), Color(0xFFEBCBFF)),
+private fun rankingContentTypeLabel(contentType: RankingContentType): String = when (contentType) {
+    RankingContentType.ALL -> "全部"
+    RankingContentType.LIVE_ACTION -> "真人剧"
+    RankingContentType.AI -> "AI剧"
+}
+
+private data class RankingHeaderPalette(
+    val backgroundStart: Color,
+    val backgroundEnd: Color,
+    val ribbonStart: Color,
+    val ribbonEnd: Color,
+)
+
+private fun rankingHeaderPalette(rankingType: RankingType): RankingHeaderPalette = when (rankingType) {
+    RankingType.HOT -> RankingHeaderPalette(
+        backgroundStart = Color(0xFFF9D9D2),
+        backgroundEnd = Color(0xFFF6C7CD),
+        ribbonStart = Color(0xFFFF847B),
+        ribbonEnd = Color(0xFFDDE7FF),
     )
-    RankingType.RECOMMEND -> Brush.linearGradient(
-        colors = listOf(Color(0xFFE4F4FF), Color(0xFFD6F6ED), Color(0xFFCEE1FF)),
+    RankingType.RECOMMEND -> RankingHeaderPalette(
+        backgroundStart = Color(0xFFB9F2DF),
+        backgroundEnd = Color(0xFFD2F7E6),
+        ribbonStart = Color(0xFFFFE6A2),
+        ribbonEnd = Color(0xFFFFC6B9),
     )
-    RankingType.BOOKING -> Brush.linearGradient(
-        colors = listOf(Color(0xFFD5F7FF), Color(0xFFB9E9FF), Color(0xFFFFD4DB)),
+    RankingType.BOOKING -> RankingHeaderPalette(
+        backgroundStart = Color(0xFF70E2F4),
+        backgroundEnd = Color(0xFFA4ECFF),
+        ribbonStart = Color(0xFFFCE7A8),
+        ribbonEnd = Color(0xFFFF8AA0),
     )
 }
 
-private fun rankPosterStart(rank: Int): Color = when (rank % 4) {
-    1 -> Color(0xFFFFB24A)
-    2 -> Color(0xFF10CDB6)
-    3 -> Color(0xFF5796FF)
-    else -> Color(0xFF8E79FF)
+private fun rankingPosterColors(style: RankingPosterStyle): Pair<Color, Color> = when (style) {
+    RankingPosterStyle.SUNSET -> Color(0xFF343341) to Color(0xFFC27432)
+    RankingPosterStyle.EMERALD -> Color(0xFF14262A) to Color(0xFF0FA57D)
+    RankingPosterStyle.RIVIERA -> Color(0xFF1E2543) to Color(0xFF3D88F8)
+    RankingPosterStyle.VIOLET -> Color(0xFF271E44) to Color(0xFF7F58E7)
+    RankingPosterStyle.BLUSH -> Color(0xFF472941) to Color(0xFFE5759A)
+    RankingPosterStyle.MIDNIGHT -> Color(0xFF1E1F27) to Color(0xFF595F79)
+    RankingPosterStyle.SCARLET -> Color(0xFF491D1F) to Color(0xFFD74C4F)
+    RankingPosterStyle.FOREST -> Color(0xFF183227) to Color(0xFF47906C)
+    RankingPosterStyle.SKY -> Color(0xFF23405A) to Color(0xFF6AA7FF)
+    RankingPosterStyle.PLUM -> Color(0xFF3C284E) to Color(0xFFAE7BDE)
+    RankingPosterStyle.AMBER -> Color(0xFF4B361F) to Color(0xFFE9A54F)
+    RankingPosterStyle.PEARL -> Color(0xFF4B4E5A) to Color(0xFFB7C1D8)
 }
 
-private fun rankPosterEnd(rank: Int): Color = when (rank % 4) {
-    1 -> Color(0xFFFF7A7D)
-    2 -> Color(0xFF15A86C)
-    3 -> Color(0xFF7B62FF)
-    else -> Color(0xFFFF6D91)
+private fun rankingPosterAccent(style: RankingPosterStyle): Color = when (style) {
+    RankingPosterStyle.SUNSET -> Color(0xFFFFD98C)
+    RankingPosterStyle.EMERALD -> Color(0xFF77F0CE)
+    RankingPosterStyle.RIVIERA -> Color(0xFF9AD7FF)
+    RankingPosterStyle.VIOLET -> Color(0xFFDAB2FF)
+    RankingPosterStyle.BLUSH -> Color(0xFFFFBED5)
+    RankingPosterStyle.MIDNIGHT -> Color(0xFFD8DBE5)
+    RankingPosterStyle.SCARLET -> Color(0xFFFFA8A2)
+    RankingPosterStyle.FOREST -> Color(0xFFA8F5C8)
+    RankingPosterStyle.SKY -> Color(0xFFC5E2FF)
+    RankingPosterStyle.PLUM -> Color(0xFFF0C7FF)
+    RankingPosterStyle.AMBER -> Color(0xFFFFE4A8)
+    RankingPosterStyle.PEARL -> Color(0xFFF1F5FF)
 }
 
-private val RankingPageBackground = Color(0xFFF4F5F7)
+private data class RankingTagPalette(
+    val background: Color,
+    val border: Color,
+    val text: Color,
+)
+
+private fun rankingTagPalette(tone: RankingDetailTagTone): RankingTagPalette = when (tone) {
+    RankingDetailTagTone.WARM -> RankingTagPalette(
+        background = Color(0xFFFFF5E8),
+        border = Color(0xFFF6DEC4),
+        text = Color(0xFFD49543),
+    )
+    RankingDetailTagTone.MINT -> RankingTagPalette(
+        background = Color(0xFFE8FFF6),
+        border = Color(0xFFB7EFD6),
+        text = Color(0xFF12B57A),
+    )
+    RankingDetailTagTone.CORAL -> RankingTagPalette(
+        background = Color(0xFFFFF1EC),
+        border = Color(0xFFF5D0BF),
+        text = Color(0xFFFF7E2F),
+    )
+}
+
+private val RankingPageBackground = Color(0xFFF6F6F6)
 private val RankingCardBackground = Color(0xFFFFFFFF)
-private val RankingHintBackground = Color(0xFFFFF2F2)
-private val RankingTextPrimary = Color(0xFF181B22)
-private val RankingTextSecondary = Color(0xFF8B90A0)
-private val RankingTextMuted = Color(0xFFA2A7B5)
-private val RankingAccent = Color(0xFFFF8B2B)
-private val RankingAccentStrong = Color(0xFFFF7A1B)
-private val RankingAccentMuted = Color(0xFFF9BE92)
-private val RankingAccentSoft = Color(0xFFFFF0E4)
-private val RankingTabIdle = Color(0xFFF0F1F4)
-private val RankingChipBackground = Color(0xFFFFF5EC)
-private val RankingChipText = Color(0xFFC88733)
-private val RankingBookedButton = Color(0xFFC8CDD8)
-private val RankingSkeletonBlock = Color(0xFFF1F2F5)
+private val RankingTextPrimary = Color(0xFF171717)
+private val RankingTextSecondary = Color(0xFF989898)
+private val RankingTextMuted = Color(0xFFA6A6A6)
+private val RankingAccentStrong = Color(0xFFFF7F1F)
+private val RankingSelectedPill = Color(0xFFFCEBDD)
+private val RankingIdlePill = Color(0xFFF3F3F3)
+private val RankingBookingStrip = Color(0xFFF6F6F6)
+private val RankingBookingText = Color(0xFF969696)
+private val RankingBookedButton = Color(0xFFE7E7E7)
+private val RankingSkeletonBlock = Color(0xFFF1F2F4)

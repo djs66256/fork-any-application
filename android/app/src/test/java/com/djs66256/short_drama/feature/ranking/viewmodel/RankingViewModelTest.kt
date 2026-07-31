@@ -175,7 +175,7 @@ class RankingViewModelTest {
         assertEquals(RankingType.BOOKING, state.selectedRankingType)
         assertEquals(1, state.page)
         assertEquals(listOf("live-booking"), state.items.map { it.id })
-        assertEquals("预约数", state.items.single().metricLabel)
+        assertEquals("期待", state.items.single().metricLabel)
     }
 
     @Test
@@ -249,7 +249,7 @@ class RankingViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(RankingType.BOOKING, state.selectedRankingType)
         assertEquals(listOf("latest-booking"), state.items.map { it.id })
-        assertEquals("预约数", state.items.single().metricLabel)
+        assertEquals("期待", state.items.single().metricLabel)
     }
 
     @Test
