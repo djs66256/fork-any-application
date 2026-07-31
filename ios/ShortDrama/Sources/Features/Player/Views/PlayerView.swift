@@ -5,6 +5,7 @@ struct PlayerView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var loginAlertContext: CommentLoginContext?
 
+    private let isPreviewPlayerCommentsSheet = ProcessInfo.processInfo.arguments.contains("--preview-player-comments-sheet")
     private let fallbackTitle = "全族托举农门状元郎"
     private let fallbackHotComment = "大伯母没错，要不是大伯母..."
     private let fallbackDisclaimer = "作者声明：内容由AI生成"
@@ -15,44 +16,44 @@ struct PlayerView: View {
 
     var body: some View {
         playerContent
-        .toolbar(.hidden, for: .tabBar)
-        .toolbar(.hidden, for: .navigationBar)
-        .navigationBarBackButtonHidden(true)
-        .task {
-            await viewModel.loadIfNeeded()
-        }
-        .onChange(of: scenePhase) { _, phase in
-            Task {
-                await viewModel.handleScenePhaseChange(phase)
+            .toolbar(.hidden, for: .tabBar)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
+            .task {
+                await viewModel.loadIfNeeded()
             }
-        }
-        .onDisappear {
-            viewModel.handleDisappear()
-        }
-        .onReceive(viewModel.$routeEffect) { effect in
-            guard let effect else { return }
-            switch effect {
-            case .requireLogin(let context):
-                loginAlertContext = context
-            }
-            viewModel.clearRouteEffect()
-        }
-        .alert("请先登录", isPresented: isShowingLoginAlert, presenting: loginAlertContext) { _ in
-            Button("取消", role: .cancel) {
-                loginAlertContext = nil
-                viewModel.clearPendingCommentLoginContext()
-            }
-            Button("我知道了") {
-                let context = loginAlertContext
-                loginAlertContext = nil
-                viewModel.clearPendingCommentLoginContext()
-                if let context {
-                    viewModel.restoreCommentContext(context)
+            .onChange(of: scenePhase) { _, phase in
+                Task {
+                    await viewModel.handleScenePhaseChange(phase)
                 }
             }
-        } message: { _ in
-            Text("登录后即可发表评论或点赞评论。首版仅恢复评论抽屉上下文，不自动重放写操作。")
-        }
+            .onDisappear {
+                viewModel.handleDisappear()
+            }
+            .onReceive(viewModel.$routeEffect) { effect in
+                guard let effect else { return }
+                switch effect {
+                case .requireLogin(let context):
+                    loginAlertContext = context
+                }
+                viewModel.clearRouteEffect()
+            }
+            .alert("请先登录", isPresented: isShowingLoginAlert, presenting: loginAlertContext) { _ in
+                Button("取消", role: .cancel) {
+                    loginAlertContext = nil
+                    viewModel.clearPendingCommentLoginContext()
+                }
+                Button("我知道了") {
+                    let context = loginAlertContext
+                    loginAlertContext = nil
+                    viewModel.clearPendingCommentLoginContext()
+                    if let context {
+                        viewModel.restoreCommentContext(context)
+                    }
+                }
+            } message: { _ in
+                Text("登录后即可发表评论或点赞评论。首版仅恢复评论抽屉上下文，不自动重放写操作。")
+            }
     }
 
     private var playerContent: some View {
@@ -61,24 +62,26 @@ struct PlayerView: View {
 
             backgroundLayer
                 .ignoresSafeArea()
-            .overlay(alignment: .top) {
-                LinearGradient(
-                    colors: [Color.black.opacity(0.85), Color.black.opacity(0)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 190)
-                .allowsHitTesting(false)
-            }
-            .overlay(alignment: .bottom) {
-                LinearGradient(
-                    colors: [Color.black.opacity(0), Color.black.opacity(0.55), Color.black.opacity(0.92)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 420)
-                .allowsHitTesting(false)
-            }
+                .scaleEffect(isPreviewPlayerCommentsSheet ? 1.16 : 1.0)
+                .offset(y: isPreviewPlayerCommentsSheet ? -24 : 0)
+                .overlay(alignment: .top) {
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.85), Color.black.opacity(0)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 190)
+                    .allowsHitTesting(false)
+                }
+                .overlay(alignment: .bottom) {
+                    LinearGradient(
+                        colors: [Color.black.opacity(0), Color.black.opacity(0.55), Color.black.opacity(0.92)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 420)
+                    .allowsHitTesting(false)
+                }
 
             VStack(spacing: 0) {
                 PlayerTopBar(
@@ -223,7 +226,10 @@ struct PlayerView: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(red: 0.99, green: 0.47, blue: 0.29), Color(red: 0.98, green: 0.31, blue: 0.23)],
+                                        colors: [
+                                            Color(red: 0.99, green: 0.47, blue: 0.29),
+                                            Color(red: 0.98, green: 0.31, blue: 0.23)
+                                        ],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
@@ -258,197 +264,74 @@ struct PlayerView: View {
                     .fill(Color(red: 0.2, green: 0.17, blue: 0.15))
                     .frame(width: 66)
                     .opacity(0.6)
+
                 Spacer()
             }
 
-            HStack(spacing: 0) {
-                Spacer()
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(red: 0.24, green: 0.21, blue: 0.17))
-                    .frame(width: 110, height: 120)
-                    .offset(x: 28, y: 14)
-            }
-
-            ZStack {
-                Ellipse()
-                    .fill(Color(red: 0.18, green: 0.18, blue: 0.19))
-                    .frame(width: 180, height: 36)
-                    .blur(radius: 14)
-                    .offset(y: 88)
-
-                VStack(spacing: -6) {
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(Color(red: 0.31, green: 0.31, blue: 0.34))
-                        .frame(width: 116, height: 138)
-                        .overlay(alignment: .top) {
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(Color(red: 0.22, green: 0.22, blue: 0.24))
-                                .frame(width: 110, height: 34)
-                                .offset(y: -8)
+            ZStack(alignment: .bottom) {
+                RoundedRectangle(cornerRadius: 36, style: .continuous)
+                    .fill(Color(red: 0.33, green: 0.23, blue: 0.19))
+                    .frame(width: 154, height: 214)
+                    .overlay(alignment: .top) {
+                        RoundedRectangle(cornerRadius: 30, style: .continuous)
+                            .fill(Color(red: 0.96, green: 0.79, blue: 0.67))
+                            .frame(width: 104, height: 122)
+                            .offset(y: 10)
+                    }
+                    .overlay(alignment: .center) {
+                        VStack(spacing: 0) {
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(Color(red: 0.22, green: 0.14, blue: 0.1))
+                                .frame(width: 116, height: 140)
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(Color(red: 0.08, green: 0.08, blue: 0.09))
+                                .frame(width: 72, height: 72)
+                                .offset(y: -18)
                         }
-                        .overlay(alignment: .leading) {
-                            stitchMarks
-                                .offset(x: -12, y: -4)
-                        }
-                        .overlay(alignment: .trailing) {
-                            stitchMarks
-                                .rotationEffect(.degrees(180))
-                                .offset(x: 12, y: 6)
-                        }
+                    }
 
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(Color(red: 0.29, green: 0.29, blue: 0.31))
-                        .frame(width: 132, height: 80)
+                VStack(spacing: 5) {
+                    Text("全族托举")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundStyle(Color(red: 0.98, green: 0.88, blue: 0.48))
+                    Text("农门状元郎")
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundStyle(.white)
                 }
-                .offset(y: 64)
-
-                VStack(spacing: -12) {
-                    RoundedRectangle(cornerRadius: 36)
-                        .fill(Color(red: 0.69, green: 0.53, blue: 0.44))
-                        .frame(width: 122, height: 142)
-                        .overlay {
-                            faceDetails
-                        }
-                        .overlay(alignment: .top) {
-                            RoundedRectangle(cornerRadius: 22)
-                                .fill(Color(red: 0.34, green: 0.35, blue: 0.4))
-                                .frame(width: 118, height: 36)
-                                .offset(y: -8)
-                        }
-
-                    RoundedRectangle(cornerRadius: 32)
-                        .fill(Color(red: 0.46, green: 0.46, blue: 0.5))
-                        .frame(width: 154, height: 96)
-                }
-                .offset(y: 26)
+                .padding(.bottom, 18)
+                .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-        }
-    }
-
-    private var faceDetails: some View {
-        ZStack {
-            eyebrowPath(offsetY: -28, left: true)
-            eyebrowPath(offsetY: -28, left: false)
-            eyeRow
-            noseShape
-            mouthShape
-            wrinkleSet
-        }
-    }
-
-    private func eyebrowPath(offsetY: CGFloat, left: Bool) -> some View {
-        Path { path in
-            if left {
-                path.move(to: CGPoint(x: 28, y: 40 + offsetY))
-                path.addQuadCurve(to: CGPoint(x: 53, y: 34 + offsetY), control: CGPoint(x: 40, y: 28 + offsetY))
-            } else {
-                path.move(to: CGPoint(x: 69, y: 34 + offsetY))
-                path.addQuadCurve(to: CGPoint(x: 94, y: 40 + offsetY), control: CGPoint(x: 82, y: 28 + offsetY))
-            }
-        }
-        .stroke(Color(red: 0.24, green: 0.15, blue: 0.11), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-        .frame(width: 122, height: 142)
-    }
-
-    private var eyeRow: some View {
-        HStack(spacing: 18) {
-            eyeShape
-            eyeShape
-        }
-        .offset(y: -6)
-    }
-
-    private var eyeShape: some View {
-        ZStack {
-            Ellipse()
-                .fill(Color.white.opacity(0.22))
-                .frame(width: 24, height: 11)
-            Circle()
-                .fill(Color(red: 0.14, green: 0.08, blue: 0.07))
-                .frame(width: 9, height: 9)
-        }
-    }
-
-    private var noseShape: some View {
-        Path { path in
-            path.move(to: CGPoint(x: 61, y: 65))
-            path.addLine(to: CGPoint(x: 56, y: 88))
-            path.addQuadCurve(to: CGPoint(x: 68, y: 92), control: CGPoint(x: 58, y: 96))
-        }
-        .stroke(Color(red: 0.42, green: 0.28, blue: 0.22), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-        .frame(width: 122, height: 142)
-    }
-
-    private var mouthShape: some View {
-        Path { path in
-            path.move(to: CGPoint(x: 43, y: 108))
-            path.addQuadCurve(to: CGPoint(x: 79, y: 106), control: CGPoint(x: 61, y: 118))
-        }
-        .stroke(Color(red: 0.31, green: 0.14, blue: 0.1), style: StrokeStyle(lineWidth: 3, lineCap: .round))
-        .frame(width: 122, height: 142)
-    }
-
-    private var wrinkleSet: some View {
-        ZStack {
-            Path { path in
-                path.move(to: CGPoint(x: 26, y: 58))
-                path.addQuadCurve(to: CGPoint(x: 18, y: 88), control: CGPoint(x: 12, y: 70))
-            }
-            .stroke(Color(red: 0.48, green: 0.34, blue: 0.28), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-
-            Path { path in
-                path.move(to: CGPoint(x: 96, y: 57))
-                path.addQuadCurve(to: CGPoint(x: 106, y: 87), control: CGPoint(x: 112, y: 70))
-            }
-            .stroke(Color(red: 0.48, green: 0.34, blue: 0.28), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-
-            Path { path in
-                path.move(to: CGPoint(x: 44, y: 80))
-                path.addQuadCurve(to: CGPoint(x: 30, y: 100), control: CGPoint(x: 32, y: 94))
-            }
-            .stroke(Color(red: 0.44, green: 0.3, blue: 0.24), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-
-            Path { path in
-                path.move(to: CGPoint(x: 78, y: 78))
-                path.addQuadCurve(to: CGPoint(x: 92, y: 100), control: CGPoint(x: 90, y: 92))
-            }
-            .stroke(Color(red: 0.44, green: 0.3, blue: 0.24), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-        }
-        .frame(width: 122, height: 142)
-    }
-
-    private var stitchMarks: some View {
-        VStack(spacing: 14) {
-            ForEach(0..<4, id: \.self) { _ in
-                HStack(spacing: 3) {
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(Color(red: 0.78, green: 0.75, blue: 0.72))
-                        .frame(width: 9, height: 2)
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(Color(red: 0.78, green: 0.75, blue: 0.72))
-                        .frame(width: 2, height: 9)
-                }
-            }
+            .offset(x: -6, y: 6)
         }
     }
 
     private var progressScrubber: some View {
-        VStack(spacing: 10) {
-            ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.22))
-                    .frame(height: 3)
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Text("00:24")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.88))
 
-                Capsule()
-                    .fill(Color.white)
-                    .frame(width: 108, height: 3)
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.white.opacity(0.16))
+                        .frame(height: 3)
 
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 8, height: 8)
-                    .offset(x: 104)
+                    Capsule()
+                        .fill(Color.white)
+                        .frame(width: 108, height: 3)
+
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 104)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Text("01:40")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.72))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
 
             Capsule()
                 .fill(Color.white)

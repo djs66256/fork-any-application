@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CommentListView: View {
+    private let sheetBackground = Color(red: 0.975, green: 0.975, blue: 0.975)
+
     let comments: [Comment]
     let appendState: CommentSheetViewModel.AppendState
     let likingCommentIDs: Set<String>
@@ -26,35 +28,30 @@ struct CommentListView: View {
 
                 footer
             }
-            .padding(.top, 4)
-            .padding(.bottom, 8)
+            .padding(.top, 6)
+            .padding(.bottom, 10)
         }
-        .background(Color.white)
+        .background(sheetBackground)
     }
 
     @ViewBuilder
     private var footer: some View {
         switch appendState {
-        case .idle:
+        case .idle, .noMore:
             EmptyView()
         case .loading:
             ProgressView()
-                .tint(Color.black.opacity(0.45))
-                .padding(DesignTokens.Spacing.lg)
+                .tint(Color.black.opacity(0.4))
+                .padding(.vertical, DesignTokens.Spacing.lg)
         case .error(let message):
             VStack(spacing: DesignTokens.Spacing.sm) {
                 Text(message)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(Color.black.opacity(0.42))
                 Button("重试更多", action: onRetryAppend)
                     .buttonStyle(.bordered)
             }
-            .padding(DesignTokens.Spacing.lg)
-        case .noMore:
-            Text("没有更多评论了")
-                .font(.system(size: 12))
-                .foregroundStyle(Color.black.opacity(0.28))
-                .padding(.vertical, DesignTokens.Spacing.lg)
+            .padding(.vertical, DesignTokens.Spacing.lg)
         }
     }
 }

@@ -211,6 +211,7 @@
 		A8C6915BF0A2D1F92B1F378E /* MenuGameCenterSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D236A9D597B9EA76AAF41DE4 /* MenuGameCenterSection.swift */; };
 		A8ED7D5747CE1A64DAF93FF5 /* EarnTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4743A8B4CABE1A95FFDC47A3 /* EarnTestHelpers.swift */; };
 		AA140834ED6F9D49EA0CA47C /* MockPlaybackSessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB2A455FEA2D72AD0DEED5D8 /* MockPlaybackSessionStore.swift */; };
+		AABD59AFFD3745CD978EF527 /* CommentPreviewEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8850AEE7431064FFD4B8ECF2 /* CommentPreviewEntryView.swift */; };
 		AB88635D5557F7DDE27C2E36 /* DiscoveryPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B929E3A144C38A93F9B1B16 /* DiscoveryPlaceholderView.swift */; };
 		AC3EF7AA8E590882EA8D802A /* MenuPanelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC5026F9143180A962578139 /* MenuPanelStyle.swift */; };
 		ACB92ACD75DD6EBDEC5604B6 /* CommentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AAD0F4CD2C4D2467259C76 /* CommentRowView.swift */; };
@@ -482,6 +483,7 @@
 		868C5C743F02EA2C96CE9BDE /* StartPlaybackUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartPlaybackUseCase.swift; sourceTree = "<group>"; };
 		876C382615F9AB96597EFE01 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		88257D27B2CBE9237BF2CB60 /* BookingAssetSummaryDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookingAssetSummaryDTO.swift; sourceTree = "<group>"; };
+		8850AEE7431064FFD4B8ECF2 /* CommentPreviewEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentPreviewEntryView.swift; sourceTree = "<group>"; };
 		8AA8FBEE6F2F9DED067FD83A /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		8AE1F45DC3A49E5115725610 /* SearchResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResultView.swift; sourceTree = "<group>"; };
 		8B50644B3466A5441F5789AC /* SignInStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInStatus.swift; sourceTree = "<group>"; };
@@ -873,6 +875,7 @@
 		5CE99A442717B9252D214252 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				8850AEE7431064FFD4B8ECF2 /* CommentPreviewEntryView.swift */,
 				4AB5EB732E0CCB56F1583834 /* CommentSheetView.swift */,
 				917FBEC3054EAB6D128D1B26 /* Components */,
 			);
@@ -1773,6 +1776,7 @@
 				A4E46D98C8CDBC5FE858DB44 /* CommentListResponseDTO.swift in Sources */,
 				8DFCCA4C64BAD744F4CFF564 /* CommentListView.swift in Sources */,
 				8A37A27CBF4ADF052A7D0B04 /* CommentLoginContext.swift in Sources */,
+				AABD59AFFD3745CD978EF527 /* CommentPreviewEntryView.swift in Sources */,
 				79A799B14D7857E369EC5F8E /* CommentQuery.swift in Sources */,
 				9567D69A4FC017A7F78088A1 /* CommentRemoteDataSource.swift in Sources */,
 				1C85A70DA9B77FA92F1DE330 /* CommentRepository.swift in Sources */,

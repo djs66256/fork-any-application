@@ -31,7 +31,7 @@ struct CommentComposerView: View {
             HStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(Color(red: 0.95, green: 0.95, blue: 0.95))
-                    .frame(height: 44)
+                    .frame(height: 46)
                     .overlay(alignment: .leading) {
                         Group {
                             if trimmedText.isEmpty {

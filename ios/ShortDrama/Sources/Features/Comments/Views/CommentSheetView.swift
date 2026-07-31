@@ -43,7 +43,7 @@ struct CommentSheetView: View {
                 onSubmit: { Task { await viewModel.submitComment() } }
             )
         }
-        .presentationDetents([.fraction(0.68), .large])
+        .presentationDetents([.fraction(isPreviewAlignmentMode ? 0.63 : 0.68), .large])
         .presentationDragIndicator(.hidden)
         .presentationCornerRadius(28)
         .presentationBackground(Color.white)

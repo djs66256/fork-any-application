@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CommentStateView: View {
+    private let sheetBackground = Color(red: 0.975, green: 0.975, blue: 0.975)
+
     let state: CommentSheetViewModel.ListState
     let comments: [Comment]
     let appendState: CommentSheetViewModel.AppendState
@@ -41,7 +43,7 @@ struct CommentStateView: View {
                     .padding(.bottom, DesignTokens.Spacing.sm)
             }
         }
-        .background(Color.white)
+        .background(sheetBackground)
     }
 
     private var loadingState: some View {

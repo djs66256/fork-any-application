@@ -63,7 +63,7 @@ struct CommentRowView: View {
         .padding(.horizontal, DesignTokens.Spacing.lg)
         .padding(.top, 16)
         .padding(.bottom, comment.id == "preview-comment-001" ? 24 : 22)
-        .background(Color.white)
+        .background(Color(red: 0.975, green: 0.975, blue: 0.975))
     }
 
     private var likeColumn: some View {

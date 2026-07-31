@@ -7,32 +7,27 @@ struct PlayerEpisodeDock: View {
     let onTap: () -> Void
 
     var body: some View {
-        HStack(spacing: DesignTokens.Spacing.md) {
-            Button(action: onTap) {
-                HStack(spacing: 0) {
-                    Text(title)
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text(" · \(seriesStatus) · 全\(totalCount)集")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
-                    Spacer(minLength: 12)
-                    Image(systemName: "chevron.up")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 18)
-                .frame(height: 72)
-                .background(Color.white.opacity(0.10))
-                .clipShape(RoundedRectangle(cornerRadius: 18))
-            }
-            .buttonStyle(.plain)
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.white)
 
-            Image(systemName: "viewfinder")
-                .font(.system(size: 22, weight: .regular))
-                .foregroundStyle(.white)
-                .frame(width: 44, height: 44)
+                Text("\(seriesStatus) 全\(totalCount)集")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.white.opacity(0.68))
+
+                Spacer()
+
+                Image(systemName: "chevron.up")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .padding(.horizontal, 18)
+            .frame(height: 54)
+            .background(Color.black.opacity(0.42))
+            .clipShape(RoundedRectangle(cornerRadius: 27, style: .continuous))
         }
+        .buttonStyle(.plain)
     }
 }

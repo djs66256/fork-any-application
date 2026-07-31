@@ -27,6 +27,8 @@ final class PlayerViewModel: ObservableObject {
     @Published var isMoreDialogPresented = false
     @Published var isCommentSheetPresented = false
 
+    let commentPreviewViewModel: CommentSheetViewModel?
+
     private let router: NavigationRouter
     private let earnTaskContext: EarnTaskContext?
     private let fetchPlayerProgressUseCase: FetchPlayerProgressUseCase
@@ -63,7 +65,8 @@ final class PlayerViewModel: ObservableObject {
         ),
         playbackSessionStore: PlaybackSessionStore = KeychainPlaybackSessionStore(),
         commentRepository: CommentRepositoryProtocol = CommentRepository(),
-        isUserLoggedIn: @escaping @Sendable () -> Bool = { false }
+        isUserLoggedIn: @escaping @Sendable () -> Bool = { false },
+        commentPreviewViewModel: CommentSheetViewModel? = nil
     ) {
         self.videoId = videoId
         self.router = router
@@ -77,6 +80,7 @@ final class PlayerViewModel: ObservableObject {
         self.createCommentUseCase = CreateCommentUseCase(repository: commentRepository)
         self.toggleCommentLikeUseCase = ToggleCommentLikeUseCase(repository: commentRepository)
         self.isUserLoggedIn = isUserLoggedIn
+        self.commentPreviewViewModel = commentPreviewViewModel
     }
 
     func loadIfNeeded() async {
@@ -168,6 +172,9 @@ final class PlayerViewModel: ObservableObject {
     }
 
     func openComments() {
+        if let previewViewModel = commentPreviewViewModel {
+            previewViewModel.consumeRestoreOpenSheet()
+        }
         isCommentSheetPresented = true
     }
 
@@ -197,7 +204,10 @@ final class PlayerViewModel: ObservableObject {
     }
 
     func makeCommentSheetViewModel() -> CommentSheetViewModel {
-        CommentSheetViewModel(
+        if let commentPreviewViewModel {
+            return commentPreviewViewModel
+        }
+        return CommentSheetViewModel(
             dramaId: dramaId,
             source: .player,
             fetchDramaCommentsUseCase: fetchDramaCommentsUseCase,
