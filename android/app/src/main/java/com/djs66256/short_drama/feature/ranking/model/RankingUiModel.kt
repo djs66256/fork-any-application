@@ -76,7 +76,7 @@ fun RankingDrama.toUiModel(
             formatCompactCount(recommendationScore.toRecommendationMetric()),
             RankingMetricVisual.FLAME,
         )
-        RankingType.BOOKING -> Triple("期待", formatCompactCount(bookingCount), RankingMetricVisual.CALENDAR)
+        RankingType.BOOKING -> Triple("预约数", formatCompactCount(bookingCount), RankingMetricVisual.CALENDAR)
     }
 
     return RankingDramaItemUiModel(
