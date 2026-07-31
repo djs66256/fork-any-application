@@ -50,6 +50,7 @@ vi.mock('@/services/drama/drama.service', () => ({
 
 const { GET } = await import('../dramas/rankings/route');
 const { DramaService } = await import('@/services/drama/drama.service');
+const { DramaSupabaseRepository } = await import('@/repositories/supabase/drama.supabase.repository');
 
 describe('GET /api/dramas/rankings', () => {
   beforeEach(() => {
@@ -71,6 +72,7 @@ describe('GET /api/dramas/rankings', () => {
       total: 1,
       total_pages: 1,
     });
+    expect(vi.mocked(DramaSupabaseRepository)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(DramaService).mock.results[0]?.value.listRankings).toHaveBeenCalledWith(
       {
         type: 'booking',

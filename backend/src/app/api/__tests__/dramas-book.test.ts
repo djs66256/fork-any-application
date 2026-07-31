@@ -29,6 +29,7 @@ vi.mock('@/services/drama/drama.service', () => ({
 
 const { POST } = await import('../dramas/[id]/book/route');
 const { DramaService } = await import('@/services/drama/drama.service');
+const { DramaSupabaseRepository } = await import('@/repositories/supabase/drama.supabase.repository');
 
 describe('POST /api/dramas/[id]/book', () => {
   beforeEach(() => {
@@ -63,6 +64,7 @@ describe('POST /api/dramas/[id]/book', () => {
       booked: true,
       booking_count: 21,
     });
+    expect(vi.mocked(DramaSupabaseRepository)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(DramaService).mock.results[0]?.value.bookDrama).toHaveBeenCalledWith({
       dramaId: '550e8400-e29b-41d4-a716-446655440001',
       userId: 'user-1',
