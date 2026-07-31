@@ -7,32 +7,35 @@ struct ClassificationDimensionRail: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: DesignTokens.Spacing.sm) {
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(dimensions) { dimension in
                     Button {
                         onSelect(dimension.key)
                     } label: {
-                        Text(dimension.name)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(selectedDimension == dimension.key ? Color.accentColor : Color.primary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, DesignTokens.Spacing.md)
-                            .padding(.horizontal, DesignTokens.Spacing.sm)
-                            .background(
-                                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg)
-                                    .fill(
-                                        selectedDimension == dimension.key
-                                            ? Color.accentColor.opacity(0.12)
-                                            : Color(.secondarySystemBackground)
-                                    )
-                            )
+                        HStack(spacing: 0) {
+                            Rectangle()
+                                .fill(selectedDimension == dimension.key ? railAccent : .clear)
+                                .frame(width: 3, height: 22)
+                                .padding(.trailing, 10)
+
+                            Text(dimension.name)
+                                .font(.system(size: 15, weight: selectedDimension == dimension.key ? .semibold : .medium))
+                                .foregroundStyle(selectedDimension == dimension.key ? railAccent : Color.black)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical, DesignTokens.Spacing.xs)
+            .padding(.top, 8)
         }
         .scrollIndicators(.hidden)
+    }
+
+    private var railAccent: Color {
+        Color(red: 0.96, green: 0.46, blue: 0.11)
     }
 }

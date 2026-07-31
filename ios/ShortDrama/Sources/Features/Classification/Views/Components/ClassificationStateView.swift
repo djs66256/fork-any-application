@@ -17,26 +17,31 @@ struct ClassificationStateView<Content: View>: View {
     }
 
     private var loadingView: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: 14) {
             ProgressView()
+                .tint(Color.black)
             Text("正在加载分类…")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 14))
+                .foregroundStyle(Color(red: 0.55, green: 0.55, blue: 0.55))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(DesignTokens.Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.white)
+        )
     }
 
     private func errorView(message: String) -> some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: 14) {
             Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: DesignTokens.IconSize.xl))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 34))
+                .foregroundStyle(Color(red: 0.65, green: 0.65, blue: 0.65))
             Text("加载失败")
-                .font(.headline)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(Color.black)
             Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.system(size: 13))
+                .foregroundStyle(Color(red: 0.55, green: 0.55, blue: 0.55))
                 .multilineTextAlignment(.center)
             Button("重试") {
                 Task {
@@ -44,8 +49,13 @@ struct ClassificationStateView<Content: View>: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color.black)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(DesignTokens.Spacing.xl)
+        .padding(.horizontal, 24)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color.white)
+        )
     }
 }
