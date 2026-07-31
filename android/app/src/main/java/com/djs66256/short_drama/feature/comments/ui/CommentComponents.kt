@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.InsertEmoticon
@@ -41,7 +44,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,11 +57,11 @@ import com.djs66256.short_drama.feature.comments.viewmodel.CommentUiState
 import kotlin.math.absoluteValue
 
 internal val CommentSheetSurface = Color(0xFFF7F7F8)
-private val CommentSheetDivider = Color(0xFFE8E8EB)
-private val CommentHandleColor = Color(0xFF1D1D1F)
+private val CommentSheetDivider = Color(0xFFE7E7EA)
+private val CommentHandleColor = Color(0xFF171717)
 private val CommentTitleColor = Color(0xFF161616)
 private val CommentPrimaryTextColor = Color(0xFF191919)
-private val CommentSecondaryTextColor = Color(0xFF9A9AA0)
+private val CommentSecondaryTextColor = Color(0xFF98989E)
 private val CommentActionTextColor = Color(0xFF5F6065)
 private val CommentSearchTextColor = Color(0xFF2674D9)
 private val CommentInputSurface = Color(0xFFEDEDEF)
@@ -124,7 +129,7 @@ fun CommentHeader(
                 color = CommentPrimaryTextColor,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = headlineKeyword(selectedSort),
                 color = CommentSearchTextColor,
@@ -250,7 +255,7 @@ fun CommentRow(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = comment.userDisplayName.ifBlank { "匿名用户" },
@@ -263,7 +268,7 @@ fun CommentRow(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyLarge,
                 color = CommentPrimaryTextColor,
-                lineHeight = 30.sp,
+                lineHeight = 24.sp,
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -311,39 +316,56 @@ fun CommentComposer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        val displayText = composerDisplayText(
-            inputText = inputText,
-            errorMessage = errorMessage,
-            isSubmitting = isSubmitting,
-        )
         Box(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(24.dp))
                 .background(CommentInputSurface)
-                .clickable(onClick = onSubmit)
-                .padding(horizontal = 18.dp, vertical = 14.dp),
+                .padding(horizontal = 18.dp, vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart,
         ) {
-            Text(
-                text = displayText,
-                color = if (inputText.isBlank() && errorMessage == null && !isSubmitting) {
-                    CommentInputHintColor
-                } else {
-                    CommentPrimaryTextColor
+            BasicTextField(
+                value = inputText,
+                onValueChange = onInputChanged,
+                enabled = !isSubmitting,
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyLarge.merge(
+                    TextStyle(color = CommentPrimaryTextColor),
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { onSubmit() }),
+                cursorBrush = SolidColor(CommentTitleColor),
+                modifier = Modifier.fillMaxWidth(),
+                decorationBox = { innerTextField ->
+                    if (inputText.isBlank()) {
+                        Text(
+                            text = composerDisplayText(
+                                inputText = inputText,
+                                errorMessage = errorMessage,
+                                isSubmitting = isSubmitting,
+                            ),
+                            color = if (errorMessage == null && !isSubmitting) {
+                                CommentInputHintColor
+                            } else {
+                                CommentPrimaryTextColor
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    innerTextField()
                 },
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
         }
-        IconButton(onClick = onSubmit) {
+        IconButton(onClick = onSubmit, enabled = !isSubmitting) {
             Icon(
                 imageVector = Icons.Outlined.PhotoLibrary,
                 contentDescription = "图片评论",
                 tint = CommentTitleColor,
             )
         }
-        IconButton(onClick = onSubmit) {
+        IconButton(onClick = onSubmit, enabled = !isSubmitting) {
             Icon(
                 imageVector = Icons.Outlined.InsertEmoticon,
                 contentDescription = "表情评论",
@@ -595,15 +617,15 @@ private fun formatCommentTime(createdAt: String): String {
     if (raw.isBlank()) {
         return "刚刚"
     }
-    return raw.replace('T', ' ').take(10)
+    return if (raw.length >= 10 && raw[4] == '-') raw.substring(5, 10) else raw.replace('T', ' ').take(10)
 }
 
 private fun showReplyEntry(comment: CommentUiModel): Boolean {
-    return comment.likeCount >= 20 || comment.content.length >= 18
+    return comment.likeCount >= 10 || comment.content.length >= 12
 }
 
 private fun replyCountSeed(comment: CommentUiModel): Int {
-    return (comment.likeCount.coerceAtLeast(1) % 38) + 3
+    return (comment.likeCount.coerceAtLeast(1) % 35) + 23
 }
 
 private fun composerDisplayText(

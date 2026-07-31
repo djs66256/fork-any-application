@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -90,7 +91,8 @@ fun CommentBottomSheetContent(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 460.dp, max = screenHeight * 0.78f)
+            .heightIn(min = 460.dp, max = screenHeight * 0.68f)
+            .navigationBarsPadding()
             .padding(horizontal = 18.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
@@ -103,7 +105,7 @@ fun CommentBottomSheetContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 260.dp, max = screenHeight * 0.48f),
+                .heightIn(min = 220.dp, max = screenHeight * 0.32f),
         ) {
             CommentListSection(
                 uiState = uiState,
