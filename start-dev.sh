@@ -40,10 +40,10 @@ cleanup() {
   # 等待进程退出
   wait 2>/dev/null || true
 
-  echo -e "${YELLOW}正在停止 Docker 基础设施...${NC}"
-  docker compose -f "$DOCKER_COMPOSE_FILE" down
-  echo -e "${GREEN}✓${NC} Docker 基础设施已停止"
-  echo -e "${GREEN}所有服务已停止。${NC}"
+  # echo -e "${YELLOW}正在停止 Docker 基础设施...${NC}"
+  # docker compose -f "$DOCKER_COMPOSE_FILE" down
+  # echo -e "${GREEN}✓${NC} Docker 基础设施已停止"
+  # echo -e "${GREEN}所有服务已停止。${NC}"
   exit 0
 }
 

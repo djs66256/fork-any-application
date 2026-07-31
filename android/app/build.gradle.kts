@@ -35,12 +35,12 @@ android {
             }
         }
 
-        val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3000/api/")
+        val apiBaseUrl = localProperties.getProperty("api.base.url", "http://10.0.2.2:3001/api/")
         val mallBaseUrl = normalizeMallBaseUrl(
             localProperties.getProperty("mall.base.url", "http://10.0.2.2:3002"),
         )
         val earnBaseUrl = normalizeMallBaseUrl(
-            localProperties.getProperty("earn.base.url", "http://10.0.2.2:3001"),
+            localProperties.getProperty("earn.base.url", "http://10.0.2.2:3000"),
         )
 
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
