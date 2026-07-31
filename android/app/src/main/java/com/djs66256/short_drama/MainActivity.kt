@@ -13,7 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.djs66256.short_drama.core.auth.AuthBootstrapper
+import com.djs66256.short_drama.core.config.AppConfig
 import com.djs66256.short_drama.core.theme.ShortDramaTheme
+import com.djs66256.short_drama.feature.ranking.ui.RankingShowcaseMode
+import com.djs66256.short_drama.feature.ranking.ui.RankingShowcaseScreen
+import com.djs66256.short_drama.feature.ranking.ui.resolveRankingShowcaseMode
 import com.djs66256.short_drama.navigation.DeeplinkRouteParser
 import com.djs66256.short_drama.navigation.MainNavigationViewModel
 import com.djs66256.short_drama.navigation.NavGraph
@@ -28,21 +32,35 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authBootstrapper: AuthBootstrapper
 
+    @Inject
+    lateinit var appConfig: AppConfig
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleDeepLink(intent)
         enableEdgeToEdge()
+        val showcaseMode = resolveRankingShowcaseMode(
+            rawMode = intent.getStringExtra(RankingShowcaseMode.EXTRA),
+            isDebug = appConfig.isDebug,
+        )
         setContent {
             ShortDramaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    val navController = rememberNavController()
-                    NavGraph(
-                        navController = navController,
-                        navigationViewModel = navigationViewModel,
-                    )
+                    if (showcaseMode != null) {
+                        RankingShowcaseScreen(
+                            mode = showcaseMode,
+                            onBack = { finish() },
+                        )
+                    } else {
+                        val navController = rememberNavController()
+                        NavGraph(
+                            navController = navController,
+                            navigationViewModel = navigationViewModel,
+                        )
+                    }
                 }
             }
         }
