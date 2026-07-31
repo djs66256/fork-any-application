@@ -12,23 +12,28 @@ struct ShortDramaApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if isPreviewPlayerCommentsSheet {
-                    CommentPreviewEntryView()
-                } else {
-                    AppShellView()
-                        .environmentObject(router)
-                        .environmentObject(authStore)
-                        .onOpenURL { url in
-                            guard let route = DeeplinkHandler.handleDeepLink(url) else { return }
-                            if router.containerReady {
-                                router.navigate(to: route)
-                            } else {
-                                router.enqueueDeepLink(route)
-                            }
-                        }
+            rootView
+                .environmentObject(router)
+                .environmentObject(authStore)
+                .onOpenURL { url in
+                    guard let route = DeeplinkHandler.handleDeepLink(url) else { return }
+                    if router.containerReady {
+                        router.navigate(to: route)
+                    } else {
+                        router.enqueueDeepLink(route)
+                    }
                 }
-            }
+        }
+    }
+
+    @ViewBuilder
+    private var rootView: some View {
+        if isPreviewPlayerCommentsSheet {
+            CommentPreviewEntryView()
+        } else if let scenario = RankingScreenshotScenario.fromEnvironment() {
+            RankingScreenshotHostView(scenario: scenario)
+        } else {
+            AppShellView()
         }
     }
 }

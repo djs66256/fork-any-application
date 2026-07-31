@@ -5,31 +5,29 @@ struct RankingPrimaryTabBar: View {
     let onSelect: (RankingContentType) -> Void
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: DesignTokens.Spacing.sm) {
-                ForEach(RankingContentType.allCases, id: \.self) { type in
-                    Button(type.title) {
-                        onSelect(type)
-                    }
-                    .buttonStyle(RankingTabButtonStyle(isSelected: selected == type))
+        HStack(spacing: 24) {
+            ForEach(RankingContentType.allCases, id: \.self) { type in
+                Button {
+                    onSelect(type)
+                } label: {
+                    Text(type.title)
+                        .font(.system(size: 18, weight: selected == type ? .bold : .medium))
+                        .foregroundStyle(selected == type ? Color.primary : Color.secondary)
                 }
+                .buttonStyle(RankingPrimaryTabButtonStyle())
             }
-            .padding(.horizontal, DesignTokens.Spacing.lg)
+
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.top, DesignTokens.Spacing.sm)
     }
 }
 
-private struct RankingTabButtonStyle: ButtonStyle {
-    let isSelected: Bool
-
+private struct RankingPrimaryTabButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(isSelected ? Color.white : Color.primary)
-            .padding(.horizontal, DesignTokens.Spacing.lg)
-            .padding(.vertical, DesignTokens.Spacing.sm)
-            .background(isSelected ? Color.accentColor : Color(.secondarySystemBackground))
-            .clipShape(Capsule())
-            .opacity(configuration.isPressed ? 0.8 : 1)
+            .opacity(configuration.isPressed ? 0.72 : 1)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }

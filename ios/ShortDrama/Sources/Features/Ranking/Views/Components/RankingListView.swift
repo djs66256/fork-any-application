@@ -11,8 +11,8 @@ struct RankingListView: View {
 
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(spacing: DesignTokens.Spacing.md) {
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: 0) {
                     Color.clear
                         .frame(height: 1)
                         .id("ranking-top")
@@ -30,11 +30,23 @@ struct RankingListView: View {
                                 onLoadMore()
                             }
                         }
+
+                        if index != dramas.count - 1 {
+                            Divider()
+                                .padding(.leading, 152)
+                        }
                     }
 
                     if isAppending {
-                        ProgressView("正在加载更多…")
-                            .padding(.vertical, DesignTokens.Spacing.md)
+                        HStack(spacing: DesignTokens.Spacing.sm) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("正在加载更多…")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, DesignTokens.Spacing.md)
                     }
 
                     if let appendErrorMessage {
@@ -45,9 +57,11 @@ struct RankingListView: View {
                             .padding(.vertical, DesignTokens.Spacing.md)
                     }
                 }
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                .padding(.bottom, DesignTokens.Spacing.lg)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             }
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            .padding(.bottom, DesignTokens.Spacing.xl)
             .onChange(of: dramas.first?.id) { _, _ in
                 withAnimation(.easeInOut(duration: 0.2)) {
                     proxy.scrollTo("ranking-top", anchor: .top)

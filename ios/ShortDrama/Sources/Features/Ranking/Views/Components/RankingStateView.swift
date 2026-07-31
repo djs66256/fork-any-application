@@ -14,11 +14,21 @@ struct RankingStateView: View {
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.md) {
             if let bookingErrorMessage {
-                Text(bookingErrorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, DesignTokens.Spacing.lg)
+                HStack(spacing: DesignTokens.Spacing.sm) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(Color(red: 1.0, green: 0.49, blue: 0.18))
+                    Text(bookingErrorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 0)
+                }
+                .padding(.horizontal, DesignTokens.Spacing.md)
+                .padding(.vertical, DesignTokens.Spacing.sm)
+                .background {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.white)
+                }
+                .padding(.horizontal, DesignTokens.Spacing.lg)
             }
 
             switch viewState {
@@ -44,29 +54,24 @@ struct RankingStateView: View {
     }
 
     private var rankingLoadingView: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        RankingPlaceholderPanel(
+            systemImage: "chart.bar.xaxis",
+            title: "正在刷新排行榜",
+            message: "马上为你同步最新的榜单内容。"
+        ) {
             ProgressView()
-            Text("正在加载排行榜…")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .tint(Color(red: 1.0, green: 0.49, blue: 0.18))
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(DesignTokens.Spacing.xl)
     }
 
     private var rankingEmptyView: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
-            Image(systemName: "tray")
-                .font(.system(size: DesignTokens.IconSize.xl))
-                .foregroundStyle(.secondary)
-            Text("当前榜单暂无内容")
-                .font(.headline)
-            Text("可以切换榜单类型或稍后再试")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        RankingPlaceholderPanel(
+            systemImage: "tray",
+            title: "当前榜单暂无内容",
+            message: "可以切换榜单类型或内容分区后再看看。"
+        ) {
+            EmptyView()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(DesignTokens.Spacing.xl)
     }
 }
 
@@ -75,24 +80,52 @@ private struct RankingErrorView: View {
     let onRetry: () async -> Void
 
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
-            Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: DesignTokens.IconSize.xl))
-                .foregroundStyle(.secondary)
-            Text("加载失败")
-                .font(.headline)
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Button("重试") {
+        RankingPlaceholderPanel(
+            systemImage: "wifi.exclamationmark",
+            title: "加载失败",
+            message: message
+        ) {
+            Button("重新加载") {
                 Task {
                     await onRetry()
                 }
             }
             .buttonStyle(.borderedProminent)
+            .tint(Color(red: 1.0, green: 0.49, blue: 0.18))
+        }
+    }
+}
+
+private struct RankingPlaceholderPanel<Action: View>: View {
+    let systemImage: String
+    let title: String
+    let message: String
+    @ViewBuilder let action: () -> Action
+
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            Image(systemName: systemImage)
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(Color(red: 1.0, green: 0.49, blue: 0.18))
+
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.primary)
+
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            action()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(DesignTokens.Spacing.xl)
+        .background {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color.white)
+        }
+        .padding(.horizontal, DesignTokens.Spacing.lg)
+        .padding(.top, DesignTokens.Spacing.sm)
     }
 }
