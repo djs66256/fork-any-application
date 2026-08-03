@@ -17,8 +17,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.djs66256.short_drama.core.auth.AuthBootstrapper
 import com.djs66256.short_drama.core.theme.ShortDramaTheme
+import com.djs66256.short_drama.domain.model.ClassificationGender
 import com.djs66256.short_drama.domain.model.RankingContentType
 import com.djs66256.short_drama.domain.model.RankingType
+import com.djs66256.short_drama.feature.classification.ui.CLASSIFICATION_UI_VERIFICATION_SCREEN
+import com.djs66256.short_drama.feature.classification.ui.ClassificationVerificationScreen
 import com.djs66256.short_drama.feature.comments.ui.COMMENT_UI_VERIFICATION_SCREEN
 import com.djs66256.short_drama.feature.comments.ui.CommentUiVerificationScreen
 import com.djs66256.short_drama.feature.ranking.model.RankingDramaItemUiModel
@@ -76,6 +79,12 @@ class MainActivity : ComponentActivity() {
                             CommentUiVerificationScreen()
                         }
 
+                        debugScreenOverride?.startsWith(CLASSIFICATION_UI_VERIFICATION_SCREEN) == true -> {
+                            ClassificationVerificationScreen(
+                                initialGender = resolveClassificationVerificationGender(debugScreenOverride),
+                            )
+                        }
+
                         else -> {
                             val navController = rememberNavController()
                             NavGraph(
@@ -105,7 +114,9 @@ class MainActivity : ComponentActivity() {
 
     fun handleDeepLink(intent: Intent) {
         val debugScreen = intent.getStringExtra(DEBUG_SCREEN_KEY)
-        debugScreenOverride = debugScreen?.takeIf { it == COMMENT_UI_VERIFICATION_SCREEN }
+        debugScreenOverride = debugScreen?.takeIf {
+            it == COMMENT_UI_VERIFICATION_SCREEN || it.startsWith(CLASSIFICATION_UI_VERIFICATION_SCREEN)
+        }
         if (debugScreenOverride != null) {
             return
         }
@@ -135,6 +146,19 @@ internal fun parseRankingShowcaseMode(rawMode: String?): RankingShowcaseMode? = 
     "recommend" -> RankingShowcaseMode.RECOMMEND
     "booking" -> RankingShowcaseMode.BOOKING
     else -> null
+}
+
+private fun resolveClassificationVerificationGender(debugScreen: String?): ClassificationGender {
+    val suffix = debugScreen
+        ?.removePrefix(CLASSIFICATION_UI_VERIFICATION_SCREEN)
+        ?.trimStart(':')
+        ?.trim()
+        ?.lowercase()
+    return when (suffix) {
+        "male" -> ClassificationGender.MALE
+        "female" -> ClassificationGender.FEMALE
+        else -> ClassificationGender.ALL
+    }
 }
 
 private fun rankingShowcaseState(mode: RankingShowcaseMode): RankingUiState {

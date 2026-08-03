@@ -6,8 +6,8 @@ enum class ClassificationGender(
     val label: String,
 ) {
     ALL(apiValue = "all", label = "全部"),
-    MALE(apiValue = "male", label = "男频"),
-    FEMALE(apiValue = "female", label = "女频"),
+    MALE(apiValue = "male", label = "男生"),
+    FEMALE(apiValue = "female", label = "女生"),
     ;
 
     companion object {

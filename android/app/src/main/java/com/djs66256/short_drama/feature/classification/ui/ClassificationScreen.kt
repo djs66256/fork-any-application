@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,11 +22,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,10 +33,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -129,7 +132,43 @@ fun ClassificationScreen(
 }
 
 @Composable
-private fun ClassificationHeader(
+fun ClassificationVerificationScreen(
+    initialGender: ClassificationGender = ClassificationGender.ALL,
+    modifier: Modifier = Modifier,
+) {
+    var selectedGender by rememberSaveable(initialGender) { mutableStateOf(initialGender) }
+    val listState = rememberLazyListState()
+    val dimensions = classificationVerificationDimensions(selectedGender)
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(ClassificationPageBackground),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+        ) {
+            ClassificationHeader(
+                selected = selectedGender,
+                onBack = {},
+                onSelected = { selectedGender = it },
+            )
+            ClassificationBody(
+                dimensions = dimensions,
+                selectedDimensionKey = ClassificationDimensionKey.ERA_BACKGROUND,
+                listState = listState,
+                onSelectDimension = {},
+                onTagClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+internal fun ClassificationHeader(
     selected: ClassificationGender,
     onBack: () -> Unit,
     onSelected: (ClassificationGender) -> Unit,
@@ -137,19 +176,25 @@ private fun ClassificationHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 12.dp, end = 24.dp, top = 8.dp, bottom = 14.dp),
+            .padding(start = 10.dp, end = 18.dp, top = 4.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onBack) {
+        Box(
+            modifier = Modifier
+                .size(width = 32.dp, height = 32.dp)
+                .clickable(onClick = onBack),
+            contentAlignment = Alignment.Center,
+        ) {
             Icon(
-                imageVector = Icons.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "返回",
                 tint = ClassificationTabSelected,
+                modifier = Modifier.size(24.dp),
             )
         }
-        Spacer(modifier = Modifier.width(18.dp))
+        Spacer(modifier = Modifier.width(14.dp))
         Row(
-            horizontalArrangement = Arrangement.spacedBy(30.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             ClassificationGender.entries.forEach { gender ->
@@ -158,9 +203,7 @@ private fun ClassificationHeader(
                     text = gender.label,
                     modifier = Modifier.clickable { onSelected(gender) },
                     color = if (isSelected) ClassificationTabSelected else ClassificationTabUnselected,
-                    fontSize = if (isSelected) 24.sp else 22.sp,
-                    lineHeight = if (isSelected) 28.sp else 26.sp,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                    style = if (isSelected) SelectedTabTextStyle else UnselectedTabTextStyle,
                 )
             }
         }
@@ -222,7 +265,7 @@ private fun ClassificationBody(
             dimensions = dimensions,
             selectedDimensionKey = selectedDimensionKey,
             onSelectDimension = onSelectDimension,
-            modifier = Modifier.width(144.dp),
+            modifier = Modifier.width(96.dp),
         )
         ClassificationSectionList(
             dimensions = dimensions,
@@ -244,8 +287,8 @@ private fun ClassificationDimensionRail(
         modifier = modifier
             .fillMaxSize()
             .background(ClassificationRailBackground)
-            .padding(start = 22.dp, top = 28.dp, end = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(26.dp),
+            .padding(start = 10.dp, top = 28.dp, end = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(28.dp),
     ) {
         dimensions.forEach { dimension ->
             val isSelected = dimension.key == selectedDimensionKey
@@ -255,7 +298,7 @@ private fun ClassificationDimensionRail(
                     .fillMaxWidth()
                     .clickable { onSelectDimension(dimension.key) },
                 color = if (isSelected) ClassificationRailSelected else ClassificationRailUnselected,
-                style = MaterialTheme.typography.titleLarge,
+                style = RailTextStyle,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -274,14 +317,14 @@ private fun ClassificationSectionList(
     Surface(
         modifier = modifier
             .fillMaxSize()
-            .padding(start = 0.dp, end = 20.dp, top = 6.dp, bottom = 16.dp),
+            .padding(start = 0.dp, end = 10.dp, top = 2.dp, bottom = 14.dp),
         color = ClassificationPanelSurface,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = PaddingValues(start = 24.dp, end = 20.dp, top = 22.dp, bottom = 28.dp),
+            contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 14.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             itemsIndexed(
@@ -305,7 +348,7 @@ private fun ClassificationSection(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = dimension.title,
-            style = MaterialTheme.typography.headlineSmall,
+            style = SectionTitleTextStyle,
             fontWeight = FontWeight.Medium,
             color = ClassificationPanelTitle,
         )
@@ -325,9 +368,9 @@ private fun ClassificationSection(
                 )
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 dimension.tags.chunked(CHIP_ROW_SIZE).forEach { rowTags ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         rowTags.forEach { tag ->
                             ClassificationTagChip(
                                 label = tag,
@@ -353,12 +396,12 @@ fun ClassificationTagChip(
 ) {
     Surface(
         modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(12.dp))
+            .height(48.dp)
+            .clip(RoundedCornerShape(11.dp))
             .clickable(onClick = onClick),
         color = ClassificationChipSurface,
         contentColor = ClassificationChipText,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(11.dp),
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -366,7 +409,7 @@ fun ClassificationTagChip(
         ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleLarge,
+                style = ChipTextStyle,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -433,4 +476,132 @@ private fun snapshotVisibleDimensionKey(
         ?.key
 }
 
+private val SelectedTabTextStyle = TextStyle(
+    fontSize = 21.sp,
+    lineHeight = 26.sp,
+    fontWeight = FontWeight.SemiBold,
+)
+
+private val UnselectedTabTextStyle = TextStyle(
+    fontSize = 19.sp,
+    lineHeight = 24.sp,
+    fontWeight = FontWeight.Medium,
+)
+
+private val RailTextStyle = TextStyle(
+    fontSize = 16.sp,
+    lineHeight = 21.sp,
+    fontWeight = FontWeight.Medium,
+)
+
+private val SectionTitleTextStyle = TextStyle(
+    fontSize = 15.sp,
+    lineHeight = 19.sp,
+    fontWeight = FontWeight.Medium,
+)
+
+private val ChipTextStyle = TextStyle(
+    fontSize = 14.sp,
+    lineHeight = 18.sp,
+    fontWeight = FontWeight.Medium,
+)
+
 private const val CHIP_ROW_SIZE = 3
+const val CLASSIFICATION_UI_VERIFICATION_SCREEN = "classification_ui_verification"
+
+private fun classificationVerificationDimensions(
+    gender: ClassificationGender,
+): List<ClassificationDimensionUiModel> = when (gender) {
+    ClassificationGender.ALL -> listOf(
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.ERA_BACKGROUND,
+            title = "时代背景",
+            tags = listOf("乡村", "职场", "民国", "校园", "历史古代", "古装"),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.THEME_PLOT,
+            title = "主题情节",
+            tags = listOf(
+                "打脸虐渣", "逆袭", "马甲",
+                "女性成长", "都市日常", "重生",
+                "穿越", "系统", "亲情",
+                "家庭伦理", "奇幻脑洞", "奇幻爱情",
+                "闪婚", "暗恋成真", "古风言情",
+                "穿书", "破镜重圆", "战神归来",
+                "追妻", "现代言情", "豪门恩怨",
+                "异能", "虐恋", "传承觉醒",
+                "玄幻仙侠", "古风权谋", "年代爱情",
+                "赘婿逆袭", "娱乐圈", "剧情",
+            ),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.CHARACTER_SETTING,
+            title = "角色设定",
+            tags = listOf(
+                "大女主", "萌宝", "小人物",
+                "神豪", "强者回归", "真假千金",
+                "欢喜冤家", "强强联合", "天下无敌",
+                "青梅竹马", "王妃", "女帝",
+                "龙王", "皇后", "替身",
+            ),
+        ),
+    )
+    ClassificationGender.MALE -> listOf(
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.ERA_BACKGROUND,
+            title = "时代背景",
+            tags = listOf("乡村", "职场", "民国", "校园", "历史古代", "古装"),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.THEME_PLOT,
+            title = "主题情节",
+            tags = listOf(
+                "逆袭", "马甲", "都市日常",
+                "重生", "穿越", "系统",
+                "亲情", "奇幻脑洞", "穿书",
+                "战神归来", "异能", "传承觉醒",
+                "玄幻仙侠", "赘婿逆袭", "娱乐圈",
+                "剧情", "无敌神医", "悬疑推理",
+                "喜剧",
+            ),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.CHARACTER_SETTING,
+            title = "角色设定",
+            tags = listOf("小人物", "神豪", "强者回归", "天下无敌", "女帝", "龙王"),
+        ),
+    )
+    ClassificationGender.FEMALE -> listOf(
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.ERA_BACKGROUND,
+            title = "时代背景",
+            tags = listOf("职场", "民国", "校园", "古装"),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.THEME_PLOT,
+            title = "主题情节",
+            tags = listOf(
+                "打脸虐渣", "逆袭", "马甲",
+                "女性成长", "重生", "穿越",
+                "系统", "亲情", "家庭伦理",
+                "奇幻爱情", "闪婚", "暗恋成真",
+                "古风言情", "穿书", "破镜重圆",
+                "追妻", "现代言情", "豪门恩怨",
+                "虐恋", "古风权谋", "年代爱情",
+                "娱乐圈", "剧情", "悬疑推理",
+                "喜剧", "现言甜宠",
+            ),
+        ),
+        ClassificationDimensionUiModel(
+            key = ClassificationDimensionKey.CHARACTER_SETTING,
+            title = "角色设定",
+            tags = listOf(
+                "大女主", "萌宝", "小人物",
+                "真假千金", "欢喜冤家", "强强联合",
+                "青梅竹马", "王妃", "女帝",
+                "皇后", "替身", "大叔",
+                "团宠",
+            ),
+        ),
+    )
+}
