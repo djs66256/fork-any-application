@@ -79,7 +79,7 @@ fun CommentBottomSheetContent(
     onDismiss: (() -> Unit)? = null,
 ) {
     CommentSheetContainer(modifier = modifier) {
-        CommentSheetDragHandle(modifier = Modifier.padding(top = 2.dp, bottom = 10.dp))
+        CommentSheetDragHandle(modifier = Modifier.padding(top = 0.dp, bottom = 12.dp))
         CommentHeader(
             totalCount = uiState.totalCount,
             selectedSort = uiState.selectedSort,
@@ -94,7 +94,7 @@ fun CommentBottomSheetContent(
             modifier = listModifier
                 .fillMaxWidth()
                 .heightIn(min = 280.dp, max = 560.dp),
-            contentPadding = PaddingValues(top = 10.dp, bottom = 8.dp),
+            contentPadding = PaddingValues(top = 8.dp, bottom = 6.dp),
         )
         CommentComposer(
             inputText = uiState.inputText,
@@ -102,7 +102,7 @@ fun CommentBottomSheetContent(
             errorMessage = uiState.composerErrorMessage,
             onInputChanged = onInputChanged,
             onSubmit = onSubmit,
-            modifier = Modifier.padding(top = 2.dp, bottom = 6.dp),
+            modifier = Modifier.padding(top = 0.dp, bottom = 4.dp),
         )
     }
 }

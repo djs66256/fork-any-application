@@ -71,7 +71,7 @@ private val CommentCountText = Color(0xFF5A5A5A)
 private val CommentInputBackground = Color(0xFFF1F1F1)
 private val CommentSheetTopRadius = 28.dp
 private val CommentAvatarSize = 46.dp
-private val CommentBottomInputHeight = 50.dp
+private val CommentBottomInputHeight = 48.dp
 private val CommentHeaderHorizontalInset = 4.dp
 private val CommentTitleTextStyle = TextStyle(
     fontSize = 18.sp,
@@ -80,22 +80,22 @@ private val CommentTitleTextStyle = TextStyle(
 )
 private val CommentSearchTextStyle = TextStyle(
     fontSize = 16.sp,
-    lineHeight = 22.sp,
+    lineHeight = 21.sp,
     fontWeight = FontWeight.Medium,
 )
 private val CommentBodyTextStyle = TextStyle(
     fontSize = 17.sp,
-    lineHeight = 26.sp,
+    lineHeight = 25.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentMetaTextStyle = TextStyle(
     fontSize = 14.sp,
-    lineHeight = 20.sp,
+    lineHeight = 19.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentCountTextStyle = TextStyle(
-    fontSize = 14.sp,
-    lineHeight = 18.sp,
+    fontSize = 13.sp,
+    lineHeight = 16.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentHeartOutline = GenericShape { size, _ ->
@@ -121,7 +121,7 @@ fun CommentHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = CommentHeaderHorizontalInset),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             onDismiss?.let {
@@ -159,7 +159,7 @@ private fun CommentSearchRow(
             style = CommentSearchTextStyle,
             color = CommentPrimaryText,
         )
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = trendingSearchKeyword(selectedSort),
             style = CommentSearchTextStyle.copy(fontWeight = FontWeight.SemiBold),
@@ -217,7 +217,7 @@ fun CommentItems(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(22.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = contentPadding,
     ) {
         itemsIndexed(items = comments, key = { _, item -> item.id }) { index, comment ->
@@ -281,7 +281,7 @@ fun CommentRow(
         )
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = comment.userDisplayName,
@@ -297,7 +297,8 @@ fun CommentRow(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                modifier = Modifier.padding(top = 2.dp),
             ) {
                 Text(
                     text = comment.createdAt.ifBlank { "刚刚" },
@@ -318,7 +319,7 @@ fun CommentRow(
                 ) {
                     Box(
                         modifier = Modifier
-                            .width(60.dp)
+                            .width(48.dp)
                             .height(1.dp)
                             .background(CommentDividerColor),
                     )
@@ -364,19 +365,19 @@ private fun CommentAvatar(
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 8.dp)
+                .padding(top = 7.dp)
                 .size(13.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.8f)),
+                .background(Color.White.copy(alpha = 0.82f)),
         )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 5.dp)
                 .width(24.dp)
-                .height(15.dp)
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 9.dp, bottomEnd = 9.dp))
-                .background(Color.White.copy(alpha = 0.8f)),
+                .height(16.dp)
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 10.dp, bottomEnd = 10.dp))
+                .background(Color.White.copy(alpha = 0.82f)),
         )
     }
 }
@@ -391,7 +392,7 @@ private fun CommentLikeButton(
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
-            .width(56.dp)
+            .width(50.dp)
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -400,14 +401,14 @@ private fun CommentLikeButton(
             )
             .padding(top = 1.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(30.dp)
                 .clip(CommentHeartOutline)
-                .background(if (liked) CommentLikedTint else Color(0xFF4A4A4A))
-                .padding(1.4.dp),
+                .background(if (liked) CommentLikedTint else Color(0xFF515151))
+                .padding(1.2.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -459,7 +460,7 @@ fun CommentComposer(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             OutlinedTextField(
                 value = inputText,
@@ -495,13 +496,13 @@ fun CommentComposer(
                 imageVector = Icons.Outlined.Image,
                 contentDescription = "图片",
                 tint = CommentIconTint,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(30.dp),
             )
             Icon(
                 imageVector = Icons.Outlined.InsertEmoticon,
                 contentDescription = "表情",
                 tint = CommentIconTint,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(30.dp),
             )
         }
     }
@@ -628,7 +629,7 @@ fun CommentSheetContainer(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(CommentSheetBackground)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 7.dp),
             content = content,
         )
     }

@@ -1,10 +1,11 @@
 package com.djs66256.short_drama.feature.comments.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,9 +20,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,10 +42,12 @@ import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
 
 const val COMMENT_UI_VERIFICATION_SCREEN = "comment_ui_verification"
 
-private val VerificationSheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+private val VerificationSheetShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
 private val VerificationStatusBarText = Color(0xFFF8F8F8)
 private val VerificationStatusBarIcon = Color(0xFFF8F8F8)
-private val VerificationDeviceChrome = Color(0xFFEFEFEF)
+private val VerificationHomeIndicatorColor = Color(0xFF1D1D1D)
+private val VerificationStatusBarInsetTop = 14.dp
+private val VerificationStatusBarInsetHorizontal = 28.dp
 
 @Composable
 fun CommentUiVerificationScreen(
@@ -63,18 +73,7 @@ fun CommentUiVerificationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .offset(y = 176.dp),
-            )
-            VerificationStatusBar(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 18.dp)
-                    .padding(horizontal = 32.dp),
-            )
-            VerificationHomeIndicator(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 8.dp),
+                    .offset(y = 220.dp),
             )
             Box(
                 modifier = Modifier
@@ -84,17 +83,29 @@ fun CommentUiVerificationScreen(
                             colors = listOf(
                                 Color.Transparent,
                                 Color.Transparent,
-                                Color(0x26000000),
-                                Color(0x66000000),
+                                Color(0x1A000000),
+                                Color(0x55000000),
                             ),
                         ),
                     ),
+            )
+            VerificationStatusBar(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = VerificationStatusBarInsetTop)
+                    .padding(horizontal = VerificationStatusBarInsetHorizontal),
+            )
+            VerificationHomeIndicator(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp),
             )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .shadow(elevation = 18.dp, shape = VerificationSheetShape),
+                    .shadow(elevation = 14.dp, shape = VerificationSheetShape)
+                    .offset(y = 10.dp),
             ) {
                 CommentBottomSheetContent(
                     uiState = uiState,
@@ -107,7 +118,7 @@ fun CommentUiVerificationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     listModifier = Modifier
                         .fillMaxWidth()
-                        .height(408.dp),
+                        .height(414.dp),
                     onDismiss = {},
                 )
             }
@@ -170,37 +181,131 @@ private fun VerificationStatusBar(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
     ) {
-        Text(
-            text = "11:57",
-            color = VerificationStatusBarText,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Medium,
-        )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .background(VerificationStatusBarIcon, RoundedCornerShape(7.dp)),
+            Text(
+                text = "11:57",
+                color = VerificationStatusBarText,
+                fontSize = 27.sp,
+                fontWeight = FontWeight.Medium,
             )
-            Box(
-                modifier = Modifier
-                    .width(22.dp)
-                    .height(16.dp)
-                    .background(VerificationStatusBarIcon, RoundedCornerShape(8.dp)),
+            VerificationShieldIcon()
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            VerificationSignalBars()
+            VerificationWifiIcon()
+            VerificationBatteryIcon()
+        }
+    }
+}
+
+@Composable
+private fun VerificationShieldIcon() {
+    Canvas(modifier = Modifier.size(width = 16.dp, height = 20.dp)) {
+        val path = Path().apply {
+            moveTo(size.width * 0.5f, 0f)
+            lineTo(size.width * 0.9f, size.height * 0.14f)
+            lineTo(size.width * 0.82f, size.height * 0.72f)
+            quadraticTo(
+                size.width * 0.76f,
+                size.height * 0.92f,
+                size.width * 0.5f,
+                size.height,
             )
+            quadraticTo(
+                size.width * 0.24f,
+                size.height * 0.92f,
+                size.width * 0.18f,
+                size.height * 0.72f,
+            )
+            lineTo(size.width * 0.1f, size.height * 0.14f)
+            close()
+        }
+        drawPath(path = path, color = VerificationStatusBarIcon, style = Stroke(width = size.width * 0.12f))
+    }
+}
+
+@Composable
+private fun VerificationSignalBars() {
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        listOf(10.dp, 14.dp, 18.dp, 22.dp).forEach { barHeight ->
             Box(
                 modifier = Modifier
-                    .width(42.dp)
-                    .height(20.dp)
-                    .background(Color.Transparent, RoundedCornerShape(10.dp))
-                    .background(VerificationStatusBarIcon, RoundedCornerShape(10.dp)),
+                    .width(4.dp)
+                    .height(barHeight)
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(VerificationStatusBarIcon),
             )
         }
+    }
+}
+
+@Composable
+private fun VerificationWifiIcon() {
+    Canvas(modifier = Modifier.size(width = 24.dp, height = 18.dp)) {
+        val stroke = Stroke(width = 2.8f, cap = StrokeCap.Round)
+        drawArc(
+            color = VerificationStatusBarIcon,
+            startAngle = 210f,
+            sweepAngle = 120f,
+            useCenter = false,
+            topLeft = Offset(0f, size.height * 0.1f),
+            size = androidx.compose.ui.geometry.Size(size.width, size.height * 1.15f),
+            style = stroke,
+        )
+        drawArc(
+            color = VerificationStatusBarIcon,
+            startAngle = 218f,
+            sweepAngle = 104f,
+            useCenter = false,
+            topLeft = Offset(size.width * 0.14f, size.height * 0.3f),
+            size = androidx.compose.ui.geometry.Size(size.width * 0.72f, size.height * 0.72f),
+            style = stroke,
+        )
+        drawCircle(
+            color = VerificationStatusBarIcon,
+            radius = 2.3f,
+            center = Offset(size.width / 2f, size.height * 0.82f),
+        )
+    }
+}
+
+@Composable
+private fun VerificationBatteryIcon() {
+    Canvas(modifier = Modifier.size(width = 40.dp, height = 18.dp)) {
+        val outline = RoundRect(
+            rect = Rect(0f, 1f, size.width - 5f, size.height - 1f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(7f, 7f),
+        )
+        drawRoundRect(
+            color = VerificationStatusBarIcon,
+            topLeft = Offset(outline.left, outline.top),
+            size = androidx.compose.ui.geometry.Size(outline.width, outline.height),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(7f, 7f),
+            style = Stroke(width = 2.6f),
+        )
+        drawRoundRect(
+            color = VerificationStatusBarIcon,
+            topLeft = Offset(4f, 5f),
+            size = androidx.compose.ui.geometry.Size(size.width - 13f, size.height - 10f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(5f, 5f),
+        )
+        drawRoundRect(
+            color = VerificationStatusBarIcon,
+            topLeft = Offset(size.width - 4f, size.height * 0.32f),
+            size = androidx.compose.ui.geometry.Size(4f, size.height * 0.34f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f),
+        )
     }
 }
 
@@ -208,8 +313,8 @@ private fun VerificationStatusBar(modifier: Modifier = Modifier) {
 private fun VerificationHomeIndicator(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .width(154.dp)
-            .height(6.dp)
-            .background(VerificationDeviceChrome, RoundedCornerShape(100.dp)),
+            .width(156.dp)
+            .height(5.dp)
+            .background(VerificationHomeIndicatorColor, RoundedCornerShape(100.dp)),
     )
 }
