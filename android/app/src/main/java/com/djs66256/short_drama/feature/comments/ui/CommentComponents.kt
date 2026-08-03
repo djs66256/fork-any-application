@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,24 +14,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.matchParentSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.InsertEmoticon
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,9 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.djs66256.short_drama.domain.model.CommentSort
 import com.djs66256.short_drama.feature.comments.model.CommentUiModel
 import com.djs66256.short_drama.feature.comments.viewmodel.CommentListState
@@ -63,10 +67,47 @@ private val CommentSecondaryText = Color(0xFF999999)
 private val CommentLinkBlue = Color(0xFF2E6FE8)
 private val CommentIconTint = Color(0xFF151515)
 private val CommentLikedTint = Color(0xFFEF4444)
-private val CommentCountText = Color(0xFF1A1A1A)
+private val CommentCountText = Color(0xFF5A5A5A)
+private val CommentInputBackground = Color(0xFFF1F1F1)
 private val CommentSheetTopRadius = 28.dp
-private val CommentAvatarSize = 42.dp
+private val CommentAvatarSize = 44.dp
 private val CommentBottomInputHeight = 48.dp
+private val CommentHeaderHorizontalInset = 6.dp
+private val CommentTitleTextStyle = TextStyle(
+    fontSize = 17.sp,
+    lineHeight = 22.sp,
+    fontWeight = FontWeight.SemiBold,
+)
+private val CommentSearchTextStyle = TextStyle(
+    fontSize = 15.sp,
+    lineHeight = 20.sp,
+    fontWeight = FontWeight.Medium,
+)
+private val CommentBodyTextStyle = TextStyle(
+    fontSize = 16.sp,
+    lineHeight = 24.sp,
+    fontWeight = FontWeight.Normal,
+)
+private val CommentMetaTextStyle = TextStyle(
+    fontSize = 13.sp,
+    lineHeight = 18.sp,
+    fontWeight = FontWeight.Normal,
+)
+private val CommentCountTextStyle = TextStyle(
+    fontSize = 13.sp,
+    lineHeight = 16.sp,
+    fontWeight = FontWeight.Normal,
+)
+private val CommentHeartOutline = GenericShape { size, _ ->
+    moveTo(size.width * 0.5f, size.height * 0.88f)
+    cubicTo(size.width * 0.18f, size.height * 0.64f, 0f, size.height * 0.42f, 0f, size.height * 0.22f)
+    cubicTo(0f, size.height * 0.06f, size.width * 0.13f, 0f, size.width * 0.24f, 0f)
+    cubicTo(size.width * 0.34f, 0f, size.width * 0.44f, size.height * 0.05f, size.width * 0.5f, size.height * 0.15f)
+    cubicTo(size.width * 0.56f, size.height * 0.05f, size.width * 0.66f, 0f, size.width * 0.76f, 0f)
+    cubicTo(size.width, size.height * 0.06f, size.width, size.height * 0.22f, size.width, size.height * 0.22f)
+    cubicTo(size.width, size.height * 0.42f, size.width * 0.82f, size.height * 0.64f, size.width * 0.5f, size.height * 0.88f)
+    close()
+}
 
 @Composable
 fun CommentHeader(
@@ -77,8 +118,10 @@ fun CommentHeader(
     onDismiss: (() -> Unit)? = null,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = CommentHeaderHorizontalInset),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             onDismiss?.let {
@@ -88,29 +131,24 @@ fun CommentHeader(
                     tint = CommentPrimaryText,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .size(28.dp)
+                        .size(30.dp)
                         .clickable(onClick = it),
                 )
             }
             Text(
                 text = "${totalCount}条评论",
-                style = MaterialTheme.typography.titleLarge,
+                style = CommentTitleTextStyle,
                 color = CommentPrimaryText,
-                fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.Center),
             )
         }
-        CommentSearchRow(
-            onSelectSort = onSelectSort,
-            selectedSort = selectedSort,
-        )
+        CommentSearchRow(selectedSort = selectedSort)
     }
 }
 
 @Composable
 private fun CommentSearchRow(
     selectedSort: CommentSort,
-    onSelectSort: (CommentSort) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -118,19 +156,18 @@ private fun CommentSearchRow(
     ) {
         Text(
             text = "大家都在搜：",
-            style = MaterialTheme.typography.bodyLarge,
+            style = CommentSearchTextStyle,
             color = CommentPrimaryText,
         )
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = "都重生了，谁还装富二代啊第三季",
-            style = MaterialTheme.typography.bodyLarge,
+            text = trendingSearchKeyword(selectedSort),
+            style = CommentSearchTextStyle.copy(fontWeight = FontWeight.SemiBold),
             color = CommentLinkBlue,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        Spacer(modifier = Modifier.width(8.dp))
     }
 }
 
@@ -180,7 +217,7 @@ fun CommentItems(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(22.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
         contentPadding = contentPadding,
     ) {
         itemsIndexed(items = comments, key = { _, item -> item.id }) { index, comment ->
@@ -248,27 +285,28 @@ fun CommentRow(
         ) {
             Text(
                 text = comment.userDisplayName,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Normal,
+                style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
                 color = CommentSecondaryText,
             )
-            Text(
-                text = comment.content,
-                style = MaterialTheme.typography.bodyLarge,
-                color = CommentPrimaryText,
-            )
+            if (comment.content.isNotBlank()) {
+                Text(
+                    text = comment.content,
+                    style = CommentBodyTextStyle,
+                    color = CommentPrimaryText,
+                )
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    text = comment.createdAt,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = comment.createdAt.ifBlank { "刚刚" },
+                    style = CommentMetaTextStyle,
                     color = CommentSecondaryText,
                 )
                 Text(
                     text = "回复",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = CommentMetaTextStyle,
                     color = CommentSecondaryText,
                 )
             }
@@ -276,16 +314,17 @@ fun CommentRow(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.padding(top = 2.dp),
                 ) {
                     Box(
                         modifier = Modifier
-                            .width(44.dp)
+                            .width(52.dp)
                             .height(1.dp)
                             .background(CommentDividerColor),
                     )
                     Text(
                         text = "展开35条回复",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
                         color = Color(0xFF5D5D5D),
                     )
                     Icon(
@@ -322,11 +361,22 @@ private fun CommentAvatar(
             .background(paletteColor),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = name.trim().take(1).ifBlank { "评" },
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 8.dp)
+                .size(13.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.8f)),
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 5.dp)
+                .width(24.dp)
+                .height(15.dp)
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 9.dp, bottomEnd = 9.dp))
+                .background(Color.White.copy(alpha = 0.8f)),
         )
     }
 }
@@ -341,6 +391,7 @@ private fun CommentLikeButton(
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
+            .width(46.dp)
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
@@ -351,17 +402,36 @@ private fun CommentLikeButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(
-            imageVector = Icons.Outlined.FavoriteBorder,
-            contentDescription = "点赞",
-            tint = if (liked) CommentLikedTint else CommentSecondaryText,
-            modifier = Modifier.size(30.dp),
-        )
-        Text(
-            text = likeCount.toString(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = CommentCountText,
-        )
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CommentHeartOutline)
+                .background(if (liked) CommentLikedTint else Color(0xFF4F4F4F))
+                .padding(1.6.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(CommentHeartOutline)
+                    .background(CommentSheetBackground),
+            )
+            if (liked) {
+                Box(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .matchParentSize()
+                        .clip(CommentHeartOutline)
+                        .background(CommentLikedTint),
+                )
+            }
+        }
+        if (likeCount > 0) {
+            Text(
+                text = likeCount.toString(),
+                style = CommentCountTextStyle,
+                color = CommentCountText,
+            )
+        }
     }
 }
 
@@ -389,7 +459,7 @@ fun CommentComposer(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             OutlinedTextField(
                 value = inputText,
@@ -399,37 +469,39 @@ fun CommentComposer(
                     .height(CommentBottomInputHeight),
                 placeholder = {
                     Text(
-                        "有趣评论千千万，不如你也来一条？",
+                        text = "有趣评论千千万，不如你也来一条？",
                         color = CommentSecondaryText,
+                        style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
                     )
                 },
+                textStyle = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp, color = CommentPrimaryText),
                 singleLine = true,
                 maxLines = 1,
                 shape = RoundedCornerShape(24.dp),
                 enabled = !isSubmitting,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { if (!isSubmitting) onSubmit() }),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = CommentInputBackground,
+                    unfocusedContainerColor = CommentInputBackground,
+                    disabledContainerColor = CommentInputBackground,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    disabledBorderColor = Color.Transparent,
+                    cursorColor = CommentLinkBlue,
+                ),
             )
             Icon(
                 imageVector = Icons.Outlined.Image,
                 contentDescription = "图片",
                 tint = CommentIconTint,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(30.dp),
             )
             Icon(
                 imageVector = Icons.Outlined.InsertEmoticon,
                 contentDescription = "表情",
                 tint = CommentIconTint,
-                modifier = Modifier.size(32.dp),
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            Text(
-                text = if (isSubmitting) "发送中" else "发送",
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isSubmitting) CommentSecondaryText else CommentLinkBlue,
-                modifier = Modifier.clickable(enabled = !isSubmitting, onClick = onSubmit),
+                modifier = Modifier.size(30.dp),
             )
         }
     }
@@ -575,5 +647,12 @@ fun CommentSheetDragHandle(modifier: Modifier = Modifier) {
                 .clip(RoundedCornerShape(100.dp))
                 .background(Color(0xFFD5D5D5)),
         )
+    }
+}
+
+private fun trendingSearchKeyword(selectedSort: CommentSort): String {
+    return when (selectedSort) {
+        CommentSort.LATEST -> "都重生了，谁还装富二代啊第三季"
+        CommentSort.HOTTEST -> "红果短剧热评榜"
     }
 }

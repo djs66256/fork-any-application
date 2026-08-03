@@ -24,7 +24,7 @@ fun CommentUiVerificationScreen(
         comments = verificationComments(),
         totalCount = 470,
         inputText = "",
-        hasNextPage = false,
+        hasNextPage = true,
     )
 
     Surface(
@@ -51,7 +51,7 @@ private fun verificationComments(): List<CommentUiModel> {
             id = "comment-1",
             userDisplayName = "用户名31750495",
             userAvatarUrl = null,
-            content = "敢情这些蛋特么都是抢来的，不是亲生的😂",
+            content = "敢情这些蛋特么都是捡来的，不是亲生的😂",
             likeCount = 2839,
             liked = false,
             createdAt = "07-20",
@@ -90,7 +90,16 @@ private fun verificationComments(): List<CommentUiModel> {
             content = "",
             likeCount = 0,
             liked = false,
-            createdAt = "",
+            createdAt = "刚刚",
+        ),
+        CommentUiModel(
+            id = "comment-6",
+            userDisplayName = "匿名用户",
+            userAvatarUrl = null,
+            content = "",
+            likeCount = 0,
+            liked = false,
+            createdAt = "刚刚",
         ),
     )
 }

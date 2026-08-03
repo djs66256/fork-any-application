@@ -93,8 +93,8 @@ fun CommentBottomSheetContent(
             onLoadMore = onLoadMore,
             modifier = listModifier
                 .fillMaxWidth()
-                .heightIn(min = 280.dp, max = 540.dp),
-            contentPadding = PaddingValues(top = 18.dp, bottom = 12.dp),
+                .heightIn(min = 280.dp, max = 560.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 10.dp),
         )
         CommentComposer(
             inputText = uiState.inputText,
@@ -102,7 +102,7 @@ fun CommentBottomSheetContent(
             errorMessage = uiState.composerErrorMessage,
             onInputChanged = onInputChanged,
             onSubmit = onSubmit,
-            modifier = Modifier.padding(top = 8.dp, bottom = 10.dp),
+            modifier = Modifier.padding(top = 6.dp, bottom = 8.dp),
         )
     }
 }
