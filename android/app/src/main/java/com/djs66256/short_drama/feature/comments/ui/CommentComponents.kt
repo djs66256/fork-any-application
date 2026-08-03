@@ -70,32 +70,32 @@ private val CommentLikedTint = Color(0xFFEF4444)
 private val CommentCountText = Color(0xFF5A5A5A)
 private val CommentInputBackground = Color(0xFFF1F1F1)
 private val CommentSheetTopRadius = 28.dp
-private val CommentAvatarSize = 44.dp
-private val CommentBottomInputHeight = 48.dp
-private val CommentHeaderHorizontalInset = 6.dp
+private val CommentAvatarSize = 46.dp
+private val CommentBottomInputHeight = 50.dp
+private val CommentHeaderHorizontalInset = 4.dp
 private val CommentTitleTextStyle = TextStyle(
-    fontSize = 17.sp,
-    lineHeight = 22.sp,
+    fontSize = 18.sp,
+    lineHeight = 24.sp,
     fontWeight = FontWeight.SemiBold,
 )
 private val CommentSearchTextStyle = TextStyle(
-    fontSize = 15.sp,
-    lineHeight = 20.sp,
+    fontSize = 16.sp,
+    lineHeight = 22.sp,
     fontWeight = FontWeight.Medium,
 )
 private val CommentBodyTextStyle = TextStyle(
-    fontSize = 16.sp,
-    lineHeight = 24.sp,
+    fontSize = 17.sp,
+    lineHeight = 26.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentMetaTextStyle = TextStyle(
-    fontSize = 13.sp,
-    lineHeight = 18.sp,
+    fontSize = 14.sp,
+    lineHeight = 20.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentCountTextStyle = TextStyle(
-    fontSize = 13.sp,
-    lineHeight = 16.sp,
+    fontSize = 14.sp,
+    lineHeight = 18.sp,
     fontWeight = FontWeight.Normal,
 )
 private val CommentHeartOutline = GenericShape { size, _ ->
@@ -121,7 +121,7 @@ fun CommentHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = CommentHeaderHorizontalInset),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             onDismiss?.let {
@@ -131,7 +131,7 @@ fun CommentHeader(
                     tint = CommentPrimaryText,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .size(30.dp)
+                        .size(32.dp)
                         .clickable(onClick = it),
                 )
             }
@@ -159,7 +159,7 @@ private fun CommentSearchRow(
             style = CommentSearchTextStyle,
             color = CommentPrimaryText,
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = trendingSearchKeyword(selectedSort),
             style = CommentSearchTextStyle.copy(fontWeight = FontWeight.SemiBold),
@@ -217,7 +217,7 @@ fun CommentItems(
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
         contentPadding = contentPadding,
     ) {
         itemsIndexed(items = comments, key = { _, item -> item.id }) { index, comment ->
@@ -277,15 +277,15 @@ fun CommentRow(
     ) {
         CommentAvatar(
             name = comment.userDisplayName,
-            modifier = Modifier.padding(top = 2.dp),
+            modifier = Modifier.padding(top = 1.dp),
         )
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 text = comment.userDisplayName,
-                style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
+                style = CommentMetaTextStyle,
                 color = CommentSecondaryText,
             )
             if (comment.content.isNotBlank()) {
@@ -297,7 +297,7 @@ fun CommentRow(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(
                     text = comment.createdAt.ifBlank { "刚刚" },
@@ -318,13 +318,13 @@ fun CommentRow(
                 ) {
                     Box(
                         modifier = Modifier
-                            .width(52.dp)
+                            .width(60.dp)
                             .height(1.dp)
                             .background(CommentDividerColor),
                     )
                     Text(
                         text = "展开35条回复",
-                        style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
+                        style = CommentMetaTextStyle,
                         color = Color(0xFF5D5D5D),
                     )
                     Icon(
@@ -391,23 +391,23 @@ private fun CommentLikeButton(
     val interactionSource = remember { MutableInteractionSource() }
     Column(
         modifier = Modifier
-            .width(46.dp)
+            .width(56.dp)
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick,
             )
-            .padding(top = 2.dp),
+            .padding(top = 1.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(32.dp)
                 .clip(CommentHeartOutline)
-                .background(if (liked) CommentLikedTint else Color(0xFF4F4F4F))
-                .padding(1.6.dp),
+                .background(if (liked) CommentLikedTint else Color(0xFF4A4A4A))
+                .padding(1.4.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -459,7 +459,7 @@ fun CommentComposer(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedTextField(
                 value = inputText,
@@ -471,10 +471,10 @@ fun CommentComposer(
                     Text(
                         text = "有趣评论千千万，不如你也来一条？",
                         color = CommentSecondaryText,
-                        style = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp),
+                        style = CommentMetaTextStyle,
                     )
                 },
-                textStyle = CommentMetaTextStyle.copy(fontSize = 14.sp, lineHeight = 18.sp, color = CommentPrimaryText),
+                textStyle = CommentMetaTextStyle.copy(color = CommentPrimaryText),
                 singleLine = true,
                 maxLines = 1,
                 shape = RoundedCornerShape(24.dp),
@@ -495,13 +495,13 @@ fun CommentComposer(
                 imageVector = Icons.Outlined.Image,
                 contentDescription = "图片",
                 tint = CommentIconTint,
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier.size(32.dp),
             )
             Icon(
                 imageVector = Icons.Outlined.InsertEmoticon,
                 contentDescription = "表情",
                 tint = CommentIconTint,
-                modifier = Modifier.size(30.dp),
+                modifier = Modifier.size(32.dp),
             )
         }
     }
@@ -628,7 +628,7 @@ fun CommentSheetContainer(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(CommentSheetBackground)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             content = content,
         )
     }
