@@ -1,0 +1,572 @@
+{
+  "current_version_id": 1,
+  "versions": [
+    {
+      "version_id": 1,
+      "status": {
+        "session_id": "6a7037973193cf477128bad9",
+        "commit_id": "d7465d08f79d64c83407e4114d854a6d38769763",
+        "generate_type": "full"
+      },
+      "catalogs": {
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）.md": {
+          "content_hash": "a267e4251355c0519c7bfd9dac68a9cad2c9f212b19a1955cc45fa1157e7e25e",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）.md",
+          "chapter_number": "5"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/统一模型与错误处理规范.md": {
+          "content_hash": "18376b5dd78050bc23d5500a1c2bb3c86b1807a9c28908058639529f40282b7c",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/统一模型与错误处理规范.md",
+          "chapter_number": "4.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Claude AI Skills 使用指南.md": {
+          "content_hash": "10e2984d28ada266a3f77ceecf19d3222d41afa5198d7a91e5e4ad30bddc4633",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Claude AI Skills 使用指南.md",
+          "chapter_number": "9.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构.md": {
+          "content_hash": "e3ba4f1e1c5eb273fde5bc3281d77bfd10e87db10dda715f826efc4bfe2f10c2",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构.md",
+          "chapter_number": "7.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/数据层实现与持久化策略.md": {
+          "content_hash": "5518a03aaf55313d3eb9ccd83b7b40fd0e1130f131163505dd42d5562fb20387",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/数据层实现与持久化策略.md",
+          "chapter_number": "6.2.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/iOS 开发环境配置.md": {
+          "content_hash": "12557819f05b530be4b42be9c27a0b5894a1a17953696e6e500d9b5c83faabbd",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/iOS 开发环境配置.md",
+          "chapter_number": "2.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/数据访问与 Repository 模式.md": {
+          "content_hash": "d945b6e8c86274f55dee548c8237402336b8f287178e77f222cb00f3f1d2a7d3",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/数据访问与 Repository 模式.md",
+          "chapter_number": "5.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/SwiftUI UI 体系与导航架构.md": {
+          "content_hash": "a199faf700033ae2053d98ef7a1df4db5f3ec07c937086036fcdd8d4d27a5055",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/SwiftUI UI 体系与导航架构.md",
+          "chapter_number": "6.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景.md": {
+          "content_hash": "d486634268c306cdfa78d95fd9b0230bf6825b49ceb273fdcaa5a96462c6ae13",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景.md",
+          "chapter_number": "1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/基础设施、中间件与通用工具.md": {
+          "content_hash": "58d83501d4c0d9e921ccdb6c47c158e6a676fc8f90b896abb84b600e159a6fe5",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/基础设施、中间件与通用工具.md",
+          "chapter_number": "5.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/后端环境配置.md": {
+          "content_hash": "06f4d6b3cee6b3285634a71829407cac002cfd4c09580e046d53dcf630c7c00f",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/后端环境配置.md",
+          "chapter_number": "2.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/领域层设计：业务模型与用例.md": {
+          "content_hash": "e2b6e154de730ead827851e04147a881950a79f697dce94a7b55722fb78d9c03",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/领域层设计：业务模型与用例.md",
+          "chapter_number": "7.2.2.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/内容发现与分发体系逻辑.md": {
+          "content_hash": "bd6c6ac249abdec8fd2270c738333e124a8e631e22dcf972278e48c783a1081e",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/内容发现与分发体系逻辑.md",
+          "chapter_number": "3.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/核心功能：沉浸式播放器与剧场流实现.md": {
+          "content_hash": "2d59fac984c6687b9c0ae690089263fdd032c5913766c811fd762f28b40ef719",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/核心功能：沉浸式播放器与剧场流实现.md",
+          "chapter_number": "6.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心.md": {
+          "content_hash": "caf6be3a0bbd18a27c20143a89b8537bed412d5cd68ee5d6cb205aa0fb284982",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心.md",
+          "chapter_number": "8"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/代码风格与自动化 Lint 规范.md": {
+          "content_hash": "c4c184682bf728297252f647589627b04e7f95a73da2f357823c5748a60855b2",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/代码风格与自动化 Lint 规范.md",
+          "chapter_number": "9.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/跨端通信与 JSBridge 协议.md": {
+          "content_hash": "ae3351af75f9e6cf6ccad4ecda1c3bbf75885cbc6b0e5ef09b2c58cdddeb6b8c",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/跨端通信与 JSBridge 协议.md",
+          "chapter_number": "4.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）.md": {
+          "content_hash": "f12a689f0c4d29c92b154ee8700cfa51641e7399e77bc6135c659e50cd26d593",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）.md",
+          "chapter_number": "6"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/依赖注入与核心基础设施.md": {
+          "content_hash": "1354c8b617be9361793dfe6951ad9e1917bdbca8cd2ac0189a913be5d0f14d09",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/依赖注入与核心基础设施.md",
+          "chapter_number": "7.2.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/部署与监控.md": {
+          "content_hash": "a0c9a9b188039309563872d979a99385a6568d48263f3e55607166409ed662e2",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/部署与监控.md",
+          "chapter_number": "10.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南.md": {
+          "content_hash": "28d895f787c0fc07f3902fae031bdf1f71e44b91803c00b4940c4d470b4d9a8f",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南.md",
+          "chapter_number": "2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/核心业务流程与用户体系.md": {
+          "content_hash": "deb83dcde33b81fc170e49e80fdf4da141be83396bf63139b0e66589ec9bc58d",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/核心业务流程与用户体系.md",
+          "chapter_number": "3.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/业务模块与导航体系.md": {
+          "content_hash": "78547d360031446f7e2386fcfcf5dc9e84ebaecaca5d612dc3e95248c49225a6",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/业务模块与导航体系.md",
+          "chapter_number": "7.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/CI_CD 自动化流水线.md": {
+          "content_hash": "895d1faa277a1cf2fc55e399cc19c22c71327c12e7410655ff58c3882d55110b",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/CI_CD 自动化流水线.md",
+          "chapter_number": "10.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/商城与激励系统业务逻辑.md": {
+          "content_hash": "345bfe4600402500e4010a7759eef2c0a0dcde05c45f2a69499259c69561b324",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/商城与激励系统业务逻辑.md",
+          "chapter_number": "3.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/原生 WebView 容器封装与脚本注入.md": {
+          "content_hash": "15b448e0195426dd11068133e2644d06ae77f3286f29b51176128dcc161e8f03",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/原生 WebView 容器封装与脚本注入.md",
+          "chapter_number": "8.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/技术栈选型.md": {
+          "content_hash": "1949f7784e4162f8d3ce051793c7947598725fa4b2aa2954f09f37aaebca867f",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/技术栈选型.md",
+          "chapter_number": "1.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/文档驱动开发与 Wiki 维护规范.md": {
+          "content_hash": "5739168ced9022aae3f6bcf2a70108c224bc8c15c2a9f4aff4bd5506b63f9abd",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/文档驱动开发与 Wiki 维护规范.md",
+          "chapter_number": "9.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/业务愿景与核心功能.md": {
+          "content_hash": "57108f5c763fa11350e8b02b2ce79513e2d0cd48f57e08d111609b965447b03e",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/业务愿景与核心功能.md",
+          "chapter_number": "1.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/单元测试与集成测试.md": {
+          "content_hash": "ba820e30f574ef8a7f35a091eb6fff271548d7cf24b3694c5b9a0ab650b5ad88",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/单元测试与集成测试.md",
+          "chapter_number": "10.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/JSBridge 通信协议与消息模型.md": {
+          "content_hash": "b6b23aab3780b2892cf4e248471b95b9b0c9a7b5508b5fe22a885c1135dcb876",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/JSBridge 通信协议与消息模型.md",
+          "chapter_number": "8.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Git 工作流与提交规范.md": {
+          "content_hash": "d0beb47fa1cf75cdfef48fb7530a5af11cf8bd155cb1af78fcb15db5e9bbd0bc",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Git 工作流与提交规范.md",
+          "chapter_number": "9.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/混合开发与 Web 容器集成.md": {
+          "content_hash": "7546966a47160f0926a00aa5faf2de97d13413c1664a07d69f89a2c31998a112",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/混合开发与 Web 容器集成.md",
+          "chapter_number": "7.5"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/业务逻辑服务层设计.md": {
+          "content_hash": "e524ec196ffa4d38a9250a176f175e98287e2846dc2ab2a6209df6803660b279",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/业务逻辑服务层设计.md",
+          "chapter_number": "5.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/核心业务功能实现（播放器与剧场）.md": {
+          "content_hash": "d245fffafaa1881d607859640283650d6aa61f5f8dbd1335292c42769c9095cd",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/核心业务功能实现（播放器与剧场）.md",
+          "chapter_number": "7.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/Monorepo 目录结构说明.md": {
+          "content_hash": "7189a92c5aad9c4ef46eb1fbc163303f999ade9c3d0c78e064464bcf560e3953",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/Monorepo 目录结构说明.md",
+          "chapter_number": "1.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现.md": {
+          "content_hash": "d3d5463e37a2dca089dc3e552b99d3aa922db381527e965b87a2a6e49cb8359d",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现.md",
+          "chapter_number": "7.2.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范.md": {
+          "content_hash": "ff30d27d63af3c59763e3ce4146f616a9c5ea9490ae73480d8a8110860c6c0d8",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范.md",
+          "chapter_number": "4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南.md": {
+          "content_hash": "000adcc8d176f6705fa452604ecd5b4bc49a953384816f0f277611ab1daa5d59",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南.md",
+          "chapter_number": "10"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/API 路由与控制器实现.md": {
+          "content_hash": "67c7bc09195154f2b48f7d8687bd97038043ada39dfc2668f593ed0676e1b3f4",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/API 路由与控制器实现.md",
+          "chapter_number": "5.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/播放器与 Feed 流消费逻辑.md": {
+          "content_hash": "a0df3997524316e56cbac918fdc42b43497d80737363e552d1a4b3a53fe468ad",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/播放器与 Feed 流消费逻辑.md",
+          "chapter_number": "3.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Jetpack Compose UI 体系.md": {
+          "content_hash": "e57294d0384dc2079e1a7966c357ac3a2dca6f1b4f6167b1a754cad7cf4145bb",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Jetpack Compose UI 体系.md",
+          "chapter_number": "7.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/数据流与状态管理.md": {
+          "content_hash": "9734eea43276744d1869b1ca693f16a7772d1d4b5bb279339e5242f1e62c45f5",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/数据流与状态管理.md",
+          "chapter_number": "4.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践.md": {
+          "content_hash": "e7374e38cf7d3e5a9e40d23fb4d01f6de0c23af322b6e59d69b0c9de5fb581b9",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践.md",
+          "chapter_number": "6.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/商城与赚币业务集成逻辑.md": {
+          "content_hash": "1f0a94fbcf0bf0711c51f1b86b404f0687300204be69a2a312ca0e333065e394",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/商城与赚币业务集成逻辑.md",
+          "chapter_number": "8.3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/混合业务与 JSBridge 通信实现.md": {
+          "content_hash": "f20f1e8824e283d365a2316db697362a3a1efa759c6d6765a87beb2d42cae9b4",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/混合业务与 JSBridge 通信实现.md",
+          "chapter_number": "6.4"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）.md": {
+          "content_hash": "986c026d2af862f16de6ec84029e9bbbf465fca9c21163c7bac0b078dbe8a513",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）.md",
+          "chapter_number": "7"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/管理后台业务逻辑.md": {
+          "content_hash": "da49358cf09e35f9070b3d0d0aad88780f29d4f0739ff38515644f8fb87c6ce3",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/管理后台业务逻辑.md",
+          "chapter_number": "3.5"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/数据层实现：仓库、数据源与 DTO.md": {
+          "content_hash": "8bd80048b4e3c00ddf9dd4867494dd1183b2b4d9a148c30e57bc497e65138052",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/数据层实现：仓库、数据源与 DTO.md",
+          "chapter_number": "7.2.2.2"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/Clean Architecture 实践.md": {
+          "content_hash": "36a9d9849ae719ba20658bb1f47507bdcaf1be2df8a00c8463478afee88b4b90",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/Clean Architecture 实践.md",
+          "chapter_number": "4.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流.md": {
+          "content_hash": "4127f41340e6802bccfd089cfe8f24543055cd392c22432ae9a8e3b38590b20d",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流.md",
+          "chapter_number": "9"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑.md": {
+          "content_hash": "b8a1ada415788d517fc897e7d7ca0fe52b6d807e39ed62376e55f6cdc622f1ff",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑.md",
+          "chapter_number": "3"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/领域层实现与业务逻辑封装.md": {
+          "content_hash": "a03210e20edc566223c7f09b8463c656782179c3dc362319365ef23f41d89794",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/领域层实现与业务逻辑封装.md",
+          "chapter_number": "6.2.1"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/基础能力与网络层封装逻辑.md": {
+          "content_hash": "edde1b9568d186657b67bee112ed898c855345c44b57260238b710927b832f55",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/基础能力与网络层封装逻辑.md",
+          "chapter_number": "6.5"
+        },
+        "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/Android 开发环境配置.md": {
+          "content_hash": "8c5e9df5cece9bcbb254b54cbbac11075e709db2c8cdc35f278c4745d331de76",
+          "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/Android 开发环境配置.md",
+          "chapter_number": "2.3"
+        }
+      }
+    }
+  ],
+  "status": {
+    "session_id": "6a7037973193cf477128bad9",
+    "commit_id": "d7465d08f79d64c83407e4114d854a6d38769763",
+    "generate_type": "full"
+  },
+  "catalogs": {
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）.md": {
+      "content_hash": "a267e4251355c0519c7bfd9dac68a9cad2c9f212b19a1955cc45fa1157e7e25e",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）.md",
+      "chapter_number": "5"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/统一模型与错误处理规范.md": {
+      "content_hash": "18376b5dd78050bc23d5500a1c2bb3c86b1807a9c28908058639529f40282b7c",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/统一模型与错误处理规范.md",
+      "chapter_number": "4.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Claude AI Skills 使用指南.md": {
+      "content_hash": "10e2984d28ada266a3f77ceecf19d3222d41afa5198d7a91e5e4ad30bddc4633",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Claude AI Skills 使用指南.md",
+      "chapter_number": "9.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构.md": {
+      "content_hash": "e3ba4f1e1c5eb273fde5bc3281d77bfd10e87db10dda715f826efc4bfe2f10c2",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构.md",
+      "chapter_number": "7.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/数据层实现与持久化策略.md": {
+      "content_hash": "5518a03aaf55313d3eb9ccd83b7b40fd0e1130f131163505dd42d5562fb20387",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/数据层实现与持久化策略.md",
+      "chapter_number": "6.2.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/iOS 开发环境配置.md": {
+      "content_hash": "12557819f05b530be4b42be9c27a0b5894a1a17953696e6e500d9b5c83faabbd",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/iOS 开发环境配置.md",
+      "chapter_number": "2.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/数据访问与 Repository 模式.md": {
+      "content_hash": "d945b6e8c86274f55dee548c8237402336b8f287178e77f222cb00f3f1d2a7d3",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/数据访问与 Repository 模式.md",
+      "chapter_number": "5.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/SwiftUI UI 体系与导航架构.md": {
+      "content_hash": "a199faf700033ae2053d98ef7a1df4db5f3ec07c937086036fcdd8d4d27a5055",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/SwiftUI UI 体系与导航架构.md",
+      "chapter_number": "6.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景.md": {
+      "content_hash": "d486634268c306cdfa78d95fd9b0230bf6825b49ceb273fdcaa5a96462c6ae13",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景.md",
+      "chapter_number": "1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/基础设施、中间件与通用工具.md": {
+      "content_hash": "58d83501d4c0d9e921ccdb6c47c158e6a676fc8f90b896abb84b600e159a6fe5",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/基础设施、中间件与通用工具.md",
+      "chapter_number": "5.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/后端环境配置.md": {
+      "content_hash": "06f4d6b3cee6b3285634a71829407cac002cfd4c09580e046d53dcf630c7c00f",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/后端环境配置.md",
+      "chapter_number": "2.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/领域层设计：业务模型与用例.md": {
+      "content_hash": "e2b6e154de730ead827851e04147a881950a79f697dce94a7b55722fb78d9c03",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/领域层设计：业务模型与用例.md",
+      "chapter_number": "7.2.2.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/内容发现与分发体系逻辑.md": {
+      "content_hash": "bd6c6ac249abdec8fd2270c738333e124a8e631e22dcf972278e48c783a1081e",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/内容发现与分发体系逻辑.md",
+      "chapter_number": "3.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/核心功能：沉浸式播放器与剧场流实现.md": {
+      "content_hash": "2d59fac984c6687b9c0ae690089263fdd032c5913766c811fd762f28b40ef719",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/核心功能：沉浸式播放器与剧场流实现.md",
+      "chapter_number": "6.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心.md": {
+      "content_hash": "caf6be3a0bbd18a27c20143a89b8537bed412d5cd68ee5d6cb205aa0fb284982",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心.md",
+      "chapter_number": "8"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/代码风格与自动化 Lint 规范.md": {
+      "content_hash": "c4c184682bf728297252f647589627b04e7f95a73da2f357823c5748a60855b2",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/代码风格与自动化 Lint 规范.md",
+      "chapter_number": "9.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/跨端通信与 JSBridge 协议.md": {
+      "content_hash": "ae3351af75f9e6cf6ccad4ecda1c3bbf75885cbc6b0e5ef09b2c58cdddeb6b8c",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/跨端通信与 JSBridge 协议.md",
+      "chapter_number": "4.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）.md": {
+      "content_hash": "f12a689f0c4d29c92b154ee8700cfa51641e7399e77bc6135c659e50cd26d593",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）.md",
+      "chapter_number": "6"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/依赖注入与核心基础设施.md": {
+      "content_hash": "1354c8b617be9361793dfe6951ad9e1917bdbca8cd2ac0189a913be5d0f14d09",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/依赖注入与核心基础设施.md",
+      "chapter_number": "7.2.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/部署与监控.md": {
+      "content_hash": "a0c9a9b188039309563872d979a99385a6568d48263f3e55607166409ed662e2",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/部署与监控.md",
+      "chapter_number": "10.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南.md": {
+      "content_hash": "28d895f787c0fc07f3902fae031bdf1f71e44b91803c00b4940c4d470b4d9a8f",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南.md",
+      "chapter_number": "2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/核心业务流程与用户体系.md": {
+      "content_hash": "deb83dcde33b81fc170e49e80fdf4da141be83396bf63139b0e66589ec9bc58d",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/核心业务流程与用户体系.md",
+      "chapter_number": "3.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/业务模块与导航体系.md": {
+      "content_hash": "78547d360031446f7e2386fcfcf5dc9e84ebaecaca5d612dc3e95248c49225a6",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/业务模块与导航体系.md",
+      "chapter_number": "7.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/CI_CD 自动化流水线.md": {
+      "content_hash": "895d1faa277a1cf2fc55e399cc19c22c71327c12e7410655ff58c3882d55110b",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/CI_CD 自动化流水线.md",
+      "chapter_number": "10.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/商城与激励系统业务逻辑.md": {
+      "content_hash": "345bfe4600402500e4010a7759eef2c0a0dcde05c45f2a69499259c69561b324",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/商城与激励系统业务逻辑.md",
+      "chapter_number": "3.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/原生 WebView 容器封装与脚本注入.md": {
+      "content_hash": "15b448e0195426dd11068133e2644d06ae77f3286f29b51176128dcc161e8f03",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/原生 WebView 容器封装与脚本注入.md",
+      "chapter_number": "8.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/技术栈选型.md": {
+      "content_hash": "1949f7784e4162f8d3ce051793c7947598725fa4b2aa2954f09f37aaebca867f",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/技术栈选型.md",
+      "chapter_number": "1.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/文档驱动开发与 Wiki 维护规范.md": {
+      "content_hash": "5739168ced9022aae3f6bcf2a70108c224bc8c15c2a9f4aff4bd5506b63f9abd",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/文档驱动开发与 Wiki 维护规范.md",
+      "chapter_number": "9.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/业务愿景与核心功能.md": {
+      "content_hash": "57108f5c763fa11350e8b02b2ce79513e2d0cd48f57e08d111609b965447b03e",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/业务愿景与核心功能.md",
+      "chapter_number": "1.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/单元测试与集成测试.md": {
+      "content_hash": "ba820e30f574ef8a7f35a091eb6fff271548d7cf24b3694c5b9a0ab650b5ad88",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南/单元测试与集成测试.md",
+      "chapter_number": "10.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/JSBridge 通信协议与消息模型.md": {
+      "content_hash": "b6b23aab3780b2892cf4e248471b95b9b0c9a7b5508b5fe22a885c1135dcb876",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/JSBridge 通信协议与消息模型.md",
+      "chapter_number": "8.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Git 工作流与提交规范.md": {
+      "content_hash": "d0beb47fa1cf75cdfef48fb7530a5af11cf8bd155cb1af78fcb15db5e9bbd0bc",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流/Git 工作流与提交规范.md",
+      "chapter_number": "9.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/混合开发与 Web 容器集成.md": {
+      "content_hash": "7546966a47160f0926a00aa5faf2de97d13413c1664a07d69f89a2c31998a112",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/混合开发与 Web 容器集成.md",
+      "chapter_number": "7.5"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/业务逻辑服务层设计.md": {
+      "content_hash": "e524ec196ffa4d38a9250a176f175e98287e2846dc2ab2a6209df6803660b279",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/业务逻辑服务层设计.md",
+      "chapter_number": "5.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/核心业务功能实现（播放器与剧场）.md": {
+      "content_hash": "d245fffafaa1881d607859640283650d6aa61f5f8dbd1335292c42769c9095cd",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/核心业务功能实现（播放器与剧场）.md",
+      "chapter_number": "7.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/Monorepo 目录结构说明.md": {
+      "content_hash": "7189a92c5aad9c4ef46eb1fbc163303f999ade9c3d0c78e064464bcf560e3953",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/项目总览与愿景/Monorepo 目录结构说明.md",
+      "chapter_number": "1.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现.md": {
+      "content_hash": "d3d5463e37a2dca089dc3e552b99d3aa922db381527e965b87a2a6e49cb8359d",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现.md",
+      "chapter_number": "7.2.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范.md": {
+      "content_hash": "ff30d27d63af3c59763e3ce4146f616a9c5ea9490ae73480d8a8110860c6c0d8",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范.md",
+      "chapter_number": "4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南.md": {
+      "content_hash": "000adcc8d176f6705fa452604ecd5b4bc49a953384816f0f277611ab1daa5d59",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/测试、部署与运维指南.md",
+      "chapter_number": "10"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/API 路由与控制器实现.md": {
+      "content_hash": "67c7bc09195154f2b48f7d8687bd97038043ada39dfc2668f593ed0676e1b3f4",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/后端服务开发指南（Next.js）/API 路由与控制器实现.md",
+      "chapter_number": "5.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/播放器与 Feed 流消费逻辑.md": {
+      "content_hash": "a0df3997524316e56cbac918fdc42b43497d80737363e552d1a4b3a53fe468ad",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/播放器与 Feed 流消费逻辑.md",
+      "chapter_number": "3.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Jetpack Compose UI 体系.md": {
+      "content_hash": "e57294d0384dc2079e1a7966c357ac3a2dca6f1b4f6167b1a754cad7cf4145bb",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Jetpack Compose UI 体系.md",
+      "chapter_number": "7.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/数据流与状态管理.md": {
+      "content_hash": "9734eea43276744d1869b1ca693f16a7772d1d4b5bb279339e5242f1e62c45f5",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/数据流与状态管理.md",
+      "chapter_number": "4.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践.md": {
+      "content_hash": "e7374e38cf7d3e5a9e40d23fb4d01f6de0c23af322b6e59d69b0c9de5fb581b9",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践.md",
+      "chapter_number": "6.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/商城与赚币业务集成逻辑.md": {
+      "content_hash": "1f0a94fbcf0bf0711c51f1b86b404f0687300204be69a2a312ca0e333065e394",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/H5 混合开发与 JSBridge 协议核心/商城与赚币业务集成逻辑.md",
+      "chapter_number": "8.3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/混合业务与 JSBridge 通信实现.md": {
+      "content_hash": "f20f1e8824e283d365a2316db697362a3a1efa759c6d6765a87beb2d42cae9b4",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/混合业务与 JSBridge 通信实现.md",
+      "chapter_number": "6.4"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）.md": {
+      "content_hash": "986c026d2af862f16de6ec84029e9bbbf465fca9c21163c7bac0b078dbe8a513",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）.md",
+      "chapter_number": "7"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/管理后台业务逻辑.md": {
+      "content_hash": "da49358cf09e35f9070b3d0d0aad88780f29d4f0739ff38515644f8fb87c6ce3",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑/管理后台业务逻辑.md",
+      "chapter_number": "3.5"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/数据层实现：仓库、数据源与 DTO.md": {
+      "content_hash": "8bd80048b4e3c00ddf9dd4867494dd1183b2b4d9a148c30e57bc497e65138052",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/Android 客户端开发指南（Compose）/Hilt 依赖注入与数据架构/领域层与数据层实现/数据层实现：仓库、数据源与 DTO.md",
+      "chapter_number": "7.2.2.2"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/Clean Architecture 实践.md": {
+      "content_hash": "36a9d9849ae719ba20658bb1f47507bdcaf1be2df8a00c8463478afee88b4b90",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/技术架构与设计规范/Clean Architecture 实践.md",
+      "chapter_number": "4.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流.md": {
+      "content_hash": "4127f41340e6802bccfd089cfe8f24543055cd392c22432ae9a8e3b38590b20d",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/工程化规范与 AI 辅助工作流.md",
+      "chapter_number": "9"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑.md": {
+      "content_hash": "b8a1ada415788d517fc897e7d7ca0fe52b6d807e39ed62376e55f6cdc622f1ff",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/产品需求与业务逻辑.md",
+      "chapter_number": "3"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/领域层实现与业务逻辑封装.md": {
+      "content_hash": "a03210e20edc566223c7f09b8463c656782179c3dc362319365ef23f41d89794",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/领域驱动设计（DDD）实践/领域层实现与业务逻辑封装.md",
+      "chapter_number": "6.2.1"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/基础能力与网络层封装逻辑.md": {
+      "content_hash": "edde1b9568d186657b67bee112ed898c855345c44b57260238b710927b832f55",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/iOS 客户端开发指南（SwiftUI）/基础能力与网络层封装逻辑.md",
+      "chapter_number": "6.5"
+    },
+    "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/Android 开发环境配置.md": {
+      "content_hash": "8c5e9df5cece9bcbb254b54cbbac11075e709db2c8cdc35f278c4745d331de76",
+      "file_path": "/Users/bytedance/Documents/github/fork-any-application/.trae/deepwiki/快速开始指南/Android 开发环境配置.md",
+      "chapter_number": "2.3"
+    }
+  }
+}
