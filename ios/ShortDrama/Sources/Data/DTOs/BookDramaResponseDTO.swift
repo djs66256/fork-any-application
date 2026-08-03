@@ -7,9 +7,9 @@ struct BookDramaResponseDTO: Codable, Equatable {
     let bookingCount: Int
 
     private enum CodingKeys: String, CodingKey {
-        case dramaID = "dramaId"
+        case dramaID
         case booked
-        case bookingCount = "bookingCount"
+        case bookingCount
     }
 }
 

@@ -4,19 +4,19 @@ import Foundation
 struct RankingDramaDTO: Codable, Equatable {
     let id: String
     let title: String
-    let description: String
-    let coverUrl: String
-    let category: String
-    let episodeCount: Int
+    let description: String?
+    let coverUrl: String?
+    let category: String?
+    let episodeCount: Int?
     let tags: [String]?
     let rating: Double?
-    let createdAt: String
-    let updatedAt: String
-    let contentType: RankingContentTypeDTO
-    let playCount: Int
-    let bookingCount: Int
-    let recommendationScore: Double
-    let isBooked: Bool
+    let createdAt: String?
+    let updatedAt: String?
+    let contentType: RankingContentTypeDTO?
+    let playCount: Int?
+    let bookingCount: Int?
+    let recommendationScore: Double?
+    let isBooked: Bool?
 }
 
 enum RankingContentTypeDTO: String, Codable, Equatable {
@@ -31,26 +31,38 @@ enum RankingContentTypeDTO: String, Codable, Equatable {
             return .ai
         }
     }
+
+    static func fallback(from category: String) -> RankingContentTypeDTO {
+        let normalized = category.lowercased()
+        if normalized.contains("ai") || normalized.contains("动画") || normalized.contains("动漫") || normalized.contains("漫剧") {
+            return .ai
+        }
+        return .liveAction
+    }
 }
 
 extension RankingDramaDTO {
     func toEntity() -> RankingDrama {
-        RankingDrama(
+        let normalizedCategory = category?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let resolvedContentType = contentType?.toEntity()
+            ?? RankingContentTypeDTO.fallback(from: normalizedCategory).toEntity()
+
+        return RankingDrama(
             id: id,
             title: title,
-            description: description,
-            coverUrl: coverUrl,
-            category: category,
-            episodeCount: episodeCount,
-            tags: tags,
+            description: description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
+            coverUrl: coverUrl ?? "",
+            category: normalizedCategory,
+            episodeCount: episodeCount ?? 0,
+            tags: tags?.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty },
             rating: rating,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            contentType: contentType.toEntity(),
-            playCount: playCount,
-            bookingCount: bookingCount,
-            recommendationScore: recommendationScore,
-            isBooked: isBooked
+            createdAt: createdAt ?? "",
+            updatedAt: updatedAt ?? "",
+            contentType: resolvedContentType,
+            playCount: playCount ?? 0,
+            bookingCount: bookingCount ?? 0,
+            recommendationScore: recommendationScore ?? 0,
+            isBooked: isBooked ?? false
         )
     }
 }

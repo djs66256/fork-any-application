@@ -30,11 +30,6 @@ struct RankingListView: View {
                                 onLoadMore()
                             }
                         }
-
-                        if index != dramas.count - 1 {
-                            Divider()
-                                .padding(.leading, 152)
-                        }
                     }
 
                     if isAppending {
@@ -46,7 +41,7 @@ struct RankingListView: View {
                                 .foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, DesignTokens.Spacing.md)
+                        .padding(.vertical, 18)
                     }
 
                     if let appendErrorMessage {
@@ -54,13 +49,13 @@ struct RankingListView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
-                            .padding(.vertical, DesignTokens.Spacing.md)
+                            .padding(.vertical, 18)
                     }
                 }
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .padding(.horizontal, 18)
+                .padding(.top, 10)
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
-            .padding(.horizontal, DesignTokens.Spacing.lg)
             .padding(.bottom, DesignTokens.Spacing.xl)
             .onChange(of: dramas.first?.id) { _, _ in
                 withAnimation(.easeInOut(duration: 0.2)) {

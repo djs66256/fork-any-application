@@ -5,33 +5,39 @@ struct RankingMetricView: View {
     let drama: RankingDrama
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 5) {
             Image(systemName: rankingType.iconName)
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(rankingType.tint)
 
             Text(valueText)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(rankingType.tint)
+                .lineLimit(1)
         }
     }
 
     private var valueText: String {
         switch rankingType {
         case .hot:
-            return "\(formattedCount(drama.playCount))热度"
+            return "\(formattedMetricCount(drama.playCount))热度"
         case .recommend:
-            return "推荐值 \(String(format: "%.1f", drama.recommendationScore))"
+            return "\(formattedMetricCount(recommendDisplayValue))推荐"
         case .booking:
-            return "\(formattedCount(drama.bookingCount))期待"
+            return "\(formattedMetricCount(drama.bookingCount))期待"
         }
     }
 
-    private func formattedCount(_ value: Int) -> String {
-        if value >= 10_000 {
-            return String(format: "%.0f万", Double(value) / 10_000)
-        }
-        return "\(value)"
+    private var recommendDisplayValue: Int {
+        max(drama.playCount / 6, Int(drama.recommendationScore * 10_000))
+    }
+
+    private func formattedMetricCount(_ value: Int) -> String {
+        guard value >= 10_000 else { return "\(value)" }
+
+        let decimalValue = Double(value) / 10_000
+        let formatted = String(format: decimalValue >= 100 ? "%.0f万" : "%.1f万", decimalValue)
+        return formatted.replacingOccurrences(of: ".0万", with: "万")
     }
 }
 
@@ -41,20 +47,13 @@ private extension RankingType {
         case .hot:
             return "flame.fill"
         case .recommend:
-            return "star.fill"
+            return "flame.fill"
         case .booking:
-            return "bell.fill"
+            return "checkmark.seal.fill"
         }
     }
 
     var tint: Color {
-        switch self {
-        case .hot:
-            return Color(red: 1.0, green: 0.49, blue: 0.18)
-        case .recommend:
-            return Color(red: 0.98, green: 0.66, blue: 0.17)
-        case .booking:
-            return Color(red: 1.0, green: 0.49, blue: 0.18)
-        }
+        Color(red: 0.98, green: 0.45, blue: 0.16)
     }
 }

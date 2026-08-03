@@ -12,23 +12,23 @@ struct RankingStateView: View {
     let onLoadMore: () -> Void
 
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: 12) {
             if let bookingErrorMessage {
-                HStack(spacing: DesignTokens.Spacing.sm) {
+                HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(Color(red: 1.0, green: 0.49, blue: 0.18))
+                        .foregroundStyle(Color(red: 0.98, green: 0.45, blue: 0.16))
                     Text(bookingErrorMessage)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.black.opacity(0.56))
                     Spacer(minLength: 0)
                 }
-                .padding(.horizontal, DesignTokens.Spacing.md)
-                .padding(.vertical, DesignTokens.Spacing.sm)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
                 .background {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color.white)
                 }
-                .padding(.horizontal, DesignTokens.Spacing.lg)
+                .padding(.horizontal, 18)
             }
 
             switch viewState {
@@ -60,7 +60,7 @@ struct RankingStateView: View {
             message: "马上为你同步最新的榜单内容。"
         ) {
             ProgressView()
-                .tint(Color(red: 1.0, green: 0.49, blue: 0.18))
+                .tint(Color(red: 0.98, green: 0.45, blue: 0.16))
         }
     }
 
@@ -91,7 +91,7 @@ private struct RankingErrorView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(red: 1.0, green: 0.49, blue: 0.18))
+            .tint(Color(red: 0.98, green: 0.45, blue: 0.16))
         }
     }
 }
@@ -106,7 +106,7 @@ private struct RankingPlaceholderPanel<Action: View>: View {
         VStack(spacing: DesignTokens.Spacing.md) {
             Image(systemName: systemImage)
                 .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(Color(red: 1.0, green: 0.49, blue: 0.18))
+                .foregroundStyle(Color(red: 0.98, green: 0.45, blue: 0.16))
 
             Text(title)
                 .font(.headline)
@@ -125,7 +125,7 @@ private struct RankingPlaceholderPanel<Action: View>: View {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color.white)
         }
-        .padding(.horizontal, DesignTokens.Spacing.lg)
+        .padding(.horizontal, 18)
         .padding(.top, DesignTokens.Spacing.sm)
     }
 }
