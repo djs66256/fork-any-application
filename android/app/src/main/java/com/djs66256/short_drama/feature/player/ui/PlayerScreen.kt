@@ -45,6 +45,7 @@ import com.djs66256.short_drama.domain.model.Episode
 import com.djs66256.short_drama.feature.comments.model.CommentLoginContext
 import com.djs66256.short_drama.feature.comments.ui.CommentBottomSheet
 import com.djs66256.short_drama.feature.comments.ui.CommentLoginPlaceholderDialog
+import com.djs66256.short_drama.feature.comments.ui.PlayerCommentPreview
 import com.djs66256.short_drama.feature.player.player.PlaceholderPlayerHost
 import com.djs66256.short_drama.feature.player.ui.components.EpisodePickerSheetContent
 import com.djs66256.short_drama.feature.player.ui.components.PlayerBottomInfo
@@ -295,6 +296,13 @@ private fun PlayerContent(
                         title = playerDisplayTitle(uiState),
                         hotComment = "热评：大伯母没错，要不是大伯母...  展开",
                         authorStatement = "作者声明：内容由AI生成",
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    PlayerCommentPreview(
+                        commentText = "大伯母没错，要不是大伯母...",
+                        onOpenComments = callbacks.onOpenComments,
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))

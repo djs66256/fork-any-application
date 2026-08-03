@@ -19,6 +19,8 @@ import com.djs66256.short_drama.core.auth.AuthBootstrapper
 import com.djs66256.short_drama.core.theme.ShortDramaTheme
 import com.djs66256.short_drama.domain.model.RankingContentType
 import com.djs66256.short_drama.domain.model.RankingType
+import com.djs66256.short_drama.feature.comments.ui.COMMENT_UI_VERIFICATION_SCREEN
+import com.djs66256.short_drama.feature.comments.ui.CommentUiVerificationScreen
 import com.djs66256.short_drama.feature.ranking.model.RankingDramaItemUiModel
 import com.djs66256.short_drama.feature.ranking.model.RankingDetailTagTone
 import com.djs66256.short_drama.feature.ranking.model.RankingDetailTagUiModel
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val navigationViewModel: MainNavigationViewModel by viewModels()
+    private var debugScreenOverride by mutableStateOf<String?>(null)
 
     @Inject
     lateinit var authBootstrapper: AuthBootstrapper
@@ -54,24 +57,32 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background,
                 ) {
                     val showcaseMode = rankingShowcaseMode
-                    if (showcaseMode != null) {
-                        RankingScreenContent(
-                            uiState = rankingShowcaseState(showcaseMode),
-                            onBack = ::finish,
-                            onContentTypeSelected = {},
-                            onRankingTypeSelected = {},
-                            onRetry = {},
-                            onRetryAppend = {},
-                            onLoadNextPage = {},
-                            onOpenPlay = {},
-                            onBook = {},
-                        )
-                    } else {
-                        val navController = rememberNavController()
-                        NavGraph(
-                            navController = navController,
-                            navigationViewModel = navigationViewModel,
-                        )
+                    when {
+                        showcaseMode != null -> {
+                            RankingScreenContent(
+                                uiState = rankingShowcaseState(showcaseMode),
+                                onBack = ::finish,
+                                onContentTypeSelected = {},
+                                onRankingTypeSelected = {},
+                                onRetry = {},
+                                onRetryAppend = {},
+                                onLoadNextPage = {},
+                                onOpenPlay = {},
+                                onBook = {},
+                            )
+                        }
+
+                        debugScreenOverride == COMMENT_UI_VERIFICATION_SCREEN -> {
+                            CommentUiVerificationScreen()
+                        }
+
+                        else -> {
+                            val navController = rememberNavController()
+                            NavGraph(
+                                navController = navController,
+                                navigationViewModel = navigationViewModel,
+                            )
+                        }
                     }
                 }
             }
@@ -93,8 +104,17 @@ class MainActivity : ComponentActivity() {
     }
 
     fun handleDeepLink(intent: Intent) {
+        val debugScreen = intent.getStringExtra(DEBUG_SCREEN_KEY)
+        debugScreenOverride = debugScreen?.takeIf { it == COMMENT_UI_VERIFICATION_SCREEN }
+        if (debugScreenOverride != null) {
+            return
+        }
         val route = DeeplinkRouteParser.parse(intent.data) ?: return
         navigationViewModel.enqueuePendingRoute(route)
+    }
+
+    private companion object {
+        const val DEBUG_SCREEN_KEY = "debug_screen"
     }
 }
 

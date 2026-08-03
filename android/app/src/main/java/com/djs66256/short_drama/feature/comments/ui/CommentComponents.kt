@@ -1,144 +1,136 @@
 package com.djs66256.short_drama.feature.comments.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.InsertEmoticon
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material.icons.outlined.ThumbUpOffAlt
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.djs66256.short_drama.domain.model.CommentSort
 import com.djs66256.short_drama.feature.comments.model.CommentUiModel
 import com.djs66256.short_drama.feature.comments.viewmodel.CommentListState
 import com.djs66256.short_drama.feature.comments.viewmodel.CommentUiState
-import kotlin.math.absoluteValue
 
-internal val CommentSheetSurface = Color(0xFFF7F7F8)
-private val CommentSheetDivider = Color(0xFFE7E7EA)
-private val CommentHandleColor = Color(0xFF171717)
-private val CommentTitleColor = Color(0xFF161616)
-private val CommentPrimaryTextColor = Color(0xFF191919)
-private val CommentSecondaryTextColor = Color(0xFF98989E)
-private val CommentActionTextColor = Color(0xFF5F6065)
-private val CommentSearchTextColor = Color(0xFF2674D9)
-private val CommentInputSurface = Color(0xFFEDEDEF)
-private val CommentInputHintColor = Color(0xFFA7A7AD)
-private val CommentLikeBorder = Color(0xFFB7B7BC)
-private val CommentPlaceholderAvatar = listOf(
-    Color(0xFFE7F1FF),
-    Color(0xFFCADBFF),
-    Color(0xFF87A9F7),
+private val CommentSheetBackground = Color(0xFFF8F8F8)
+private val CommentDividerColor = Color(0xFFE7E7E7)
+private val CommentAvatarPalette = listOf(
+    Color(0xFFF7D0D9),
+    Color(0xFFD7E6FF),
+    Color(0xFFFFE2BF),
+    Color(0xFFD8F0E2),
+    Color(0xFFE8D9FF),
 )
-private val CommentPlaceholderAvatarAccent = Color(0xFFF7FBFF)
+private val CommentPrimaryText = Color(0xFF111111)
+private val CommentSecondaryText = Color(0xFF999999)
+private val CommentLinkBlue = Color(0xFF2E6FE8)
+private val CommentIconTint = Color(0xFF151515)
+private val CommentLikedTint = Color(0xFFEF4444)
+private val CommentCountText = Color(0xFF1A1A1A)
+private val CommentSheetTopRadius = 28.dp
+private val CommentAvatarSize = 42.dp
+private val CommentBottomInputHeight = 48.dp
 
 @Composable
 fun CommentHeader(
     totalCount: Int,
     selectedSort: CommentSort,
-    onDismiss: () -> Unit,
     onSelectSort: (CommentSort) -> Unit,
     modifier: Modifier = Modifier,
+    onDismiss: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .width(52.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .background(CommentHandleColor),
-            )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .size(30.dp),
-            ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            onDismiss?.let {
                 Icon(
-                    imageVector = Icons.Outlined.Close,
-                    contentDescription = "关闭评论",
-                    tint = CommentTitleColor,
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = "收起评论",
+                    tint = CommentPrimaryText,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .size(28.dp)
+                        .clickable(onClick = it),
                 )
             }
             Text(
-                text = formatCommentCount(totalCount),
-                color = CommentTitleColor,
-                fontSize = 18.sp,
+                text = "${totalCount}条评论",
+                style = MaterialTheme.typography.titleLarge,
+                color = CommentPrimaryText,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.align(Alignment.Center),
             )
         }
+        CommentSearchRow(
+            onSelectSort = onSelectSort,
+            selectedSort = selectedSort,
+        )
+    }
+}
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "大家都在搜：",
-                color = CommentPrimaryTextColor,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = headlineKeyword(selectedSort),
-                color = CommentSearchTextColor,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-        }
+@Composable
+private fun CommentSearchRow(
+    selectedSort: CommentSort,
+    onSelectSort: (CommentSort) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "大家都在搜：",
+            style = MaterialTheme.typography.bodyLarge,
+            color = CommentPrimaryText,
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = "都重生了，谁还装富二代啊第三季",
+            style = MaterialTheme.typography.bodyLarge,
+            color = CommentLinkBlue,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
     }
 }
 
@@ -149,6 +141,7 @@ fun CommentListSection(
     onToggleLike: (String) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(bottom = 8.dp),
 ) {
     when (uiState.listState) {
         CommentListState.Loading -> CommentLoadingState(modifier = modifier)
@@ -167,6 +160,7 @@ fun CommentListSection(
             onToggleLike = onToggleLike,
             onLoadMore = onLoadMore,
             modifier = modifier,
+            contentPadding = contentPadding,
         )
         CommentListState.Idle -> CommentLoadingState(modifier = modifier)
     }
@@ -182,15 +176,18 @@ fun CommentItems(
     onToggleLike: (String) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(bottom = 8.dp),
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
+        contentPadding = contentPadding,
     ) {
-        items(items = comments, key = { it.id }) { comment ->
+        itemsIndexed(items = comments, key = { _, item -> item.id }) { index, comment ->
             CommentRow(
                 comment = comment,
                 liking = comment.id in likingCommentIds,
+                showExpandReplies = index == 0,
                 onToggleLike = { onToggleLike(comment.id) },
             )
         }
@@ -203,28 +200,22 @@ fun CommentItems(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
+                        .padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        color = CommentActionTextColor,
-                        modifier = Modifier.size(20.dp),
-                    )
+                    CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
                 }
             }
         } else if (hasNextPage) {
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 10.dp),
-                    contentAlignment = Alignment.Center,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = "展开更多评论",
-                        color = CommentActionTextColor,
+                        text = "加载更多",
+                        color = CommentSecondaryText,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.clickable(onClick = onLoadMore),
                     )
@@ -238,64 +229,138 @@ fun CommentItems(
 fun CommentRow(
     comment: CommentUiModel,
     liking: Boolean,
+    showExpandReplies: Boolean,
     onToggleLike: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Top,
     ) {
         CommentAvatar(
-            displayName = comment.userDisplayName,
-            modifier = Modifier.size(40.dp),
+            name = comment.userDisplayName,
+            modifier = Modifier.padding(top = 2.dp),
         )
-
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = comment.userDisplayName.ifBlank { "匿名用户" },
-                style = MaterialTheme.typography.bodyLarge,
-                color = CommentSecondaryTextColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                text = comment.userDisplayName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal,
+                color = CommentSecondaryText,
             )
             Text(
                 text = comment.content,
                 style = MaterialTheme.typography.bodyLarge,
-                color = CommentPrimaryTextColor,
-                lineHeight = 24.sp,
+                color = CommentPrimaryText,
             )
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    text = formatCommentTime(comment.createdAt),
+                    text = comment.createdAt,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CommentSecondaryTextColor,
+                    color = CommentSecondaryText,
                 )
-                Spacer(modifier = Modifier.width(18.dp))
                 Text(
                     text = "回复",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = CommentActionTextColor,
+                    color = CommentSecondaryText,
                 )
             }
-            if (showReplyEntry(comment)) {
-                ReplyExpandLabel(count = replyCountSeed(comment))
+            if (showExpandReplies) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(44.dp)
+                            .height(1.dp)
+                            .background(CommentDividerColor),
+                    )
+                    Text(
+                        text = "展开35条回复",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color(0xFF5D5D5D),
+                    )
+                    Icon(
+                        imageVector = Icons.Outlined.ExpandMore,
+                        contentDescription = null,
+                        tint = Color(0xFF5D5D5D),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
-
         CommentLikeButton(
-            liked = comment.liked,
             likeCount = comment.likeCount,
+            liked = comment.liked,
             enabled = !liking,
             onClick = onToggleLike,
+        )
+    }
+}
+
+@Composable
+private fun CommentAvatar(
+    name: String,
+    modifier: Modifier = Modifier,
+) {
+    val paletteColor = remember(name) {
+        val safeHash = name.hashCode().let { if (it == Int.MIN_VALUE) 0 else kotlin.math.abs(it) }
+        CommentAvatarPalette[safeHash % CommentAvatarPalette.size]
+    }
+    Box(
+        modifier = modifier
+            .size(CommentAvatarSize)
+            .clip(CircleShape)
+            .background(paletteColor),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = name.trim().take(1).ifBlank { "评" },
+            color = Color.White,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
+private fun CommentLikeButton(
+    likeCount: Int,
+    liked: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    Column(
+        modifier = Modifier
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(top = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.FavoriteBorder,
+            contentDescription = "点赞",
+            tint = if (liked) CommentLikedTint else CommentSecondaryText,
+            modifier = Modifier.size(30.dp),
+        )
+        Text(
+            text = likeCount.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = CommentCountText,
         )
     }
 }
@@ -309,67 +374,62 @@ fun CommentComposer(
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(24.dp))
-                .background(CommentInputSurface)
-                .padding(horizontal = 18.dp, vertical = 12.dp),
-            contentAlignment = Alignment.CenterStart,
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            BasicTextField(
+            OutlinedTextField(
                 value = inputText,
                 onValueChange = onInputChanged,
-                enabled = !isSubmitting,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.merge(
-                    TextStyle(color = CommentPrimaryTextColor),
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                keyboardActions = KeyboardActions(onSend = { onSubmit() }),
-                cursorBrush = SolidColor(CommentTitleColor),
-                modifier = Modifier.fillMaxWidth(),
-                decorationBox = { innerTextField ->
-                    if (inputText.isBlank()) {
-                        Text(
-                            text = composerDisplayText(
-                                inputText = inputText,
-                                errorMessage = errorMessage,
-                                isSubmitting = isSubmitting,
-                            ),
-                            color = if (errorMessage == null && !isSubmitting) {
-                                CommentInputHintColor
-                            } else {
-                                CommentPrimaryTextColor
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                    innerTextField()
+                modifier = Modifier
+                    .weight(1f)
+                    .height(CommentBottomInputHeight),
+                placeholder = {
+                    Text(
+                        "有趣评论千千万，不如你也来一条？",
+                        color = CommentSecondaryText,
+                    )
                 },
+                singleLine = true,
+                maxLines = 1,
+                shape = RoundedCornerShape(24.dp),
+                enabled = !isSubmitting,
             )
-        }
-        IconButton(onClick = onSubmit, enabled = !isSubmitting) {
             Icon(
-                imageVector = Icons.Outlined.PhotoLibrary,
-                contentDescription = "图片评论",
-                tint = CommentTitleColor,
+                imageVector = Icons.Outlined.Image,
+                contentDescription = "图片",
+                tint = CommentIconTint,
+                modifier = Modifier.size(32.dp),
             )
-        }
-        IconButton(onClick = onSubmit, enabled = !isSubmitting) {
             Icon(
                 imageVector = Icons.Outlined.InsertEmoticon,
-                contentDescription = "表情评论",
-                tint = CommentTitleColor,
+                contentDescription = "表情",
+                tint = CommentIconTint,
+                modifier = Modifier.size(32.dp),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            Text(
+                text = if (isSubmitting) "发送中" else "发送",
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isSubmitting) CommentSecondaryText else CommentLinkBlue,
+                modifier = Modifier.clickable(enabled = !isSubmitting, onClick = onSubmit),
             )
         }
     }
@@ -377,36 +437,28 @@ fun CommentComposer(
 
 @Composable
 fun CommentLoadingState(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        CircularProgressIndicator(
-            strokeWidth = 2.dp,
-            color = CommentActionTextColor,
-            modifier = Modifier.size(24.dp),
-        )
+        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(24.dp))
     }
 }
 
 @Composable
 fun CommentEmptyState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = "暂无评论",
-            color = CommentPrimaryTextColor,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = "快来抢沙发",
-            color = CommentSecondaryTextColor,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Text("暂无评论", style = MaterialTheme.typography.titleMedium, color = CommentPrimaryText)
+        Text("快来抢沙发", style = MaterialTheme.typography.bodyMedium, color = CommentSecondaryText)
     }
 }
 
@@ -417,43 +469,16 @@ fun CommentErrorState(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Text(
-            text = "加载失败",
-            color = CommentPrimaryTextColor,
-            style = MaterialTheme.typography.titleLarge,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = message,
-            color = CommentSecondaryTextColor,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Spacer(modifier = Modifier.height(14.dp))
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = CommentInputSurface,
-            modifier = Modifier.clickable(onClick = onRetry),
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Refresh,
-                    contentDescription = "重试加载",
-                    tint = CommentActionTextColor,
-                )
-                Text(
-                    text = "重试",
-                    color = CommentPrimaryTextColor,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+        Text("加载失败", style = MaterialTheme.typography.titleMedium, color = CommentPrimaryText)
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = CommentSecondaryText)
+        Button(onClick = onRetry) {
+            Text("重试")
         }
     }
 }
@@ -466,177 +491,89 @@ private fun CommentAppendFooter(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = message,
-            color = CommentSecondaryTextColor,
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Text(message, style = MaterialTheme.typography.bodyMedium, color = CommentSecondaryText)
         Text(
             text = "重试加载更多",
-            color = CommentActionTextColor,
             style = MaterialTheme.typography.bodyMedium,
+            color = CommentLinkBlue,
             modifier = Modifier.clickable(onClick = onLoadMore),
         )
     }
 }
 
 @Composable
-private fun CommentAvatar(
-    displayName: String,
+fun PlayerCommentPreview(
+    commentText: String,
+    onOpenComments: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val seed = displayName.hashCode().absoluteValue
-    val rotation = (seed % 360).toFloat()
-    BoxWithConstraints(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(
-                Brush.linearGradient(
-                    colors = CommentPlaceholderAvatar,
-                    start = Offset.Zero,
-                    end = Offset(120f, 120f),
-                ),
-            ),
-    ) {
-        val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
-        val heightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(
-                color = CommentPlaceholderAvatarAccent.copy(alpha = 0.95f),
-                radius = size.minDimension * 0.2f,
-                center = Offset(x = size.width * 0.5f, y = size.height * 0.33f),
-            )
-            drawRoundRect(
-                color = CommentPlaceholderAvatarAccent.copy(alpha = 0.96f),
-                topLeft = Offset(x = size.width * 0.24f, y = size.height * 0.53f),
-                size = androidx.compose.ui.geometry.Size(
-                    width = size.width * 0.52f,
-                    height = size.height * 0.34f,
-                ),
-                cornerRadius = androidx.compose.ui.geometry.CornerRadius(
-                    x = size.width * 0.2f,
-                    y = size.width * 0.2f,
-                ),
-            )
-            rotate(rotation) {
-                drawLine(
-                    brush = SolidColor(CommentPlaceholderAvatarAccent.copy(alpha = 0.55f)),
-                    start = Offset(x = -widthPx * 0.1f, y = heightPx * 0.75f),
-                    end = Offset(x = widthPx * 1.1f, y = heightPx * 0.22f),
-                    strokeWidth = widthPx * 0.08f,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReplyExpandLabel(count: Int) {
     Row(
-        modifier = Modifier.padding(top = 4.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenComments),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .width(34.dp)
-                .height(1.dp)
-                .background(CommentSheetDivider),
-        )
-        Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = "展开${count}条回复",
-            color = CommentActionTextColor,
+            text = "热评：",
+            color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
         )
+        Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = "⌄",
-            color = CommentActionTextColor,
+            text = commentText,
+            color = Color.White,
             style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Icon(
+            imageVector = Icons.Outlined.ExpandMore,
+            contentDescription = "展开评论",
+            tint = Color.White,
+            modifier = Modifier.size(18.dp),
         )
     }
 }
 
 @Composable
-private fun CommentLikeButton(
-    liked: Boolean,
-    likeCount: Int,
-    enabled: Boolean,
-    onClick: () -> Unit,
+fun CommentSheetContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .width(52.dp)
-            .clickable(enabled = enabled, onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = CommentSheetBackground,
+        shape = RoundedCornerShape(topStart = CommentSheetTopRadius, topEnd = CommentSheetTopRadius),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CommentSheetBackground)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            content = content,
+        )
+    }
+}
+
+@Composable
+fun CommentSheetDragHandle(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .size(34.dp)
-                .border(1.5.dp, CommentLikeBorder, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.ThumbUpOffAlt,
-                contentDescription = "点赞评论",
-                tint = if (liked) CommentTitleColor else CommentActionTextColor,
-                modifier = Modifier.size(18.dp),
-            )
-        }
-        if (likeCount > 0) {
-            Text(
-                text = likeCount.toString(),
-                color = CommentActionTextColor,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-}
-
-private fun formatCommentCount(totalCount: Int): String {
-    return if (totalCount > 0) {
-        "${totalCount}条评论"
-    } else {
-        "评论"
-    }
-}
-
-private fun headlineKeyword(sort: CommentSort): String {
-    return when (sort) {
-        CommentSort.LATEST -> "都重生了，谁还装富二代啊第三季"
-        CommentSort.HOT -> "大家都在聊最新神评论"
-    }
-}
-
-private fun formatCommentTime(createdAt: String): String {
-    val raw = createdAt.trim()
-    if (raw.isBlank()) {
-        return "刚刚"
-    }
-    return if (raw.length >= 10 && raw[4] == '-') raw.substring(5, 10) else raw.replace('T', ' ').take(10)
-}
-
-private fun showReplyEntry(comment: CommentUiModel): Boolean {
-    return comment.likeCount >= 10 || comment.content.length >= 12
-}
-
-private fun replyCountSeed(comment: CommentUiModel): Int {
-    return (comment.likeCount.coerceAtLeast(1) % 35) + 23
-}
-
-private fun composerDisplayText(
-    inputText: String,
-    errorMessage: String?,
-    isSubmitting: Boolean,
-): String {
-    return when {
-        errorMessage != null -> errorMessage
-        isSubmitting -> "发送中..."
-        inputText.isNotBlank() -> inputText
-        else -> "有趣评论千千万，不如你也来一条？"
+                .width(42.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(100.dp))
+                .background(Color(0xFFD5D5D5)),
+        )
     }
 }
