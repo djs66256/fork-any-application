@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.matchParentSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -411,7 +411,7 @@ private fun CommentLikeButton(
         ) {
             Box(
                 modifier = Modifier
-                    .matchParentSize()
+                    .fillMaxSize()
                     .clip(CommentHeartOutline)
                     .background(CommentSheetBackground),
             )
@@ -419,7 +419,7 @@ private fun CommentLikeButton(
                 Box(
                     modifier = Modifier
                         .padding(2.dp)
-                        .matchParentSize()
+                        .fillMaxSize()
                         .clip(CommentHeartOutline)
                         .background(CommentLikedTint),
                 )
@@ -653,6 +653,6 @@ fun CommentSheetDragHandle(modifier: Modifier = Modifier) {
 private fun trendingSearchKeyword(selectedSort: CommentSort): String {
     return when (selectedSort) {
         CommentSort.LATEST -> "都重生了，谁还装富二代啊第三季"
-        CommentSort.HOTTEST -> "红果短剧热评榜"
+        CommentSort.HOT -> "红果短剧热评榜"
     }
 }
