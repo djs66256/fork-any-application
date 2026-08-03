@@ -5,14 +5,16 @@ struct ClassificationGenderTabBar: View {
     let onSelect: (ClassificationGender) -> Void
 
     var body: some View {
-        HStack(spacing: 30) {
+        HStack(spacing: 4) {
             ForEach(ClassificationGender.allCases, id: \.self) { gender in
                 Button {
                     onSelect(gender)
                 } label: {
                     Text(displayTitle(for: gender))
-                        .font(.system(size: selectedGender == gender ? 19 : 18, weight: selectedGender == gender ? .semibold : .medium))
-                        .foregroundStyle(selectedGender == gender ? Color.black : Color(red: 0.58, green: 0.58, blue: 0.58))
+                        .font(.system(size: selectedGender == gender ? 22 : 19, weight: selectedGender == gender ? .semibold : .medium))
+                        .foregroundStyle(selectedGender == gender ? Color.black : Color(red: 0.64, green: 0.64, blue: 0.64))
+                        .frame(minWidth: 68, alignment: .leading)
+                        .padding(.vertical, 2)
                 }
                 .buttonStyle(.plain)
             }

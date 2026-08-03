@@ -26,8 +26,8 @@ struct ClassificationStateView<Content: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color(red: 0.97, green: 0.97, blue: 0.97))
         )
     }
 
@@ -54,8 +54,8 @@ struct ClassificationStateView<Content: View>: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 24)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color(red: 0.97, green: 0.97, blue: 0.97))
         )
     }
 }

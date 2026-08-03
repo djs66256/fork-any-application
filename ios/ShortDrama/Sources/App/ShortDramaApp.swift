@@ -32,6 +32,8 @@ struct ShortDramaApp: App {
             CommentPreviewEntryView()
         } else if let scenario = RankingScreenshotScenario.fromEnvironment() {
             RankingScreenshotHostView(scenario: scenario)
+        } else if let scenario = ClassificationScreenshotScenario.fromEnvironment() {
+            ClassificationScreenshotHostView(scenario: scenario)
         } else {
             AppShellView()
         }

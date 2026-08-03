@@ -4,15 +4,16 @@ struct ClassificationTagSectionList: View {
     let dimensions: [ClassificationDimension]
     let scrollTarget: ClassificationDimensionKey?
     let scrollResetSeed: Int
+    let showsThemeExpandIndicator: Bool
     let onTapTag: (String) -> Void
     let onVisibleDimensionChange: (ClassificationDimensionKey) -> Void
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+    private let columns = Array(repeating: GridItem(.flexible(minimum: 0, maximum: .infinity), spacing: 10), count: 3)
 
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 26) {
+                LazyVStack(alignment: .leading, spacing: 34) {
                     ForEach(dimensions) { dimension in
                         sectionView(for: dimension)
                             .id(dimension.key)
@@ -32,14 +33,15 @@ struct ClassificationTagSectionList: View {
                             )
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 18)
+                .padding(.horizontal, 14)
+                .padding(.top, 16)
+                .padding(.bottom, 24)
             }
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color.white)
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color(red: 0.968, green: 0.968, blue: 0.968))
             )
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .coordinateSpace(name: "classificationTagScroll")
             .scrollIndicators(.hidden)
             .onChange(of: scrollTarget) { _, newValue in
@@ -72,18 +74,21 @@ struct ClassificationTagSectionList: View {
     @ViewBuilder
     private func sectionView(for dimension: ClassificationDimension) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(dimension.name)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(Color(red: 0.66, green: 0.66, blue: 0.66))
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Color(red: 0.72, green: 0.72, blue: 0.72))
 
                 Spacer(minLength: 0)
 
-                if dimension.key == .themePlot, dimension.tags.count > 12 {
-                    Label("展开", systemImage: "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color(red: 0.66, green: 0.66, blue: 0.66))
-                        .labelStyle(.titleAndIcon)
+                if dimension.key == .themePlot, showsThemeExpandIndicator {
+                    HStack(spacing: 1) {
+                        Text("展开")
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 9, weight: .medium))
+                    }
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(Color(red: 0.70, green: 0.70, blue: 0.70))
                 }
             }
 
@@ -99,7 +104,7 @@ struct ClassificationTagSectionList: View {
                             .fill(Color(red: 0.96, green: 0.96, blue: 0.96))
                     )
             } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
                     ForEach(dimension.tags, id: \.self) { tag in
                         ClassificationTagChip(title: tag) {
                             onTapTag(tag)
