@@ -24,46 +24,55 @@ struct CheckInPopupView: View {
     )
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.6)
-                .ignoresSafeArea()
+        GeometryReader { proxy in
+            ZStack {
+                Color.black.opacity(0.6)
+                    .ignoresSafeArea()
 
-            VStack(spacing: DesignTokens.Spacing.lg) {
-                VStack(spacing: DesignTokens.Spacing.lg) {
-                    titleSection
-                    rewardGrid
-                    claimButton
-                    footerText
-                }
-                .padding(.horizontal, DesignTokens.Spacing.xl)
-                .padding(.top, DesignTokens.Spacing.xxl)
-                .padding(.bottom, DesignTokens.Spacing.xl)
-                .frame(maxWidth: 360)
-                .background(popupBackground)
-                .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl))
-                .overlay {
-                    RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl)
-                        .stroke(Color.white.opacity(0.28), lineWidth: 1)
-                }
-                .shadow(color: .black.opacity(0.24), radius: 20, y: 12)
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: DesignTokens.Spacing.lg) {
+                        VStack(spacing: DesignTokens.Spacing.lg) {
+                            titleSection
+                            rewardGrid
+                            claimButton
+                            footerText
+                        }
+                        .padding(.horizontal, DesignTokens.Spacing.xl)
+                        .padding(.top, DesignTokens.Spacing.xxl)
+                        .padding(.bottom, DesignTokens.Spacing.xl)
+                        .frame(maxWidth: 360)
+                        .background(popupBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl)
+                                .stroke(Color.white.opacity(0.28), lineWidth: 1)
+                        }
+                        .shadow(color: .black.opacity(0.24), radius: 20, y: 12)
 
-                Button(action: onClose) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.black.opacity(0.2))
-                            .frame(width: 56, height: 56)
-                        Circle()
-                            .stroke(Color.white.opacity(0.4), lineWidth: 1)
-                            .frame(width: 56, height: 56)
-                        Image(systemName: "xmark")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundStyle(.white)
+                        Button(action: onClose) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.black.opacity(0.2))
+                                    .frame(width: 56, height: 56)
+                                Circle()
+                                    .stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                    .frame(width: 56, height: 56)
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("关闭签到弹窗")
                     }
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: proxy.size.height, alignment: .center)
+                    .padding(.horizontal, DesignTokens.Spacing.xl)
+                    .padding(.top, max(proxy.safeAreaInsets.top, DesignTokens.Spacing.lg))
+                    .padding(.bottom, max(proxy.safeAreaInsets.bottom, DesignTokens.Spacing.xl))
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("关闭签到弹窗")
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .padding(DesignTokens.Spacing.xl)
         }
     }
 

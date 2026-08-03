@@ -192,8 +192,12 @@ private struct HomeFeedListView: View {
     let onComment: (Drama) -> Void
     let onDetail: (Drama) -> Void
 
+    private let minimumCardHeight: CGFloat = 400
+
     var body: some View {
         GeometryReader { proxy in
+            let cardMinHeight = max(proxy.size.height * 0.72, minimumCardHeight)
+
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: DesignTokens.Spacing.md) {
                     ForEach(dramas) { drama in
@@ -203,12 +207,12 @@ private struct HomeFeedListView: View {
                             onDetail: { onDetail(drama) },
                             onComment: { onComment(drama) }
                         )
-                        .frame(minHeight: max(proxy.size.height - 24, 620))
+                        .frame(minHeight: cardMinHeight)
                     }
                 }
                 .padding(.horizontal, DesignTokens.Spacing.md)
                 .padding(.top, DesignTokens.Spacing.sm)
-                .padding(.bottom, 116)
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
             .background(Color.black)
         }

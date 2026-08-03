@@ -117,6 +117,7 @@ struct RankingPageScaffold<Content: View>: View {
             headerBackground
                 .frame(height: 236)
                 .clipShape(Rectangle())
+                .ignoresSafeArea(edges: .top)
 
             VStack(spacing: 0) {
                 HStack {
@@ -160,7 +161,6 @@ struct RankingPageScaffold<Content: View>: View {
         }
         .frame(height: 236)
         .clipShape(Rectangle())
-        .ignoresSafeArea(edges: .top)
     }
 
     private var tabSection: some View {

@@ -56,3 +56,4 @@ npm-debug.log*
 
 test-results/
 .tmp/
+.pi-subagents/

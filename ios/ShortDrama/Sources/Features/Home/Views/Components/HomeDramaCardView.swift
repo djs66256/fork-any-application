@@ -73,7 +73,7 @@ struct HomeDramaCardView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: 620)
+        .frame(minHeight: 400)
         .background(Color.black)
         .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
         .overlay {

@@ -3,6 +3,8 @@ import SwiftUI
 struct MenuPanelView: View {
     let state: MenuPanelViewModel.RecentlyViewedState
     let isRetrying: Bool
+    let topSafeAreaInset: CGFloat
+    let bottomSafeAreaInset: CGFloat
     let onTapLogin: () -> Void
     let onTapRecentlyViewed: (RecentlyViewedItem) -> Void
     let onTapBooking: () -> Void
@@ -28,8 +30,8 @@ struct MenuPanelView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 18)
-            .padding(.top, 26)
-            .padding(.bottom, 28)
+            .padding(.top, max(topSafeAreaInset + DesignTokens.Spacing.md, 26))
+            .padding(.bottom, max(bottomSafeAreaInset + DesignTokens.Spacing.lg, 28))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(MenuPanelStyle.panelBackground)

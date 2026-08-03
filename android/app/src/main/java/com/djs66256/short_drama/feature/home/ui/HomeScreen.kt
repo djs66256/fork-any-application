@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.djs66256.short_drama.core.theme.HomeFeedAccent
@@ -121,9 +123,7 @@ fun HomeScreen(
             )
 
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 116.dp),
+                modifier = Modifier.fillMaxSize(),
             ) {
                 when {
                     uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
@@ -134,6 +134,7 @@ fun HomeScreen(
                     uiState.items.isEmpty() -> HomeFeedEmptyState()
                     else -> LazyColumn(
                         modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = homeFeedBottomContentPadding()),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(items = uiState.items, key = { it.id }) { drama ->
@@ -789,11 +790,23 @@ private fun buildCoverWatermark(drama: Drama): String {
 internal const val HOME_MENU_ENTRY_CONTENT_DESCRIPTION = "打开菜单"
 internal const val HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION = "打开搜索"
 
+private val HOME_FRAME_CTA_HEIGHT = 60.dp
+private val HOME_FRAME_CTA_VERTICAL_MARGIN = 16.dp
+private val HOME_FEED_BOTTOM_CONTENT_SPACING = 12.dp
+
 internal fun shouldRenderCheckInPopup(isPopupVisible: Boolean, hasBlockingModal: Boolean): Boolean {
     return isPopupVisible && !hasBlockingModal
 }
 
 internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.trim().isNotEmpty()
+
+internal fun homeFeedBottomContentPadding(
+    ctaHeight: Dp = HOME_FRAME_CTA_HEIGHT,
+    ctaVerticalMargin: Dp = HOME_FRAME_CTA_VERTICAL_MARGIN,
+    extraSpacing: Dp = HOME_FEED_BOTTOM_CONTENT_SPACING,
+): Dp {
+    return ctaHeight + ctaVerticalMargin + extraSpacing
+}
 
 internal fun buildDramaMeta(drama: Drama): String {
     val parts = buildList {

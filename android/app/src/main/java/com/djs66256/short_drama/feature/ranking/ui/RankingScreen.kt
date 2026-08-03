@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -60,6 +62,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -128,20 +131,28 @@ fun RankingScreenContent(
     onBook: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = RankingPageBackground,
-    ) { innerPadding ->
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) {
+        val safeStatusBarPadding = with(density) {
+            WindowInsets.statusBars.getTop(this).toDp()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(RankingPageBackground)
-                .padding(innerPadding),
+                .background(RankingPageBackground),
         ) {
+            val headerTopPadding = rankingHeaderTopPadding(safeStatusBarPadding)
             RankingHeader(
                 selectedContentType = uiState.selectedContentType,
                 selectedRankingType = uiState.selectedRankingType,
                 onBack = onBack,
+                topInset = headerTopPadding,
             )
             Box(
                 modifier = Modifier
@@ -185,6 +196,7 @@ private fun RankingHeader(
     selectedContentType: RankingContentType,
     selectedRankingType: RankingType,
     onBack: () -> Unit,
+    topInset: Dp,
 ) {
     val headerPalette = rankingHeaderPalette(selectedRankingType)
 
@@ -210,7 +222,7 @@ private fun RankingHeader(
             onClick = onBack,
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(start = 18.dp, top = 26.dp)
+                .padding(start = 18.dp, top = topInset + 8.dp)
                 .size(36.dp),
         ) {
             Icon(
@@ -224,7 +236,7 @@ private fun RankingHeader(
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 22.dp, end = 18.dp),
+                .padding(top = topInset + 4.dp, end = 18.dp),
             shape = CircleShape,
             color = Color.White.copy(alpha = 0.16f),
         ) {
@@ -1362,6 +1374,8 @@ private fun RankingAppendFooter(
         }
     }
 }
+
+internal fun rankingHeaderTopPadding(statusBarInset: Dp): Dp = statusBarInset.coerceAtLeast(18.dp)
 
 private fun rankingBannerTitle(rankingType: RankingType): String = when (rankingType) {
     RankingType.HOT -> "红果热播榜"

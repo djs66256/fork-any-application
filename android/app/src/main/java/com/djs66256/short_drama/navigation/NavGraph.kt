@@ -2,6 +2,7 @@ package com.djs66256.short_drama.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -195,7 +196,9 @@ fun NavGraph(
             NavHost(
                 navController = navController,
                 startDestination = AppDestination.Graph.HOME,
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
             ) {
                 navigation(
                     startDestination = AppDestination.Route.HOME,

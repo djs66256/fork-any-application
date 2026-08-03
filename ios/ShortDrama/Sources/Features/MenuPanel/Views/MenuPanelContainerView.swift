@@ -22,6 +22,8 @@ struct MenuPanelContainerView: View {
                     MenuPanelView(
                         state: viewModel.viewState,
                         isRetrying: viewModel.isRetrying,
+                        topSafeAreaInset: proxy.safeAreaInsets.top,
+                        bottomSafeAreaInset: proxy.safeAreaInsets.bottom,
                         onTapLogin: {
                             router.closeMenuPanelThenNavigate(to: .menuPlaceholder(kind: .login))
                         },
@@ -45,7 +47,6 @@ struct MenuPanelContainerView: View {
                     .frame(width: panelWidth, alignment: .leading)
                     .frame(maxHeight: .infinity, alignment: .topLeading)
                     .background(MenuPanelStyle.panelBackground)
-                    .ignoresSafeArea(edges: .vertical)
 
                     Spacer(minLength: 0)
                 }

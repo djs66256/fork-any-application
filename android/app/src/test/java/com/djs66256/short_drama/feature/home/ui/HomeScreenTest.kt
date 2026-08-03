@@ -3,6 +3,7 @@ package com.djs66256.short_drama.feature.home.ui
 import com.djs66256.short_drama.domain.model.Drama
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -69,5 +70,22 @@ class HomeScreenTest {
         val title = buildFrameCtaTitle(episodeCount = 0)
 
         assertEquals("观看完整漫剧 · 全1集", title)
+    }
+
+    @Test
+    fun `home feed bottom content padding reserves cta height margin and spacing`() {
+        assertEquals(88.dp, homeFeedBottomContentPadding())
+    }
+
+    @Test
+    fun `home feed bottom content padding remains configurable for different cta sizes`() {
+        assertEquals(
+            124.dp,
+            homeFeedBottomContentPadding(
+                ctaHeight = 80.dp,
+                ctaVerticalMargin = 28.dp,
+                extraSpacing = 16.dp,
+            ),
+        )
     }
 }
