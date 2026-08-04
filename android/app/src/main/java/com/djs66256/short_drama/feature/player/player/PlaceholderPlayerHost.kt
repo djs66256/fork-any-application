@@ -1,5 +1,8 @@
 package com.djs66256.short_drama.feature.player.player
 
+import android.media.MediaPlayer
+import android.net.Uri
+import android.widget.VideoView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,16 +14,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
+import kotlinx.coroutines.delay
 
 class PlaceholderNativePlayerAdapter : NativePlayerAdapter {
     private var currentPosition: Double = 0.0
@@ -49,8 +63,6 @@ private val PosterOrange = Color(0xFFFFA83D)
 private val PosterSkin = Color(0xFFAE7F65)
 private val PosterSkinShade = Color(0xFF7F594A)
 private val PosterBlueGray = Color(0xFF5C657D)
-private val PosterForest = Color(0xFF13291F)
-private val PosterBrown = Color(0xFF4A362F)
 private val PosterSteel = Color(0xFF9C9A9D)
 private val PosterScar = Color(0xFF7A3730)
 private val PlayerBackground = Color(0xFF000000)
@@ -59,11 +71,173 @@ private val PlayerBackground = Color(0xFF000000)
 fun PlaceholderPlayerHost(
     uiState: PlayerUiState,
     modifier: Modifier = Modifier,
+    eventAdapter: PlayerEventAdapter = PlayerEventAdapter(),
+) {
+    val sourceUrl = uiState.currentEpisode?.videoUrl.orEmpty().trim()
+    if (sourceUrl.isBlank()) {
+        PosterFallbackHost(
+            uiState = uiState,
+            modifier = modifier,
+        )
+        return
+    }
+
+    NativeVideoPlayerHost(
+        sourceUrl = sourceUrl,
+        resumeProgressSeconds = uiState.resumeProgress,
+        playbackSpeed = uiState.currentSpeed,
+        shouldPlay = uiState.shouldAutoPlayVideo,
+        eventAdapter = eventAdapter,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun NativeVideoPlayerHost(
+    sourceUrl: String,
+    resumeProgressSeconds: Double,
+    playbackSpeed: PlaybackSpeed,
+    shouldPlay: Boolean,
+    eventAdapter: PlayerEventAdapter,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val latestEventAdapter by rememberUpdatedState(eventAdapter)
+    var videoView by remember { mutableStateOf<VideoView?>(null) }
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var isPrepared by remember(sourceUrl) { mutableStateOf(false) }
+    var initialSeekApplied by remember(sourceUrl) { mutableStateOf(false) }
+    val resumePositionMs = remember(sourceUrl, resumeProgressSeconds) {
+        resumeProgressSeconds.coerceAtLeast(0.0).times(1000).toInt()
+    }
+
+    AndroidView(
+        modifier = modifier
+            .fillMaxSize()
+            .background(PlayerBackground),
+        factory = {
+            VideoView(context).apply {
+                setBackgroundColor(android.graphics.Color.BLACK)
+                setOnPreparedListener { preparedPlayer ->
+                    mediaPlayer = preparedPlayer
+                    isPrepared = true
+                    preparedPlayer.isLooping = true
+                    applyPlaybackSpeed(preparedPlayer, playbackSpeed.multiplier)
+                    applyInitialSeek(this, resumePositionMs, initialSeekApplied) {
+                        initialSeekApplied = it
+                    }
+                    if (shouldPlay) {
+                        start()
+                        latestEventAdapter.onPlayingChanged(true)
+                    } else {
+                        pause()
+                        latestEventAdapter.onPlayingChanged(false)
+                    }
+                }
+                setOnCompletionListener {
+                    start()
+                    latestEventAdapter.onPlayingChanged(true)
+                }
+                setOnErrorListener { _, _, _ ->
+                    latestEventAdapter.onPlaybackError(DEFAULT_PLAYBACK_ERROR_MESSAGE)
+                    true
+                }
+                setVideoURI(Uri.parse(sourceUrl))
+                tag = sourceUrl
+            }.also { createdView ->
+                videoView = createdView
+            }
+        },
+        update = { updatedView ->
+            videoView = updatedView
+            if (updatedView.tag != sourceUrl) {
+                isPrepared = false
+                initialSeekApplied = false
+                updatedView.stopPlayback()
+                updatedView.setVideoURI(Uri.parse(sourceUrl))
+                updatedView.tag = sourceUrl
+            }
+            if (isPrepared) {
+                applyPlaybackSpeed(mediaPlayer, playbackSpeed.multiplier)
+                applyInitialSeek(updatedView, resumePositionMs, initialSeekApplied) {
+                    initialSeekApplied = it
+                }
+                if (shouldPlay && !updatedView.isPlaying) {
+                    updatedView.start()
+                    latestEventAdapter.onPlayingChanged(true)
+                } else if (!shouldPlay && updatedView.isPlaying) {
+                    updatedView.pause()
+                    latestEventAdapter.onPlayingChanged(false)
+                }
+            }
+        },
+    )
+
+    LaunchedEffect(videoView, sourceUrl) {
+        while (true) {
+            delay(POSITION_POLL_INTERVAL_MS)
+            val currentPositionSeconds = videoView?.currentPosition?.div(1000.0) ?: continue
+            latestEventAdapter.onPositionChanged(currentPositionSeconds)
+        }
+    }
+
+    DisposableEffect(sourceUrl) {
+        onDispose {
+            videoView?.stopPlayback()
+            mediaPlayer = null
+            videoView = null
+        }
+    }
+}
+
+private fun applyInitialSeek(
+    videoView: VideoView,
+    resumePositionMs: Int,
+    initialSeekApplied: Boolean,
+    onApplied: (Boolean) -> Unit,
+) {
+    if (initialSeekApplied) {
+        return
+    }
+    if (resumePositionMs > 0) {
+        videoView.seekTo(resumePositionMs)
+    }
+    onApplied(true)
+}
+
+private fun applyPlaybackSpeed(
+    mediaPlayer: MediaPlayer?,
+    speed: Float,
+) {
+    mediaPlayer ?: return
+    runCatching {
+        mediaPlayer.playbackParams = mediaPlayer.playbackParams.setSpeed(speed)
+    }
+}
+
+private val PlayerUiState.shouldAutoPlayVideo: Boolean
+    get() = when (screenState) {
+        PlayerScreenState.READY,
+        PlayerScreenState.PLAYING,
+        PlayerScreenState.SWITCHING_EPISODE,
+        -> true
+
+        PlayerScreenState.IDLE,
+        PlayerScreenState.BOOTSTRAPPING,
+        PlayerScreenState.PAUSED,
+        PlayerScreenState.NO_RESOURCE,
+        PlayerScreenState.ERROR,
+        -> false
+    }
+
+@Composable
+private fun PosterFallbackHost(
+    uiState: PlayerUiState,
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(640.dp)
+            .fillMaxSize()
             .background(PlayerBackground),
     ) {
         Box(
@@ -247,7 +421,7 @@ fun PlaceholderPlayerHost(
                 .align(Alignment.CenterEnd)
                 .padding(end = 38.dp, bottom = 22.dp)
                 .size(106.dp)
-                .background(Color(0xFFF0C96A), CircleShape),
+                .background(PosterGold, CircleShape),
         ) {
             Box(
                 modifier = Modifier
@@ -273,7 +447,7 @@ fun PlaceholderPlayerHost(
                         RoundedCornerShape(14.dp),
                     ),
             )
-            Text(
+            androidx.compose.material3.Text(
                 text = "12879",
                 color = Color.White,
                 fontSize = 17.sp,
@@ -282,7 +456,7 @@ fun PlaceholderPlayerHost(
             )
         }
 
-        if (uiState.resumeProgress > 0.0 || uiState.currentSpeed != com.djs66256.short_drama.feature.player.viewmodel.PlaybackSpeed.X1_0) {
+        if (uiState.resumeProgress > 0.0 || uiState.currentSpeed != PlaybackSpeed.X1_0) {
             Column(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -290,12 +464,12 @@ fun PlaceholderPlayerHost(
                     .background(Color(0x80141414), RoundedCornerShape(14.dp))
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
-                Text(
+                androidx.compose.material3.Text(
                     text = "恢复点 ${uiState.resumeProgress.toInt()}s",
                     color = Color.White,
                     fontSize = 12.sp,
                 )
-                Text(
+                androidx.compose.material3.Text(
                     text = "倍速 ${uiState.currentSpeed.label}",
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 11.sp,
@@ -319,3 +493,6 @@ private fun FacialFeature(
             .background(color, RoundedCornerShape(percent = 50)),
     )
 }
+
+private const val POSITION_POLL_INTERVAL_MS = 500L
+private const val DEFAULT_PLAYBACK_ERROR_MESSAGE = "视频播放失败，请重试"

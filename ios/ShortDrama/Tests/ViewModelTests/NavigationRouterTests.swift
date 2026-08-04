@@ -1,3 +1,4 @@
+import SwiftUI
 @testable import ShortDrama
 import Testing
 
@@ -117,6 +118,18 @@ extension NavigationRouterTests {
 
         #expect(HomeRouteBuilder.playerRoute(for: drama) == nil)
         #expect(HomeRouteBuilder.detailRoute(for: drama) == nil)
+    }
+
+    @Test("home feed page layout reserves chrome-safe insets")
+    func testHomeFeedPageLayoutInsetsReserveOverlaySpace() {
+        let insets = HomeFeedPageLayout.contentInsets(
+            for: EdgeInsets(top: 20, leading: 0, bottom: 34, trailing: 0)
+        )
+
+        #expect(insets.top == 76)
+        #expect(insets.leading == DesignTokens.Spacing.lg)
+        #expect(insets.bottom == 122)
+        #expect(insets.trailing == DesignTokens.Spacing.lg)
     }
 
     @Test("ranking route builder creates player route from ranking drama id")

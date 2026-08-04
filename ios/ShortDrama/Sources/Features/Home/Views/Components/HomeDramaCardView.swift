@@ -6,6 +6,36 @@ struct HomeDramaCardView: View {
     let onPlay: () -> Void
     let onDetail: () -> Void
     let onComment: () -> Void
+    let layout: HomeDramaCardLayout
+    let videoURL: URL?
+    let videoPlaybackRate: Float
+    let onVideoProgressChange: (Double) -> Void
+    let onVideoPlaybackEnded: () -> Void
+    let onVideoPlaybackFailed: (String) -> Void
+
+    init(
+        drama: Drama,
+        onPlay: @escaping () -> Void,
+        onDetail: @escaping () -> Void,
+        onComment: @escaping () -> Void,
+        layout: HomeDramaCardLayout = .card,
+        videoURL: URL? = nil,
+        videoPlaybackRate: Float = 1.0,
+        onVideoProgressChange: @escaping (Double) -> Void = { _ in },
+        onVideoPlaybackEnded: @escaping () -> Void = {},
+        onVideoPlaybackFailed: @escaping (String) -> Void = { _ in }
+    ) {
+        self.drama = drama
+        self.onPlay = onPlay
+        self.onDetail = onDetail
+        self.onComment = onComment
+        self.layout = layout
+        self.videoURL = videoURL
+        self.videoPlaybackRate = videoPlaybackRate
+        self.onVideoProgressChange = onVideoProgressChange
+        self.onVideoPlaybackEnded = onVideoPlaybackEnded
+        self.onVideoPlaybackFailed = onVideoPlaybackFailed
+    }
 
     private var topBadges: [String] {
         var items: [String] = []
@@ -27,8 +57,37 @@ struct HomeDramaCardView: View {
     }
 
     var body: some View {
+        Group {
+            switch layout {
+            case .card:
+                cardContent
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 400)
+                    .background(Color.black)
+                    .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                    }
+            case .immersivePage:
+                cardContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black)
+                    .clipped()
+            }
+        }
+    }
+
+    private var cardContent: some View {
         ZStack(alignment: .bottomLeading) {
-            DramaCoverView(coverURL: drama.coverUrl)
+            DramaBackgroundView(
+                coverURL: drama.coverUrl,
+                videoURL: videoURL,
+                playbackRate: videoPlaybackRate,
+                onProgressChange: onVideoProgressChange,
+                onPlaybackEnded: onVideoPlaybackEnded,
+                onPlaybackFailed: onVideoPlaybackFailed
+            )
 
             LinearGradient(
                 colors: [
@@ -59,8 +118,8 @@ struct HomeDramaCardView: View {
 
                     Spacer()
                 }
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                .padding(.top, DesignTokens.Spacing.xl)
+                .padding(.horizontal, contentHorizontalPadding)
+                .padding(.top, contentTopPadding)
 
                 Spacer()
 
@@ -68,17 +127,36 @@ struct HomeDramaCardView: View {
                     contentSection
                     interactionRail
                 }
-                .padding(.horizontal, DesignTokens.Spacing.lg)
-                .padding(.bottom, DesignTokens.Spacing.xl)
+                .padding(.horizontal, contentHorizontalPadding)
+                .padding(.bottom, contentBottomPadding)
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(minHeight: 400)
-        .background(Color.black)
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
-        .overlay {
-            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
-                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+    }
+
+    private var contentHorizontalPadding: CGFloat {
+        switch layout {
+        case .card:
+            return DesignTokens.Spacing.lg
+        case .immersivePage(let contentInsets):
+            return max(contentInsets.leading, DesignTokens.Spacing.lg)
+        }
+    }
+
+    private var contentTopPadding: CGFloat {
+        switch layout {
+        case .card:
+            return DesignTokens.Spacing.xl
+        case .immersivePage(let contentInsets):
+            return max(contentInsets.top, DesignTokens.Spacing.xl)
+        }
+    }
+
+    private var contentBottomPadding: CGFloat {
+        switch layout {
+        case .card:
+            return DesignTokens.Spacing.xl
+        case .immersivePage(let contentInsets):
+            return max(contentInsets.bottom, DesignTokens.Spacing.xl)
         }
     }
 
@@ -174,6 +252,39 @@ struct HomeDramaCardView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+enum HomeDramaCardLayout {
+    case card
+    case immersivePage(contentInsets: EdgeInsets)
+}
+
+private struct DramaBackgroundView: View {
+    let coverURL: String
+    let videoURL: URL?
+    let playbackRate: Float
+    let onProgressChange: (Double) -> Void
+    let onPlaybackEnded: () -> Void
+    let onPlaybackFailed: (String) -> Void
+
+    var body: some View {
+        Group {
+            if let videoURL {
+                NativeVideoPlayerView(
+                    url: videoURL,
+                    playbackRate: playbackRate,
+                    onProgressChange: onProgressChange,
+                    onPlaybackEnded: onPlaybackEnded,
+                    onPlaybackFailed: onPlaybackFailed
+                )
+            } else {
+                DramaCoverView(coverURL: coverURL)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .allowsHitTesting(false)
     }
 }
 

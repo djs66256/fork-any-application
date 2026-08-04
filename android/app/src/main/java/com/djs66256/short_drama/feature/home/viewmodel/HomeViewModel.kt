@@ -6,13 +6,26 @@ import com.djs66256.short_drama.core.network.ApiResult
 import com.djs66256.short_drama.domain.model.CheckInDay
 import com.djs66256.short_drama.domain.model.CheckInStatus
 import com.djs66256.short_drama.domain.model.Drama
+import com.djs66256.short_drama.domain.model.DramaEpisodeList
+import com.djs66256.short_drama.domain.model.Episode
+import com.djs66256.short_drama.domain.model.PlaybackProgress
+import com.djs66256.short_drama.domain.model.SeriesStatus
+import com.djs66256.short_drama.domain.model.StartPlaybackParams
+import com.djs66256.short_drama.domain.model.StopPlaybackParams
 import com.djs66256.short_drama.domain.repository.CheckInRepository
 import com.djs66256.short_drama.domain.usecase.GetCheckInStatusUseCase
+import com.djs66256.short_drama.domain.usecase.GetDramaEpisodesUseCase
 import com.djs66256.short_drama.domain.usecase.GetDramasUseCase
+import com.djs66256.short_drama.domain.usecase.GetPlaybackProgressUseCase
+import com.djs66256.short_drama.domain.usecase.StartPlaybackUseCase
+import com.djs66256.short_drama.domain.usecase.StopPlaybackUseCase
 import com.djs66256.short_drama.domain.usecase.SubmitCheckInUseCase
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +49,8 @@ data class HomeUiState(
     val errorMessage: String? = null,
     val hasLoadedOnce: Boolean = false,
     val isRetrying: Boolean = false,
+    val activeDramaId: String? = null,
+    val activePlayerUiState: PlayerUiState = PlayerUiState(),
     val checkInPopup: CheckInPopupUiState = CheckInPopupUiState(),
 )
 
@@ -45,6 +60,10 @@ class HomeViewModel @Inject constructor(
     private val getCheckInStatusUseCase: GetCheckInStatusUseCase,
     private val submitCheckInUseCase: SubmitCheckInUseCase,
     private val checkInRepository: CheckInRepository,
+    private val getPlaybackProgressUseCase: GetPlaybackProgressUseCase,
+    private val getDramaEpisodesUseCase: GetDramaEpisodesUseCase,
+    private val startPlaybackUseCase: StartPlaybackUseCase,
+    private val stopPlaybackUseCase: StopPlaybackUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -52,6 +71,9 @@ class HomeViewModel @Inject constructor(
 
     private var requestInFlight = false
     private var checkInPopupAbandoned = false
+    private var feedPlaybackJob: Job? = null
+    private var stopReportJob: Job? = null
+    private var currentPlaybackPositionSeconds: Double = 0.0
 
     fun loadIfNeeded() {
         if (requestInFlight || uiState.value.hasLoadedOnce) {
@@ -66,6 +88,80 @@ class HomeViewModel @Inject constructor(
             return
         }
         loadDramas(isRetry = true)
+    }
+
+    fun onVisibleDramaChanged(dramaId: String) {
+        if (dramaId.isBlank()) {
+            return
+        }
+        val state = uiState.value
+        if (
+            state.activeDramaId == dramaId &&
+            state.activePlayerUiState.hasLoadedOnce &&
+            feedPlaybackJob?.isActive != true
+        ) {
+            onForegrounded()
+            return
+        }
+        bootstrapFeedPlayback(dramaId)
+    }
+
+    fun onFeedPlaybackPositionChanged(positionSeconds: Double) {
+        currentPlaybackPositionSeconds = positionSeconds.coerceAtLeast(0.0)
+    }
+
+    fun onFeedPlaybackError(message: String) {
+        if (uiState.value.activeDramaId.isNullOrBlank()) {
+            return
+        }
+        _uiState.update { state ->
+            state.copy(
+                activePlayerUiState = state.activePlayerUiState.copy(
+                    screenState = PlayerScreenState.ERROR,
+                    errorMessage = message.ifBlank { DEFAULT_PLAYBACK_ERROR_MESSAGE },
+                ),
+            )
+        }
+    }
+
+    fun onForegrounded() {
+        _uiState.update { state ->
+            if (
+                state.activeDramaId.isNullOrBlank() ||
+                !state.activePlayerUiState.canRenderPlayerChrome
+            ) {
+                state
+            } else {
+                state.copy(
+                    activePlayerUiState = state.activePlayerUiState.copy(
+                        screenState = PlayerScreenState.PLAYING,
+                    ),
+                )
+            }
+        }
+    }
+
+    fun onBackgrounded() {
+        _uiState.update { state ->
+            if (
+                state.activeDramaId.isNullOrBlank() ||
+                !state.activePlayerUiState.canRenderPlayerChrome
+            ) {
+                state
+            } else {
+                state.copy(
+                    activePlayerUiState = state.activePlayerUiState.copy(
+                        screenState = PlayerScreenState.PAUSED,
+                    ),
+                )
+            }
+        }
+        reportStopBestEffort()
+    }
+
+    fun onScreenDisposed() {
+        feedPlaybackJob?.cancel()
+        reportStopBestEffort()
     }
 
     fun submitCheckIn() {
@@ -155,6 +251,8 @@ class HomeViewModel @Inject constructor(
                         errorMessage = null,
                         hasLoadedOnce = true,
                         isRetrying = false,
+                        activeDramaId = _uiState.value.activeDramaId,
+                        activePlayerUiState = _uiState.value.activePlayerUiState,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                     is ApiResult.Error -> HomeUiState(
@@ -163,6 +261,8 @@ class HomeViewModel @Inject constructor(
                         errorMessage = result.message.ifBlank { DEFAULT_ERROR_MESSAGE },
                         hasLoadedOnce = true,
                         isRetrying = false,
+                        activeDramaId = _uiState.value.activeDramaId,
+                        activePlayerUiState = _uiState.value.activePlayerUiState,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                     is ApiResult.Exception -> HomeUiState(
@@ -171,6 +271,8 @@ class HomeViewModel @Inject constructor(
                         errorMessage = DEFAULT_ERROR_MESSAGE,
                         hasLoadedOnce = true,
                         isRetrying = false,
+                        activeDramaId = _uiState.value.activeDramaId,
+                        activePlayerUiState = _uiState.value.activePlayerUiState,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                 }
@@ -184,10 +286,242 @@ class HomeViewModel @Inject constructor(
                     errorMessage = DEFAULT_ERROR_MESSAGE,
                     hasLoadedOnce = true,
                     isRetrying = false,
+                    activeDramaId = _uiState.value.activeDramaId,
+                    activePlayerUiState = _uiState.value.activePlayerUiState,
                     checkInPopup = _uiState.value.checkInPopup,
                 )
             } finally {
                 requestInFlight = false
+            }
+        }
+    }
+
+    private fun bootstrapFeedPlayback(dramaId: String) {
+        val previousDramaId = uiState.value.activeDramaId
+        val previousEpisode = uiState.value.activePlayerUiState.currentEpisode
+        feedPlaybackJob?.cancel()
+        feedPlaybackJob = viewModelScope.launch {
+            if (!previousDramaId.isNullOrBlank() && previousDramaId != dramaId) {
+                stopEpisodeBestEffort(previousDramaId, previousEpisode)
+            }
+
+            _uiState.update { state ->
+                state.copy(
+                    activeDramaId = dramaId,
+                    activePlayerUiState = PlayerUiState(
+                        dramaId = dramaId,
+                        screenState = PlayerScreenState.BOOTSTRAPPING,
+                    ),
+                )
+            }
+
+            try {
+                val progressResult = getPlaybackProgressUseCase(dramaId)
+                if (progressResult !is ApiResult.Success) {
+                    handleFeedBootstrapFailure(dramaId, progressResult)
+                    return@launch
+                }
+
+                val episodesResult = getDramaEpisodesUseCase(dramaId)
+                if (episodesResult !is ApiResult.Success) {
+                    handleFeedBootstrapFailure(dramaId, episodesResult)
+                    return@launch
+                }
+
+                val progress = progressResult.data
+                val episodeList = episodesResult.data
+                val targetEpisode = resolveTargetEpisode(progress = progress, episodes = episodeList)
+                if (targetEpisode == null) {
+                    _uiState.update { state ->
+                        state.copy(
+                            activeDramaId = dramaId,
+                            activePlayerUiState = PlayerUiState(
+                                dramaId = dramaId,
+                                episodes = episodeList.items,
+                                currentEpisode = null,
+                                resumeProgress = 0.0,
+                                screenState = PlayerScreenState.NO_RESOURCE,
+                                seriesStatus = episodeList.seriesStatus,
+                                errorMessage = NO_RESOURCE_MESSAGE,
+                                hasLoadedOnce = true,
+                            ),
+                        )
+                    }
+                    return@launch
+                }
+
+                val startProgress = if (progress.hasHistory && progress.episodeId == targetEpisode.id) {
+                    progress.startTime.coerceAtLeast(0.0)
+                } else {
+                    0.0
+                }
+                currentPlaybackPositionSeconds = startProgress
+
+                when (
+                    val startResult = startPlaybackUseCase(
+                        StartPlaybackParams(
+                            dramaId = dramaId,
+                            episodeId = targetEpisode.id,
+                            progress = startProgress,
+                        ),
+                    )
+                ) {
+                    is ApiResult.Success -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                activeDramaId = dramaId,
+                                activePlayerUiState = PlayerUiState(
+                                    dramaId = dramaId,
+                                    episodes = episodeList.items,
+                                    currentEpisode = targetEpisode,
+                                    resumeProgress = startProgress,
+                                    screenState = PlayerScreenState.PLAYING,
+                                    seriesStatus = episodeList.seriesStatus,
+                                    errorMessage = null,
+                                    hasLoadedOnce = true,
+                                ),
+                            )
+                        }
+                    }
+                    is ApiResult.Error -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                activeDramaId = dramaId,
+                                activePlayerUiState = PlayerUiState(
+                                    dramaId = dramaId,
+                                    episodes = episodeList.items,
+                                    currentEpisode = targetEpisode,
+                                    resumeProgress = startProgress,
+                                    screenState = PlayerScreenState.ERROR,
+                                    seriesStatus = episodeList.seriesStatus,
+                                    errorMessage = startResult.message.ifBlank { DEFAULT_PLAYBACK_ERROR_MESSAGE },
+                                    hasLoadedOnce = true,
+                                ),
+                            )
+                        }
+                    }
+                    is ApiResult.Exception -> {
+                        _uiState.update { state ->
+                            state.copy(
+                                activeDramaId = dramaId,
+                                activePlayerUiState = PlayerUiState(
+                                    dramaId = dramaId,
+                                    episodes = episodeList.items,
+                                    currentEpisode = targetEpisode,
+                                    resumeProgress = startProgress,
+                                    screenState = PlayerScreenState.ERROR,
+                                    seriesStatus = episodeList.seriesStatus,
+                                    errorMessage = DEFAULT_PLAYBACK_ERROR_MESSAGE,
+                                    hasLoadedOnce = true,
+                                ),
+                            )
+                        }
+                    }
+                }
+            } catch (cancellationException: CancellationException) {
+                throw cancellationException
+            } catch (_: Throwable) {
+                _uiState.update { state ->
+                    state.copy(
+                        activeDramaId = dramaId,
+                        activePlayerUiState = PlayerUiState(
+                            dramaId = dramaId,
+                            screenState = PlayerScreenState.ERROR,
+                            errorMessage = DEFAULT_PLAYBACK_ERROR_MESSAGE,
+                            hasLoadedOnce = true,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    private fun handleFeedBootstrapFailure(dramaId: String, result: ApiResult<*>) {
+        when (result) {
+            is ApiResult.Error -> {
+                _uiState.update { state ->
+                    state.copy(
+                        activeDramaId = dramaId,
+                        activePlayerUiState = PlayerUiState(
+                            dramaId = dramaId,
+                            screenState = PlayerScreenState.ERROR,
+                            errorMessage = result.message.ifBlank { DEFAULT_PLAYBACK_ERROR_MESSAGE },
+                            hasLoadedOnce = true,
+                        ),
+                    )
+                }
+            }
+            is ApiResult.Exception -> {
+                _uiState.update { state ->
+                    state.copy(
+                        activeDramaId = dramaId,
+                        activePlayerUiState = PlayerUiState(
+                            dramaId = dramaId,
+                            screenState = PlayerScreenState.ERROR,
+                            errorMessage = DEFAULT_PLAYBACK_ERROR_MESSAGE,
+                            hasLoadedOnce = true,
+                        ),
+                    )
+                }
+            }
+            is ApiResult.Success -> Unit
+        }
+    }
+
+    private fun resolveTargetEpisode(
+        progress: PlaybackProgress,
+        episodes: DramaEpisodeList,
+    ): Episode? {
+        val playableEpisodes = episodes.items
+            .filter { it.videoUrl.isNotBlank() }
+            .sortedBy(Episode::episodeNumber)
+        if (playableEpisodes.isEmpty()) {
+            return null
+        }
+        val recoveredEpisode = if (progress.hasHistory) {
+            playableEpisodes.firstOrNull { it.id == progress.episodeId }
+        } else {
+            null
+        }
+        return recoveredEpisode ?: playableEpisodes.first()
+    }
+
+    private fun reportStopBestEffort() {
+        val dramaId = uiState.value.activeDramaId ?: return
+        val episode = uiState.value.activePlayerUiState.currentEpisode ?: return
+        stopReportJob?.cancel()
+        stopReportJob = viewModelScope.launch {
+            stopEpisodeBestEffort(dramaId, episode)
+        }
+    }
+
+    private suspend fun stopEpisodeBestEffort(
+        dramaId: String,
+        episode: Episode?,
+    ) {
+        episode ?: return
+        val duration = episode.duration.toDouble().coerceAtLeast(1.0)
+        val params = StopPlaybackParams(
+            dramaId = dramaId,
+            episodeId = episode.id,
+            progress = currentPlaybackPositionSeconds.coerceIn(0.0, duration),
+            duration = duration,
+        )
+
+        _uiState.update { state ->
+            state.copy(
+                activePlayerUiState = state.activePlayerUiState.copy(isReportingStop = true),
+            )
+        }
+        try {
+            stopPlaybackUseCase(params)
+        } catch (_: Throwable) {
+            // best-effort
+        } finally {
+            _uiState.update { state ->
+                state.copy(
+                    activePlayerUiState = state.activePlayerUiState.copy(isReportingStop = false),
+                )
             }
         }
     }
@@ -236,5 +570,7 @@ class HomeViewModel @Inject constructor(
         const val FEED_PAGE_SIZE = 10
         const val DEFAULT_ERROR_MESSAGE = "加载失败，请重试"
         const val DEFAULT_CHECK_IN_SUBMIT_ERROR_MESSAGE = "签到失败，请重试"
+        const val DEFAULT_PLAYBACK_ERROR_MESSAGE = "视频加载失败，请重试"
+        const val NO_RESOURCE_MESSAGE = "暂无可播放内容"
     }
 }

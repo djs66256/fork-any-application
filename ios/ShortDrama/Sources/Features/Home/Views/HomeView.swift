@@ -7,6 +7,7 @@ struct HomeView: View {
     @EnvironmentObject private var authStore: AuthStore
     @StateObject private var viewModel: HomeViewModel
     @State private var loginAlertContext: CommentLoginContext?
+    @State private var currentFeedDramaID: Drama.ID?
 
     init(viewModel: HomeViewModel? = nil) {
         if let viewModel {
@@ -31,6 +32,7 @@ struct HomeView: View {
                 case .content(let dramas):
                     HomeFeedListView(
                         dramas: dramas,
+                        currentDramaID: $currentFeedDramaID,
                         onPlay: handlePlay(for:),
                         onComment: handleComment(for:),
                         onDetail: handleDetail(for:)
@@ -65,17 +67,16 @@ struct HomeView: View {
                 .zIndex(1)
             }
         }
-        .toolbar(.hidden, for: .navigationBar)
-        .safeAreaInset(edge: .top) {
+        .overlay(alignment: .top) {
             HomeTopOverlay(
                 onOpenMenu: { router.openMenuPanel() },
                 onOpenSearch: { router.navigate(to: .searchHome) }
             )
             .padding(.horizontal, DesignTokens.Spacing.md)
             .padding(.top, 2)
-            .background(Color.clear)
+            .safeAreaPadding(.top)
         }
-        .safeAreaInset(edge: .bottom) {
+        .overlay(alignment: .bottom) {
             if let drama = featuredDrama {
                 HomeBottomChrome(
                     drama: drama,
@@ -84,9 +85,10 @@ struct HomeView: View {
                 .padding(.horizontal, DesignTokens.Spacing.md)
                 .padding(.top, 6)
                 .padding(.bottom, 4)
-                .background(Color.clear)
+                .safeAreaPadding(.bottom)
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             viewModel.updateAuthState(
                 isUserLoggedIn: authStore.isAuthenticated,
@@ -130,10 +132,16 @@ struct HomeView: View {
     }
 
     private var featuredDrama: Drama? {
-        if case .content(let dramas) = viewModel.viewState {
-            return dramas.first
+        guard case .content(let dramas) = viewModel.viewState else {
+            return nil
         }
-        return nil
+
+        if let currentFeedDramaID,
+           let currentDrama = dramas.first(where: { $0.id == currentFeedDramaID }) {
+            return currentDrama
+        }
+
+        return dramas.first
     }
 
     private var activeCommentSheetBinding: Binding<HomeViewModel.CommentSheetContext?> {
@@ -188,34 +196,85 @@ enum HomeRouteBuilder {
 
 private struct HomeFeedListView: View {
     let dramas: [Drama]
+    @Binding var currentDramaID: Drama.ID?
     let onPlay: (Drama) -> Void
     let onComment: (Drama) -> Void
     let onDetail: (Drama) -> Void
 
-    private let minimumCardHeight: CGFloat = 400
+    @StateObject private var playbackCoordinator = HomeFeedPlaybackCoordinator()
 
     var body: some View {
         GeometryReader { proxy in
-            let cardMinHeight = max(proxy.size.height * 0.72, minimumCardHeight)
+            let contentInsets = HomeFeedPageLayout.contentInsets(for: proxy.safeAreaInsets)
 
             ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: DesignTokens.Spacing.md) {
+                LazyVStack(spacing: 0) {
                     ForEach(dramas) { drama in
                         HomeDramaCardView(
                             drama: drama,
                             onPlay: { onPlay(drama) },
                             onDetail: { onDetail(drama) },
-                            onComment: { onComment(drama) }
+                            onComment: { onComment(drama) },
+                            layout: .immersivePage(contentInsets: contentInsets),
+                            videoURL: playbackCoordinator.playbackURL(for: drama.id),
+                            videoPlaybackRate: playbackCoordinator.playbackRate(for: drama.id),
+                            onVideoProgressChange: { progress in
+                                playbackCoordinator.updateProgress(progress, for: drama.id)
+                            },
+                            onVideoPlaybackEnded: {
+                                playbackCoordinator.handlePlaybackEnded(for: drama.id)
+                            },
+                            onVideoPlaybackFailed: { message in
+                                playbackCoordinator.handlePlaybackFailure(message, for: drama.id)
+                            }
                         )
-                        .frame(minHeight: cardMinHeight)
+                        .containerRelativeFrame([.horizontal, .vertical])
+                        .id(drama.id)
                     }
                 }
-                .padding(.horizontal, DesignTokens.Spacing.md)
-                .padding(.top, DesignTokens.Spacing.sm)
-                .padding(.bottom, DesignTokens.Spacing.xl)
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.paging)
+            .scrollPosition(id: $currentDramaID)
+            .scrollClipDisabled()
+            .ignoresSafeArea()
             .background(Color.black)
+            .task {
+                await playbackCoordinator.configure(with: dramas)
+                currentDramaID = currentDramaID ?? dramas.first?.id
+                await playbackCoordinator.setActiveDrama(id: currentDramaID)
+            }
+            .onChange(of: dramas) { _, newDramas in
+                Task {
+                    await playbackCoordinator.configure(with: newDramas)
+                    let fallbackID = newDramas.first?.id
+                    if currentDramaID == nil || !newDramas.contains(where: { $0.id == currentDramaID }) {
+                        currentDramaID = fallbackID
+                    }
+                    await playbackCoordinator.setActiveDrama(id: currentDramaID)
+                }
+            }
+            .onChange(of: currentDramaID) { _, newValue in
+                Task {
+                    await playbackCoordinator.setActiveDrama(id: newValue)
+                }
+            }
+            .onDisappear {
+                playbackCoordinator.handleContainerDisappear()
+            }
         }
+        .background(Color.black)
+    }
+}
+
+private enum HomeFeedPageLayout {
+    static func contentInsets(for safeAreaInsets: EdgeInsets) -> EdgeInsets {
+        EdgeInsets(
+            top: safeAreaInsets.top + 56,
+            leading: DesignTokens.Spacing.lg,
+            bottom: safeAreaInsets.bottom + 88,
+            trailing: DesignTokens.Spacing.lg
+        )
     }
 }
 

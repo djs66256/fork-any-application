@@ -2,11 +2,11 @@ package com.djs66256.short_drama.feature.home.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,14 +31,13 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,12 +56,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.djs66256.short_drama.core.theme.HomeFeedAccent
 import com.djs66256.short_drama.core.theme.HomeFeedAccentSoft
 import com.djs66256.short_drama.core.theme.HomeFeedAccentStrong
 import com.djs66256.short_drama.core.theme.HomeFeedBadge
-import com.djs66256.short_drama.core.theme.HomeFeedBottomBar
-import com.djs66256.short_drama.core.theme.HomeFeedBottomBarBorder
 import com.djs66256.short_drama.core.theme.HomeFeedCardBottom
 import com.djs66256.short_drama.core.theme.HomeFeedCardMiddle
 import com.djs66256.short_drama.core.theme.HomeFeedCardTop
@@ -83,7 +83,15 @@ import com.djs66256.short_drama.feature.comments.model.CommentSource
 import com.djs66256.short_drama.feature.comments.ui.CommentBottomSheet
 import com.djs66256.short_drama.feature.comments.ui.CommentLoginPlaceholderDialog
 import com.djs66256.short_drama.feature.home.viewmodel.HomeViewModel
+import com.djs66256.short_drama.feature.player.player.PlaceholderPlayerHost
+import com.djs66256.short_drama.feature.player.player.PlayerEventAdapter
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onOpenMenu: () -> Unit,
@@ -95,60 +103,92 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var activeCommentDramaId by remember { mutableStateOf<String?>(null) }
     var pendingCommentLoginContext by remember { mutableStateOf<CommentLoginContext?>(null) }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { uiState.items.size },
+    )
 
     LaunchedEffect(Unit) {
         viewModel.loadIfNeeded()
     }
 
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START -> viewModel.onForegrounded()
+                Lifecycle.Event.ON_STOP -> viewModel.onBackgrounded()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.onScreenDisposed()
+        }
+    }
+
+    LaunchedEffect(pagerState, uiState.items) {
+        kotlinx.coroutines.flow.snapshotFlow { currentHomeFeedDrama(uiState.items, pagerState.settledPage)?.id }
+            .map { it?.takeIf(String::isNotBlank) }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .collect(viewModel::onVisibleDramaChanged)
+    }
+
     val errorMessage = uiState.errorMessage
+    val activePage = pagerState.settledPage
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .padding(horizontal = 12.dp)
-                .padding(top = 2.dp, bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            HomeTopBar(
-                onOpenMenu = onOpenMenu,
-                onOpenSearch = onOpenSearch,
+        when {
+            uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
+            errorMessage != null -> HomeFeedErrorState(
+                message = errorMessage,
+                onRetry = viewModel::retry,
             )
-
-            Box(
+            uiState.items.isEmpty() -> HomeFeedEmptyState()
+            else -> VerticalPager(
+                state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-            ) {
-                when {
-                    uiState.isLoading -> HomeFeedLoadingState(isRetrying = uiState.isRetrying)
-                    errorMessage != null -> HomeFeedErrorState(
-                        message = errorMessage,
-                        onRetry = viewModel::retry,
-                    )
-                    uiState.items.isEmpty() -> HomeFeedEmptyState()
-                    else -> LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = homeFeedBottomContentPadding()),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(items = uiState.items, key = { it.id }) { drama ->
-                            HomeDramaCard(
-                                drama = drama,
-                                onPlay = { onOpenPlay(drama.id) },
-                                onDetail = { onOpenDetail(drama.id) },
-                                onComment = { activeCommentDramaId = drama.id },
-                            )
-                        }
-                    }
-                }
+                beyondViewportPageCount = 1,
+                key = { page -> uiState.items[page].id },
+            ) { page ->
+                val drama = uiState.items[page]
+                val pagePlayerState = activePlayerStateForDrama(
+                    dramaId = drama.id,
+                    currentPage = activePage,
+                    page = page,
+                    activeDramaId = uiState.activeDramaId,
+                    activePlayerUiState = uiState.activePlayerUiState,
+                )
+                HomeVideoFeedPage(
+                    drama = drama,
+                    playerUiState = pagePlayerState,
+                    onPlay = { onOpenPlay(drama.id) },
+                    onDetail = { onOpenDetail(drama.id) },
+                    onComment = { activeCommentDramaId = drama.id },
+                    onPlaybackPositionChanged = viewModel::onFeedPlaybackPositionChanged,
+                    onPlaybackError = viewModel::onFeedPlaybackError,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
+
+        HomeTopBar(
+            onOpenMenu = onOpenMenu,
+            onOpenSearch = onOpenSearch,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(horizontal = 12.dp)
+                .padding(top = 2.dp),
+        )
 
         val hasBlockingModal = activeCommentDramaId != null || pendingCommentLoginContext != null
         if (hasBlockingModal) {
@@ -157,7 +197,7 @@ fun HomeScreen(
             }
         }
 
-        val featuredDrama = uiState.items.firstOrNull()
+        val featuredDrama = currentHomeFeedDrama(uiState.items, activePage)
         if (featuredDrama != null && !uiState.isLoading && errorMessage == null) {
             HomeFrameCta(
                 episodeCount = featuredDrama.episodeCount,
@@ -214,12 +254,181 @@ fun HomeScreen(
 }
 
 @Composable
+private fun HomeVideoFeedPage(
+    drama: Drama,
+    playerUiState: PlayerUiState?,
+    onPlay: () -> Unit,
+    onDetail: () -> Unit,
+    onComment: () -> Unit,
+    onPlaybackPositionChanged: (Double) -> Unit,
+    onPlaybackError: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = homeFeedBottomContentPadding(),
+) {
+    val actionsEnabled = hasNavigableDramaId(drama.id)
+    val interactionItems = remember(drama) { buildInteractionItems(drama) }
+    val infoBadge = remember(drama) { buildDramaInfoBadge(drama) }
+    val titleTags = drama.tags.take(4)
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.Black),
+    ) {
+        if (playerUiState != null) {
+            PlaceholderPlayerHost(
+                uiState = playerUiState,
+                eventAdapter = PlayerEventAdapter(
+                    onPositionChanged = onPlaybackPositionChanged,
+                    onPlaybackError = onPlaybackError,
+                ),
+                modifier = Modifier.fillMaxSize(),
+            )
+            HomeFeedPlayerStatusOverlay(
+                uiState = playerUiState,
+                modifier = Modifier.align(Alignment.Center),
+            )
+        } else {
+            DramaCoverPlaceholder(
+                drama = drama,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Transparent,
+                            Color(0x33000000),
+                            HomeFeedScrim,
+                        ),
+                    ),
+                ),
+        )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp)
+                .padding(bottom = bottomContentPadding),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 92.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                if (infoBadge.isNotBlank()) {
+                    InfoBadge(text = infoBadge)
+                }
+
+                Text(
+                    text = drama.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                if (titleTags.isNotEmpty()) {
+                    FlowTagRow(tags = titleTags)
+                }
+
+                Text(
+                    text = drama.description.ifBlank { "暂无简介" },
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = HomeFeedMutedText,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Text(
+                    text = buildDramaMeta(drama),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = HomeFeedMutedText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                HomeCardFooter(
+                    enabled = actionsEnabled,
+                    episodeCount = drama.episodeCount,
+                    onClick = {
+                        if (actionsEnabled) {
+                            onPlay()
+                        }
+                    },
+                    onDetail = {
+                        if (actionsEnabled) {
+                            onDetail()
+                        }
+                    },
+                )
+            }
+
+            InteractionRail(
+                items = interactionItems,
+                onComment = {
+                    if (actionsEnabled) {
+                        onComment()
+                    }
+                },
+                enabled = actionsEnabled,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeFeedPlayerStatusOverlay(
+    uiState: PlayerUiState,
+    modifier: Modifier = Modifier,
+) {
+    val statusCopy = homeFeedPlayerStatusCopy(uiState) ?: return
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = Color.Black.copy(alpha = 0.56f),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (uiState.screenState == PlayerScreenState.BOOTSTRAPPING) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                )
+            }
+            Text(
+                text = statusCopy,
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
 private fun HomeTopBar(
     onOpenMenu: () -> Unit,
     onOpenSearch: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -342,124 +551,19 @@ fun HomeDramaCard(
     onDetail: () -> Unit,
     onComment: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = homeFeedBottomContentPadding(),
 ) {
-    val actionsEnabled = hasNavigableDramaId(drama.id)
-    val interactionItems = remember(drama) { buildInteractionItems(drama) }
-    val infoBadge = remember(drama) { buildDramaInfoBadge(drama) }
-    val titleTags = drama.tags.take(4)
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(30.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(720.dp)
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            HomeFeedCardTop,
-                            HomeFeedCardMiddle,
-                            HomeFeedCardBottom,
-                        ),
-                    ),
-                ),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                DramaCoverPlaceholder(
-                    drama = drama,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(HomeFeedScrim)
-                        .padding(horizontal = 18.dp, vertical = 16.dp),
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        if (infoBadge.isNotBlank()) {
-                            InfoBadge(text = infoBadge)
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.Bottom,
-                        ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                Text(
-                                    text = drama.title,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-
-                                if (titleTags.isNotEmpty()) {
-                                    FlowTagRow(tags = titleTags)
-                                }
-
-                                Text(
-                                    text = drama.description.ifBlank { "暂无简介" },
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = HomeFeedMutedText,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-
-                                Text(
-                                    text = buildDramaMeta(drama),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = HomeFeedMutedText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-
-                            InteractionRail(
-                                items = interactionItems,
-                                onComment = {
-                                    if (actionsEnabled) {
-                                        onComment()
-                                    }
-                                },
-                                enabled = actionsEnabled,
-                            )
-                        }
-
-                        HomeCardFooter(
-                            enabled = actionsEnabled,
-                            episodeCount = drama.episodeCount,
-                            onClick = {
-                                if (actionsEnabled) {
-                                    onPlay()
-                                }
-                            },
-                            onDetail = {
-                                if (actionsEnabled) {
-                                    onDetail()
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-        }
-    }
+    HomeVideoFeedPage(
+        drama = drama,
+        playerUiState = null,
+        onPlay = onPlay,
+        onDetail = onDetail,
+        onComment = onComment,
+        onPlaybackPositionChanged = {},
+        onPlaybackError = {},
+        modifier = modifier,
+        bottomContentPadding = bottomContentPadding,
+    )
 }
 
 @Composable
@@ -469,17 +573,29 @@ private fun DramaCoverPlaceholder(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(30.dp))
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF1E140D),
-                        Color(0xFF3A2413),
-                        HomeFeedAccentStrong,
+                        HomeFeedCardTop,
+                        HomeFeedCardMiddle,
+                        HomeFeedCardBottom,
                     ),
                 ),
             ),
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF1E140D),
+                            Color(0xFF3A2413),
+                            HomeFeedAccentStrong,
+                        ),
+                    ),
+                ),
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -568,10 +684,10 @@ private fun InteractionRail(
     items: List<HomeInteractionItem>,
     onComment: () -> Unit,
     enabled: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
-            .padding(bottom = 6.dp)
+        modifier = modifier
             .width(72.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -806,6 +922,44 @@ internal fun homeFeedBottomContentPadding(
     extraSpacing: Dp = HOME_FEED_BOTTOM_CONTENT_SPACING,
 ): Dp {
     return ctaHeight + ctaVerticalMargin + extraSpacing
+}
+
+internal fun currentHomeFeedDrama(items: List<Drama>, currentPage: Int): Drama? {
+    if (items.isEmpty()) {
+        return null
+    }
+    return items.getOrNull(currentPage.coerceIn(items.indices))
+}
+
+internal fun activePlayerStateForDrama(
+    dramaId: String,
+    currentPage: Int,
+    page: Int,
+    activeDramaId: String?,
+    activePlayerUiState: PlayerUiState,
+): PlayerUiState? {
+    return if (page == currentPage && dramaId == activeDramaId) {
+        activePlayerUiState
+    } else {
+        null
+    }
+}
+
+internal fun homeFeedPlayerStatusCopy(uiState: PlayerUiState): String? {
+    return when (uiState.screenState) {
+        PlayerScreenState.IDLE,
+        PlayerScreenState.READY,
+        PlayerScreenState.PLAYING,
+        -> null
+
+        PlayerScreenState.BOOTSTRAPPING,
+        PlayerScreenState.SWITCHING_EPISODE,
+        -> "正在准备视频..."
+
+        PlayerScreenState.PAUSED -> "视频已暂停"
+        PlayerScreenState.NO_RESOURCE -> uiState.errorMessage.orEmpty().ifBlank { "暂无可播放内容" }
+        PlayerScreenState.ERROR -> uiState.errorMessage.orEmpty().ifBlank { "视频加载失败，请重试" }
+    }
 }
 
 internal fun buildDramaMeta(drama: Drama): String {

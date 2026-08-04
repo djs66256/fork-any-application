@@ -5,10 +5,21 @@ import com.djs66256.short_drama.domain.model.CheckInDay
 import com.djs66256.short_drama.domain.model.CheckInDayStatus
 import com.djs66256.short_drama.domain.model.CheckInStatus
 import com.djs66256.short_drama.domain.model.Drama
+import com.djs66256.short_drama.domain.model.DramaEpisodeList
+import com.djs66256.short_drama.domain.model.Episode
+import com.djs66256.short_drama.domain.model.PlaybackProgress
+import com.djs66256.short_drama.domain.model.SeriesStatus
+import com.djs66256.short_drama.domain.model.StartPlaybackParams
+import com.djs66256.short_drama.domain.model.StartPlaybackResult
 import com.djs66256.short_drama.domain.repository.CheckInRepository
 import com.djs66256.short_drama.domain.usecase.GetCheckInStatusUseCase
+import com.djs66256.short_drama.domain.usecase.GetDramaEpisodesUseCase
 import com.djs66256.short_drama.domain.usecase.GetDramasUseCase
+import com.djs66256.short_drama.domain.usecase.GetPlaybackProgressUseCase
+import com.djs66256.short_drama.domain.usecase.StartPlaybackUseCase
+import com.djs66256.short_drama.domain.usecase.StopPlaybackUseCase
 import com.djs66256.short_drama.domain.usecase.SubmitCheckInUseCase
+import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -35,6 +46,10 @@ class HomeViewModelTest {
     private val getCheckInStatusUseCase = mockk<GetCheckInStatusUseCase>()
     private val submitCheckInUseCase = mockk<SubmitCheckInUseCase>()
     private val checkInRepository = mockk<CheckInRepository>(relaxed = true)
+    private val getPlaybackProgressUseCase = mockk<GetPlaybackProgressUseCase>()
+    private val getDramaEpisodesUseCase = mockk<GetDramaEpisodesUseCase>()
+    private val startPlaybackUseCase = mockk<StartPlaybackUseCase>()
+    private val stopPlaybackUseCase = mockk<StopPlaybackUseCase>(relaxed = true)
 
     @Before
     fun setUp() {
@@ -53,12 +68,7 @@ class HomeViewModelTest {
         coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(status)
         coEvery { checkInRepository.getDismissedServerDate() } returns null
 
-        val viewModel = HomeViewModel(
-            getDramasUseCase = getDramasUseCase,
-            getCheckInStatusUseCase = getCheckInStatusUseCase,
-            submitCheckInUseCase = submitCheckInUseCase,
-            checkInRepository = checkInRepository,
-        )
+        val viewModel = createViewModel()
 
         viewModel.loadIfNeeded()
         advanceUntilIdle()
@@ -80,12 +90,7 @@ class HomeViewModelTest {
         coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(status)
         coEvery { checkInRepository.getDismissedServerDate() } returns "2026-07-30"
 
-        val viewModel = HomeViewModel(
-            getDramasUseCase = getDramasUseCase,
-            getCheckInStatusUseCase = getCheckInStatusUseCase,
-            submitCheckInUseCase = submitCheckInUseCase,
-            checkInRepository = checkInRepository,
-        )
+        val viewModel = createViewModel()
 
         viewModel.loadIfNeeded()
         advanceUntilIdle()
@@ -112,12 +117,7 @@ class HomeViewModelTest {
         coEvery { checkInRepository.getDismissedServerDate() } returns null
         coEvery { submitCheckInUseCase() } returns ApiResult.Success(submittedStatus)
 
-        val viewModel = HomeViewModel(
-            getDramasUseCase = getDramasUseCase,
-            getCheckInStatusUseCase = getCheckInStatusUseCase,
-            submitCheckInUseCase = submitCheckInUseCase,
-            checkInRepository = checkInRepository,
-        )
+        val viewModel = createViewModel()
         viewModel.loadIfNeeded()
         advanceUntilIdle()
 
@@ -143,12 +143,7 @@ class HomeViewModelTest {
             message = "签到失败，请重试",
         )
 
-        val viewModel = HomeViewModel(
-            getDramasUseCase = getDramasUseCase,
-            getCheckInStatusUseCase = getCheckInStatusUseCase,
-            submitCheckInUseCase = submitCheckInUseCase,
-            checkInRepository = checkInRepository,
-        )
+        val viewModel = createViewModel()
         viewModel.loadIfNeeded()
         advanceUntilIdle()
 
@@ -168,18 +163,59 @@ class HomeViewModelTest {
         coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(sampleCheckInStatus())
         coEvery { checkInRepository.getDismissedServerDate() } returns null
 
-        val viewModel = HomeViewModel(
-            getDramasUseCase = getDramasUseCase,
-            getCheckInStatusUseCase = getCheckInStatusUseCase,
-            submitCheckInUseCase = submitCheckInUseCase,
-            checkInRepository = checkInRepository,
-        )
+        val viewModel = createViewModel()
         viewModel.loadIfNeeded()
         advanceUntilIdle()
 
         viewModel.abandonCheckInPopupForCurrentSession()
 
         assertFalse(viewModel.uiState.value.checkInPopup.isVisible)
+    }
+
+    @Test
+    fun `home feed visible drama change bootstraps current player episode`() = runTest {
+        coEvery { getPlaybackProgressUseCase("drama-1") } returns ApiResult.Success(
+            PlaybackProgress(
+                dramaId = "drama-1",
+                hasHistory = false,
+                episodeId = null,
+                startTime = 0.0,
+                updatedAt = null,
+            ),
+        )
+        coEvery { getDramaEpisodesUseCase("drama-1") } returns ApiResult.Success(
+            DramaEpisodeList(
+                dramaId = "drama-1",
+                seriesStatus = SeriesStatus.COMPLETED,
+                items = listOf(playableEpisode(1)),
+            ),
+        )
+        coEvery {
+            startPlaybackUseCase(StartPlaybackParams("drama-1", "episode-1", 0.0))
+        } returns ApiResult.Success(startResult("episode-1", 0.0))
+
+        val viewModel = createViewModel()
+        viewModel.onVisibleDramaChanged("drama-1")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("drama-1", state.activeDramaId)
+        assertEquals(PlayerScreenState.PLAYING, state.activePlayerUiState.screenState)
+        assertEquals("episode-1", state.activePlayerUiState.currentEpisode?.id)
+        assertEquals(0.0, state.activePlayerUiState.resumeProgress, 0.0)
+    }
+
+    private fun createViewModel(): HomeViewModel {
+        return HomeViewModel(
+            getDramasUseCase = getDramasUseCase,
+            getCheckInStatusUseCase = getCheckInStatusUseCase,
+            submitCheckInUseCase = submitCheckInUseCase,
+            checkInRepository = checkInRepository,
+            getPlaybackProgressUseCase = getPlaybackProgressUseCase,
+            getDramaEpisodesUseCase = getDramaEpisodesUseCase,
+            startPlaybackUseCase = startPlaybackUseCase,
+            stopPlaybackUseCase = stopPlaybackUseCase,
+        )
     }
 
     private fun sampleDrama(id: String = "drama-1"): Drama = Drama(
@@ -211,5 +247,26 @@ class HomeViewModelTest {
         currentStreak = 2,
         rewardCopy = "今日签到可领取第 3 天奖励",
         days = days,
+    )
+
+    private fun playableEpisode(number: Int): Episode = Episode(
+        id = "episode-$number",
+        dramaId = "drama-1",
+        title = "第 $number 集",
+        episodeNumber = number,
+        videoUrl = "https://example.com/$number.mp4",
+        duration = 100,
+        thumbnailUrl = "https://example.com/$number.jpg",
+        description = "第 $number 集简介",
+        createdAt = "2026-07-26T00:00:00Z",
+        updatedAt = "2026-07-26T00:00:00Z",
+    )
+
+    private fun startResult(episodeId: String, progress: Double): StartPlaybackResult = StartPlaybackResult(
+        dramaId = "drama-1",
+        episodeId = episodeId,
+        acceptedProgress = progress,
+        playbackSessionId = "session-123",
+        startedAt = "2026-07-26T00:00:00Z",
     )
 }
