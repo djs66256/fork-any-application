@@ -8,7 +8,6 @@ struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     @State private var loginAlertContext: CommentLoginContext?
     @State private var currentFeedDramaID: Drama.ID?
-    @State private var showBottomChrome = true
 
     init(viewModel: HomeViewModel? = nil) {
         if let viewModel {
@@ -78,7 +77,7 @@ struct HomeView: View {
             .safeAreaPadding(.top)
         }
         .overlay(alignment: .bottom) {
-            if let drama = featuredDrama, showBottomChrome {
+            if let drama = featuredDrama {
                 HomeBottomChrome(
                     drama: drama,
                     onPlay: { handlePlay(for: drama) }
@@ -88,11 +87,6 @@ struct HomeView: View {
                 .padding(.bottom, 4)
                 .safeAreaPadding(.bottom)
             }
-        }
-        .task(id: featuredDrama?.id) {
-            showBottomChrome = true
-            try? await Task.sleep(nanoseconds: 3_000_000_000)
-            showBottomChrome = false
         }
         .toolbar(.hidden, for: .navigationBar)
         .task {

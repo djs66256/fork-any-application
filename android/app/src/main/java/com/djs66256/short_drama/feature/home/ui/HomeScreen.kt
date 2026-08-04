@@ -87,8 +87,6 @@ import com.djs66256.short_drama.feature.player.player.PlaceholderPlayerHost
 import com.djs66256.short_drama.feature.player.player.PlayerEventAdapter
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerScreenState
 import com.djs66256.short_drama.feature.player.viewmodel.PlayerUiState
-import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -108,7 +106,6 @@ fun HomeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     var activeCommentDramaId by remember { mutableStateOf<String?>(null) }
     var pendingCommentLoginContext by remember { mutableStateOf<CommentLoginContext?>(null) }
-    var showFrameCta by remember { mutableStateOf(true) }
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { uiState.items.size },
@@ -134,7 +131,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(pagerState, uiState.items) {
-        snapshotFlow { currentHomeFeedDrama(uiState.items, pagerState.settledPage)?.id }
+        kotlinx.coroutines.flow.snapshotFlow { currentHomeFeedDrama(uiState.items, pagerState.settledPage)?.id }
             .map { it?.takeIf(String::isNotBlank) }
             .filterNotNull()
             .distinctUntilChanged()
@@ -201,15 +198,7 @@ fun HomeScreen(
         }
 
         val featuredDrama = currentHomeFeedDrama(uiState.items, activePage)
-
-        // 自动隐藏弹窗：显示3秒后隐藏
-        LaunchedEffect(featuredDrama?.id) {
-            showFrameCta = true
-            delay(3000)
-            showFrameCta = false
-        }
-
-        if (featuredDrama != null && showFrameCta && !uiState.isLoading && errorMessage == null) {
+        if (featuredDrama != null && !uiState.isLoading && errorMessage == null) {
             HomeFrameCta(
                 episodeCount = featuredDrama.episodeCount,
                 onClick = {
