@@ -19,10 +19,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -62,7 +63,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -114,6 +114,7 @@ fun RankingScreen(
         onLoadNextPage = viewModel::loadNextPageIfNeeded,
         onOpenPlay = onOpenPlay,
         onBook = viewModel::onBookClick,
+        applyBottomSafeArea = false,
         modifier = modifier,
     )
 }
@@ -129,30 +130,23 @@ fun RankingScreenContent(
     onLoadNextPage: () -> Unit,
     onOpenPlay: (String) -> Unit,
     onBook: (String) -> Unit,
+    applyBottomSafeArea: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = RankingPageBackground,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) {
-        val safeStatusBarPadding = with(density) {
-            WindowInsets.statusBars.getTop(this).toDp()
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(RankingPageBackground),
         ) {
-            val headerTopPadding = rankingHeaderTopPadding(safeStatusBarPadding)
             RankingHeader(
                 selectedContentType = uiState.selectedContentType,
                 selectedRankingType = uiState.selectedRankingType,
                 onBack = onBack,
-                topInset = headerTopPadding,
             )
             Box(
                 modifier = Modifier
@@ -182,6 +176,7 @@ fun RankingScreenContent(
                             onLoadNextPage = onLoadNextPage,
                             onOpenPlay = onOpenPlay,
                             onBook = onBook,
+                            applyBottomSafeArea = applyBottomSafeArea,
                             modifier = Modifier.weight(1f),
                         )
                     }
@@ -196,7 +191,6 @@ private fun RankingHeader(
     selectedContentType: RankingContentType,
     selectedRankingType: RankingType,
     onBack: () -> Unit,
-    topInset: Dp,
 ) {
     val headerPalette = rankingHeaderPalette(selectedRankingType)
 
@@ -222,7 +216,8 @@ private fun RankingHeader(
             onClick = onBack,
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(start = 18.dp, top = topInset + 8.dp)
+                .statusBarsPadding()
+                .padding(start = 18.dp, top = rankingHeaderTopPadding())
                 .size(36.dp),
         ) {
             Icon(
@@ -236,7 +231,8 @@ private fun RankingHeader(
         Surface(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = topInset + 4.dp, end = 18.dp),
+                .statusBarsPadding()
+                .padding(top = rankingHeaderTopPadding(extraSpacing = 4.dp), end = 18.dp),
             shape = CircleShape,
             color = Color.White.copy(alpha = 0.16f),
         ) {
@@ -652,6 +648,7 @@ private fun RankingContent(
     onLoadNextPage: () -> Unit,
     onOpenPlay: (String) -> Unit,
     onBook: (String) -> Unit,
+    applyBottomSafeArea: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -672,6 +669,7 @@ private fun RankingContent(
                 onLoadNextPage = onLoadNextPage,
                 onOpenPlay = onOpenPlay,
                 onBook = onBook,
+                applyBottomSafeArea = applyBottomSafeArea,
             )
         }
 
@@ -695,10 +693,16 @@ private fun RankingList(
     onLoadNextPage: () -> Unit,
     onOpenPlay: (String) -> Unit,
     onBook: (String) -> Unit,
+    applyBottomSafeArea: Boolean,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 2.dp, bottom = 20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .then(if (applyBottomSafeArea) Modifier.navigationBarsPadding() else Modifier),
+        contentPadding = PaddingValues(
+            top = 2.dp,
+            bottom = rankingListBottomPadding(),
+        ),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         itemsIndexed(
@@ -1375,7 +1379,9 @@ private fun RankingAppendFooter(
     }
 }
 
-internal fun rankingHeaderTopPadding(statusBarInset: Dp): Dp = statusBarInset.coerceAtLeast(18.dp)
+internal fun rankingHeaderTopPadding(extraSpacing: Dp = 8.dp): Dp = extraSpacing
+
+internal fun rankingListBottomPadding(extraSpacing: Dp = 20.dp): Dp = extraSpacing
 
 private fun rankingBannerTitle(rankingType: RankingType): String = when (rankingType) {
     RankingType.HOT -> "红果热播榜"

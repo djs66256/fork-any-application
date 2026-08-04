@@ -7,9 +7,14 @@ import org.junit.Test
 class RankingScreenTest {
 
     @Test
-    fun `ranking header top padding keeps minimum touch safe spacing`() {
-        assertEquals(18.dp, rankingHeaderTopPadding(0.dp))
-        assertEquals(18.dp, rankingHeaderTopPadding(12.dp))
-        assertEquals(28.dp, rankingHeaderTopPadding(28.dp))
+    fun `ranking header top padding only keeps local spacing because status bar is handled by modifier`() {
+        assertEquals(8.dp, rankingHeaderTopPadding())
+        assertEquals(4.dp, rankingHeaderTopPadding(extraSpacing = 4.dp))
+    }
+
+    @Test
+    fun `ranking list bottom padding keeps lightweight spacing because navigation bar inset is handled by modifier`() {
+        assertEquals(20.dp, rankingListBottomPadding())
+        assertEquals(12.dp, rankingListBottomPadding(extraSpacing = 12.dp))
     }
 }

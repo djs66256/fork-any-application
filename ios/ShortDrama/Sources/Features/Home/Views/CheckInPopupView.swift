@@ -25,6 +25,10 @@ struct CheckInPopupView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let topPadding = max(proxy.safeAreaInsets.top, DesignTokens.Spacing.lg)
+            let bottomPadding = max(proxy.safeAreaInsets.bottom, DesignTokens.Spacing.xl)
+            let availableHeight = max(proxy.size.height - topPadding - bottomPadding, 0)
+
             ZStack {
                 Color.black.opacity(0.6)
                     .ignoresSafeArea()
@@ -66,10 +70,10 @@ struct CheckInPopupView: View {
                         .accessibilityLabel("关闭签到弹窗")
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(minHeight: proxy.size.height, alignment: .center)
+                    .frame(minHeight: availableHeight, alignment: .center)
                     .padding(.horizontal, DesignTokens.Spacing.xl)
-                    .padding(.top, max(proxy.safeAreaInsets.top, DesignTokens.Spacing.lg))
-                    .padding(.bottom, max(proxy.safeAreaInsets.bottom, DesignTokens.Spacing.xl))
+                    .padding(.top, topPadding)
+                    .padding(.bottom, bottomPadding)
                 }
                 .scrollBounceBehavior(.basedOnSize)
             }

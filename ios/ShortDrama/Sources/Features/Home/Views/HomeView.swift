@@ -73,19 +73,17 @@ struct HomeView: View {
                 onOpenSearch: { router.navigate(to: .searchHome) }
             )
             .padding(.horizontal, DesignTokens.Spacing.md)
-            .padding(.top, 2)
-            .safeAreaPadding(.top)
+            .padding(.top, HomeOverlayLayout.topOverlayPadding)
         }
         .overlay(alignment: .bottom) {
-            if viewModel.isFeaturedDramaPopupVisible,
+            if isBottomChromeVisible,
                let drama = featuredDrama {
                 HomeBottomChrome(
                     drama: drama,
                     onPlay: { handlePlay(for: drama) }
                 )
                 .padding(.horizontal, DesignTokens.Spacing.md)
-                .padding(.bottom, DesignTokens.Spacing.sm)
-                .safeAreaPadding(.bottom)
+                .padding(.bottom, HomeOverlayLayout.bottomOverlayPadding)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -144,6 +142,10 @@ struct HomeView: View {
         }
 
         return dramas.first
+    }
+
+    private var isBottomChromeVisible: Bool {
+        viewModel.isFeaturedDramaPopupVisible && viewModel.checkInPopupState == nil && viewModel.activeCommentSheet == nil
     }
 
     private var activeCommentSheetBinding: Binding<HomeViewModel.CommentSheetContext?> {
@@ -272,12 +274,19 @@ private struct HomeFeedListView: View {
 private enum HomeFeedPageLayout {
     static func contentInsets(for safeAreaInsets: EdgeInsets) -> EdgeInsets {
         EdgeInsets(
-            top: safeAreaInsets.top + 56,
+            top: safeAreaInsets.top + HomeOverlayLayout.topReservedContentInset,
             leading: DesignTokens.Spacing.lg,
-            bottom: safeAreaInsets.bottom + 88,
+            bottom: safeAreaInsets.bottom + HomeOverlayLayout.bottomReservedContentInset,
             trailing: DesignTokens.Spacing.lg
         )
     }
+}
+
+private enum HomeOverlayLayout {
+    static let topOverlayPadding: CGFloat = 2
+    static let topReservedContentInset: CGFloat = 56
+    static let bottomOverlayPadding: CGFloat = DesignTokens.Spacing.sm
+    static let bottomReservedContentInset: CGFloat = 0
 }
 
 private struct HomeFeedLoadingView: View {
