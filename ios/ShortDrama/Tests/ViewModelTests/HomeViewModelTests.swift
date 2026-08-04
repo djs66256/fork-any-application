@@ -27,7 +27,11 @@ struct HomeViewModelTests {
         installationIdStore: MockInstallationIdStore = MockInstallationIdStore(),
         dismissStore: MockCheckInPopupDismissStore = MockCheckInPopupDismissStore(),
         isUserLoggedIn: @escaping @Sendable () -> Bool = { false },
-        accessTokenProvider: @escaping @Sendable () -> String? = { nil }
+        accessTokenProvider: @escaping @Sendable () -> String? = { nil },
+        featuredDramaPopupAutoHideDuration: Duration = .seconds(3),
+        featuredDramaPopupSleep: @escaping @Sendable (Duration) async throws -> Void = { duration in
+            try await Task.sleep(for: duration)
+        }
     ) -> HomeViewModel {
         HomeViewModel(
             fetchDramasUseCase: FetchDramasUseCase(repository: repository),
@@ -37,7 +41,9 @@ struct HomeViewModelTests {
             installationIdStore: installationIdStore,
             dismissStore: dismissStore,
             isUserLoggedIn: isUserLoggedIn,
-            accessTokenProvider: accessTokenProvider
+            accessTokenProvider: accessTokenProvider,
+            featuredDramaPopupAutoHideDuration: featuredDramaPopupAutoHideDuration,
+            featuredDramaPopupSleep: featuredDramaPopupSleep
         )
     }
 
@@ -53,6 +59,7 @@ struct HomeViewModelTests {
 
         #expect(viewModel.viewState == .content([makeDrama()]))
         #expect(viewModel.isRetrying == false)
+        #expect(viewModel.isFeaturedDramaPopupVisible == true)
         #expect(mock.fetchDramasCallCount == 1)
         #expect(mock.lastRequestedPage == 1)
         #expect(mock.lastRequestedPageSize == 10)
@@ -221,7 +228,11 @@ struct HomeViewModelTests {
         checkInRepository.fetchStatusResult = .success(.fixture(serverDate: "2026-07-29"))
         let dismissStore = MockCheckInPopupDismissStore()
         dismissStore.dismissedDates.insert("2026-07-29")
-        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository, dismissStore: dismissStore)
+        let viewModel = makeViewModel(
+            repository: mock,
+            checkInRepository: checkInRepository,
+            dismissStore: dismissStore
+        )
 
         await viewModel.loadIfNeeded()
 
@@ -290,7 +301,11 @@ struct HomeViewModelTests {
         let checkInRepository = MockCheckInRepository()
         checkInRepository.fetchStatusResult = .success(.fixture())
         let dismissStore = MockCheckInPopupDismissStore()
-        let viewModel = makeViewModel(repository: mock, checkInRepository: checkInRepository, dismissStore: dismissStore)
+        let viewModel = makeViewModel(
+            repository: mock,
+            checkInRepository: checkInRepository,
+            dismissStore: dismissStore
+        )
 
         await viewModel.loadIfNeeded()
         viewModel.dismissCheckInPopup()

@@ -26,6 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +44,10 @@ data class CheckInPopupUiState(
     val submitErrorMessage: String? = null,
 )
 
+data class FeaturedDramaPopupUiState(
+    val isVisible: Boolean = false,
+)
+
 data class HomeUiState(
     val isLoading: Boolean = true,
     val items: List<Drama> = emptyList(),
@@ -51,6 +56,7 @@ data class HomeUiState(
     val isRetrying: Boolean = false,
     val activeDramaId: String? = null,
     val activePlayerUiState: PlayerUiState = PlayerUiState(),
+    val featuredDramaPopup: FeaturedDramaPopupUiState = FeaturedDramaPopupUiState(),
     val checkInPopup: CheckInPopupUiState = CheckInPopupUiState(),
 )
 
@@ -71,8 +77,10 @@ class HomeViewModel @Inject constructor(
 
     private var requestInFlight = false
     private var checkInPopupAbandoned = false
+    private var hasShownFeaturedDramaPopupForSession = false
     private var feedPlaybackJob: Job? = null
     private var stopReportJob: Job? = null
+    private var featuredDramaPopupJob: Job? = null
     private var currentPlaybackPositionSeconds: Double = 0.0
 
     fun loadIfNeeded() {
@@ -104,6 +112,35 @@ class HomeViewModel @Inject constructor(
             return
         }
         bootstrapFeedPlayback(dramaId)
+    }
+
+    fun onHomeContentPresented(hasBlockingModal: Boolean) {
+        val state = uiState.value
+        val hasContent = state.items.isNotEmpty() && !state.isLoading && state.errorMessage == null
+        if (
+            !hasContent ||
+            hasBlockingModal ||
+            hasShownFeaturedDramaPopupForSession ||
+            state.featuredDramaPopup.isVisible
+        ) {
+            return
+        }
+
+        hasShownFeaturedDramaPopupForSession = true
+        featuredDramaPopupJob?.cancel()
+        _uiState.update { currentState ->
+            currentState.copy(
+                featuredDramaPopup = currentState.featuredDramaPopup.copy(isVisible = true),
+            )
+        }
+        featuredDramaPopupJob = viewModelScope.launch {
+            delay(FEATURED_DRAMA_POPUP_AUTO_HIDE_MILLIS)
+            _uiState.update { currentState ->
+                currentState.copy(
+                    featuredDramaPopup = currentState.featuredDramaPopup.copy(isVisible = false),
+                )
+            }
+        }
     }
 
     fun onFeedPlaybackPositionChanged(positionSeconds: Double) {
@@ -161,6 +198,7 @@ class HomeViewModel @Inject constructor(
 
     fun onScreenDisposed() {
         feedPlaybackJob?.cancel()
+        featuredDramaPopupJob?.cancel()
         reportStopBestEffort()
     }
 
@@ -253,6 +291,7 @@ class HomeViewModel @Inject constructor(
                         isRetrying = false,
                         activeDramaId = _uiState.value.activeDramaId,
                         activePlayerUiState = _uiState.value.activePlayerUiState,
+                        featuredDramaPopup = _uiState.value.featuredDramaPopup,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                     is ApiResult.Error -> HomeUiState(
@@ -263,6 +302,7 @@ class HomeViewModel @Inject constructor(
                         isRetrying = false,
                         activeDramaId = _uiState.value.activeDramaId,
                         activePlayerUiState = _uiState.value.activePlayerUiState,
+                        featuredDramaPopup = _uiState.value.featuredDramaPopup,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                     is ApiResult.Exception -> HomeUiState(
@@ -273,6 +313,7 @@ class HomeViewModel @Inject constructor(
                         isRetrying = false,
                         activeDramaId = _uiState.value.activeDramaId,
                         activePlayerUiState = _uiState.value.activePlayerUiState,
+                        featuredDramaPopup = _uiState.value.featuredDramaPopup,
                         checkInPopup = _uiState.value.checkInPopup,
                     )
                 }
@@ -288,6 +329,7 @@ class HomeViewModel @Inject constructor(
                     isRetrying = false,
                     activeDramaId = _uiState.value.activeDramaId,
                     activePlayerUiState = _uiState.value.activePlayerUiState,
+                    featuredDramaPopup = _uiState.value.featuredDramaPopup,
                     checkInPopup = _uiState.value.checkInPopup,
                 )
             } finally {
@@ -568,6 +610,7 @@ class HomeViewModel @Inject constructor(
     private companion object {
         const val FIRST_PAGE = 1
         const val FEED_PAGE_SIZE = 10
+        const val FEATURED_DRAMA_POPUP_AUTO_HIDE_MILLIS = 3_000L
         const val DEFAULT_ERROR_MESSAGE = "加载失败，请重试"
         const val DEFAULT_CHECK_IN_SUBMIT_ERROR_MESSAGE = "签到失败，请重试"
         const val DEFAULT_PLAYBACK_ERROR_MESSAGE = "视频加载失败，请重试"

@@ -37,6 +37,7 @@ final class HomeViewModel: ObservableObject {
     private enum Constants {
         static let firstPage = 1
         static let pageSize = 10
+        static let featuredDramaPopupAutoHideDuration: Duration = .seconds(3)
     }
 
     @Published private(set) var viewState: ViewState = .loading
@@ -45,6 +46,7 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var pendingCommentLoginContext: CommentLoginContext?
     @Published private(set) var checkInPopupState: CheckInPopupState?
     @Published private(set) var isPresentingBlockingOverlay = false
+    @Published private(set) var isFeaturedDramaPopupVisible = false
 
     private let fetchDramasUseCase: FetchDramasUseCase
     private let fetchDramaCommentsUseCase: FetchDramaCommentsUseCase
@@ -56,20 +58,32 @@ final class HomeViewModel: ObservableObject {
     private let dismissStore: CheckInPopupDismissStore
     private let isUserLoggedIn: @Sendable () -> Bool
     private let accessTokenProvider: @Sendable () -> String?
+    private let featuredDramaPopupAutoHideDuration: Duration
+    private let featuredDramaPopupSleep: @Sendable (Duration) async throws -> Void
 
     private var hasLoaded = false
     private var isRequestInFlight = false
     private var hasEvaluatedCheckInPopup = false
+    private var hasPresentedFeaturedDramaPopup = false
+    private var featuredDramaPopupHideTask: Task<Void, Never>?
 
     init(
         fetchDramasUseCase: FetchDramasUseCase,
         commentRepository: CommentRepositoryProtocol = CommentRepository(),
-        fetchCheckInStatusUseCase: FetchCheckInStatusUseCase = FetchCheckInStatusUseCase(repository: CheckInRepository()),
-        submitCheckInUseCase: SubmitCheckInUseCase = SubmitCheckInUseCase(repository: CheckInRepository()),
+        fetchCheckInStatusUseCase: FetchCheckInStatusUseCase = .init(
+            repository: CheckInRepository()
+        ),
+        submitCheckInUseCase: SubmitCheckInUseCase = .init(
+            repository: CheckInRepository()
+        ),
         installationIdStore: InstallationIdStore = KeychainInstallationIdStore(),
         dismissStore: CheckInPopupDismissStore = UserDefaultsCheckInPopupDismissStore(),
         isUserLoggedIn: @escaping @Sendable () -> Bool = { false },
-        accessTokenProvider: @escaping @Sendable () -> String? = { nil }
+        accessTokenProvider: @escaping @Sendable () -> String? = { nil },
+        featuredDramaPopupAutoHideDuration: Duration = Constants.featuredDramaPopupAutoHideDuration,
+        featuredDramaPopupSleep: @escaping @Sendable (Duration) async throws -> Void = { duration in
+            try await Task.sleep(for: duration)
+        }
     ) {
         self.fetchDramasUseCase = fetchDramasUseCase
         self.fetchDramaCommentsUseCase = FetchDramaCommentsUseCase(repository: commentRepository)
@@ -81,6 +95,12 @@ final class HomeViewModel: ObservableObject {
         self.dismissStore = dismissStore
         self.isUserLoggedIn = isUserLoggedIn
         self.accessTokenProvider = accessTokenProvider
+        self.featuredDramaPopupAutoHideDuration = featuredDramaPopupAutoHideDuration
+        self.featuredDramaPopupSleep = featuredDramaPopupSleep
+    }
+
+    deinit {
+        featuredDramaPopupHideTask?.cancel()
     }
 
     func loadIfNeeded() async {
@@ -157,7 +177,10 @@ final class HomeViewModel: ObservableObject {
         do {
             let accessToken = accessTokenProvider()?.trimmingCharacters(in: .whitespacesAndNewlines)
             let installationId = try installationIdForCheckInRequest(accessToken: accessToken)
-            let status = try await submitCheckInUseCase.execute(installationId: installationId, accessToken: accessToken)
+            let status = try await submitCheckInUseCase.execute(
+                installationId: installationId,
+                accessToken: accessToken
+            )
             dismissStore.markDismissed(serverDate: status.serverDate)
             checkInPopupState = makePopupState(from: status, feedbackMessage: "签到成功", isError: false)
         } catch let error as APIError {
@@ -217,6 +240,7 @@ final class HomeViewModel: ObservableObject {
                 viewState = .empty
             } else {
                 viewState = .content(dramas)
+                presentFeaturedDramaPopupIfNeeded()
             }
 
             await evaluateCheckInPopupIfNeeded()
@@ -237,8 +261,13 @@ final class HomeViewModel: ObservableObject {
         do {
             let accessToken = accessTokenProvider()?.trimmingCharacters(in: .whitespacesAndNewlines)
             let installationId = try installationIdForCheckInRequest(accessToken: accessToken)
-            let status = try await fetchCheckInStatusUseCase.execute(installationId: installationId, accessToken: accessToken)
-            guard status.shouldShowPopup, !status.todaySigned, !dismissStore.isDismissed(serverDate: status.serverDate) else {
+            let status = try await fetchCheckInStatusUseCase.execute(
+                installationId: installationId,
+                accessToken: accessToken
+            )
+            guard status.shouldShowPopup,
+                  !status.todaySigned,
+                  !dismissStore.isDismissed(serverDate: status.serverDate) else {
                 checkInPopupState = nil
                 return
             }
@@ -255,7 +284,36 @@ final class HomeViewModel: ObservableObject {
         return try installationIdStore.getOrCreateInstallationId()
     }
 
-    private func makePopupState(from status: SignInStatus, feedbackMessage: String? = nil, isError: Bool = false) -> CheckInPopupState {
+    private func presentFeaturedDramaPopupIfNeeded() {
+        guard !hasPresentedFeaturedDramaPopup else { return }
+
+        hasPresentedFeaturedDramaPopup = true
+        isFeaturedDramaPopupVisible = true
+        featuredDramaPopupHideTask?.cancel()
+
+        let autoHideDuration = featuredDramaPopupAutoHideDuration
+        let sleep = featuredDramaPopupSleep
+        featuredDramaPopupHideTask = Task {
+            do {
+                try await sleep(autoHideDuration)
+            } catch {
+                return
+            }
+
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run { [weak self] in
+                self?.isFeaturedDramaPopupVisible = false
+                self?.featuredDramaPopupHideTask = nil
+            }
+        }
+    }
+
+    private func makePopupState(
+        from status: SignInStatus,
+        feedbackMessage: String? = nil,
+        isError: Bool = false
+    ) -> CheckInPopupState {
         CheckInPopupState(
             serverDate: status.serverDate,
             rewardCopy: status.rewardCopy,

@@ -26,6 +26,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -170,6 +171,58 @@ class HomeViewModelTest {
         viewModel.abandonCheckInPopupForCurrentSession()
 
         assertFalse(viewModel.uiState.value.checkInPopup.isVisible)
+    }
+
+    @Test
+    fun `featured drama popup shows for three seconds after home content is presented`() = runTest {
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(
+            sampleCheckInStatus(shouldShowPopup = false),
+        )
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
+
+        val viewModel = createViewModel()
+        viewModel.loadIfNeeded()
+        advanceUntilIdle()
+
+        viewModel.onHomeContentPresented(hasBlockingModal = false)
+
+        assertTrue(viewModel.uiState.value.featuredDramaPopup.isVisible)
+
+        advanceTimeBy(2_999L)
+        assertTrue(viewModel.uiState.value.featuredDramaPopup.isVisible)
+
+        advanceTimeBy(1L)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.featuredDramaPopup.isVisible)
+    }
+
+    @Test
+    fun `featured drama popup is skipped when content presentation is blocked and only shows once`() = runTest {
+        coEvery { getDramasUseCase(page = 1, pageSize = 10) } returns ApiResult.Success(listOf(sampleDrama()))
+        coEvery { getCheckInStatusUseCase() } returns ApiResult.Success(
+            sampleCheckInStatus(shouldShowPopup = false),
+        )
+        coEvery { checkInRepository.getDismissedServerDate() } returns null
+
+        val viewModel = createViewModel()
+        viewModel.loadIfNeeded()
+        advanceUntilIdle()
+
+        viewModel.onHomeContentPresented(hasBlockingModal = true)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.featuredDramaPopup.isVisible)
+
+        viewModel.onHomeContentPresented(hasBlockingModal = false)
+        assertTrue(viewModel.uiState.value.featuredDramaPopup.isVisible)
+
+        advanceTimeBy(3_000L)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.featuredDramaPopup.isVisible)
+
+        viewModel.onHomeContentPresented(hasBlockingModal = false)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.featuredDramaPopup.isVisible)
     }
 
     @Test

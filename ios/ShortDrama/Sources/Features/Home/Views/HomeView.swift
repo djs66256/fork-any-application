@@ -77,17 +77,19 @@ struct HomeView: View {
             .safeAreaPadding(.top)
         }
         .overlay(alignment: .bottom) {
-            if let drama = featuredDrama {
+            if viewModel.isFeaturedDramaPopupVisible,
+               let drama = featuredDrama {
                 HomeBottomChrome(
                     drama: drama,
                     onPlay: { handlePlay(for: drama) }
                 )
                 .padding(.horizontal, DesignTokens.Spacing.md)
-                .padding(.top, 6)
-                .padding(.bottom, 4)
+                .padding(.bottom, DesignTokens.Spacing.sm)
                 .safeAreaPadding(.bottom)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(.easeInOut(duration: 0.24), value: viewModel.isFeaturedDramaPopupVisible)
         .toolbar(.hidden, for: .navigationBar)
         .task {
             viewModel.updateAuthState(
@@ -410,9 +412,9 @@ private struct HomeBottomChrome: View {
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                Text("首页主入口")
+                Text("弹窗入口 · 进入播放页")
                     .font(.caption)
-                    .foregroundStyle(Color.white.opacity(0.42))
+                    .foregroundStyle(Color.white.opacity(0.48))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -435,7 +437,9 @@ private struct HomeBottomChrome: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(DesignTokens.HomeChrome.frameCtaBorder, lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.28), radius: 18, y: 8)
         .clipShape(RoundedRectangle(cornerRadius: 24))
+        .accessibilityIdentifier("home_featured_drama_popup")
     }
 
     private var ctaTitle: String {

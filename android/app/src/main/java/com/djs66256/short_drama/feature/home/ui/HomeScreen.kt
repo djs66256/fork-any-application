@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -131,7 +132,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(pagerState, uiState.items) {
-        kotlinx.coroutines.flow.snapshotFlow { currentHomeFeedDrama(uiState.items, pagerState.settledPage)?.id }
+        snapshotFlow { currentHomeFeedDrama(uiState.items, pagerState.settledPage)?.id }
             .map { it?.takeIf(String::isNotBlank) }
             .filterNotNull()
             .distinctUntilChanged()
@@ -198,7 +199,26 @@ fun HomeScreen(
         }
 
         val featuredDrama = currentHomeFeedDrama(uiState.items, activePage)
-        if (featuredDrama != null && !uiState.isLoading && errorMessage == null) {
+        val shouldShowCheckInPopup = shouldRenderCheckInPopup(
+            isPopupVisible = uiState.checkInPopup.isVisible,
+            hasBlockingModal = hasBlockingModal,
+        )
+        val hasFeaturedDramaPopupBlocker = hasBlockingModal || shouldShowCheckInPopup
+        val hasHomeContent = featuredDrama != null && !uiState.isLoading && errorMessage == null
+
+        LaunchedEffect(hasHomeContent, hasFeaturedDramaPopupBlocker) {
+            if (hasHomeContent) {
+                viewModel.onHomeContentPresented(hasBlockingModal = hasFeaturedDramaPopupBlocker)
+            }
+        }
+
+        if (
+            featuredDrama != null &&
+            shouldRenderFeaturedDramaPopup(
+                isPopupVisible = uiState.featuredDramaPopup.isVisible,
+                hasBlockingModal = hasFeaturedDramaPopupBlocker,
+            )
+        ) {
             HomeFrameCta(
                 episodeCount = featuredDrama.episodeCount,
                 onClick = {
@@ -213,7 +233,7 @@ fun HomeScreen(
             )
         }
 
-        if (shouldRenderCheckInPopup(uiState.checkInPopup.isVisible, hasBlockingModal)) {
+        if (shouldShowCheckInPopup) {
             CheckInPopup(
                 state = uiState.checkInPopup,
                 onClose = viewModel::dismissCheckInPopup,
@@ -906,22 +926,22 @@ private fun buildCoverWatermark(drama: Drama): String {
 internal const val HOME_MENU_ENTRY_CONTENT_DESCRIPTION = "打开菜单"
 internal const val HOME_SEARCH_ENTRY_CONTENT_DESCRIPTION = "打开搜索"
 
-private val HOME_FRAME_CTA_HEIGHT = 60.dp
-private val HOME_FRAME_CTA_VERTICAL_MARGIN = 16.dp
 private val HOME_FEED_BOTTOM_CONTENT_SPACING = 12.dp
 
 internal fun shouldRenderCheckInPopup(isPopupVisible: Boolean, hasBlockingModal: Boolean): Boolean {
     return isPopupVisible && !hasBlockingModal
 }
 
+internal fun shouldRenderFeaturedDramaPopup(isPopupVisible: Boolean, hasBlockingModal: Boolean): Boolean {
+    return isPopupVisible && !hasBlockingModal
+}
+
 internal fun hasNavigableDramaId(dramaId: String): Boolean = dramaId.trim().isNotEmpty()
 
 internal fun homeFeedBottomContentPadding(
-    ctaHeight: Dp = HOME_FRAME_CTA_HEIGHT,
-    ctaVerticalMargin: Dp = HOME_FRAME_CTA_VERTICAL_MARGIN,
     extraSpacing: Dp = HOME_FEED_BOTTOM_CONTENT_SPACING,
 ): Dp {
-    return ctaHeight + ctaVerticalMargin + extraSpacing
+    return extraSpacing
 }
 
 internal fun currentHomeFeedDrama(items: List<Drama>, currentPage: Int): Drama? {

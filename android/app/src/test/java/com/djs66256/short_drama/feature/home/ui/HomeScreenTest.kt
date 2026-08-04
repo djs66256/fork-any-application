@@ -44,6 +44,13 @@ class HomeScreenTest {
     }
 
     @Test
+    fun `featured drama popup is suppressed when home has blocking modal`() {
+        assertFalse(shouldRenderFeaturedDramaPopup(isPopupVisible = true, hasBlockingModal = true))
+        assertTrue(shouldRenderFeaturedDramaPopup(isPopupVisible = true, hasBlockingModal = false))
+        assertFalse(shouldRenderFeaturedDramaPopup(isPopupVisible = false, hasBlockingModal = false))
+    }
+
+    @Test
     fun `home card meta text includes category tags episodes and rating`() {
         val drama = Drama(
             id = "drama-1",
@@ -76,20 +83,13 @@ class HomeScreenTest {
     }
 
     @Test
-    fun `home feed bottom content padding reserves cta height margin and spacing`() {
-        assertEquals(88.dp, homeFeedBottomContentPadding())
+    fun `home feed bottom content padding keeps lightweight spacing when popup no longer reserves slot`() {
+        assertEquals(12.dp, homeFeedBottomContentPadding())
     }
 
     @Test
-    fun `home feed bottom content padding remains configurable for different cta sizes`() {
-        assertEquals(
-            124.dp,
-            homeFeedBottomContentPadding(
-                ctaHeight = 80.dp,
-                ctaVerticalMargin = 28.dp,
-                extraSpacing = 16.dp,
-            ),
-        )
+    fun `home feed bottom content padding remains configurable for different spacing`() {
+        assertEquals(16.dp, homeFeedBottomContentPadding(extraSpacing = 16.dp))
     }
 
     @Test
